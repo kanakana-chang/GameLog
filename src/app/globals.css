@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-display: var(--font-outfit), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Noto Sans JP", sans-serif;
+  --font-body: var(--font-inter), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Noto Sans JP", sans-serif;
+  --color-bg: #f5f6fa;
+  --color-surface: #ffffff;
+  --color-border: #e2e5ef;
+  --color-primary: #5b4ef8;
+  --color-primary-hover: #4a3de0;
+  --color-primary-fg: #ffffff;
+  --color-primary-soft: rgba(91, 78, 248, 0.08);
+  --color-primary-softer: rgba(91, 78, 248, 0.12);
+  --color-danger: #e53e3e;
+  --color-danger-hover: #c53030;
+  --color-danger-soft: #fff0f0;
+  --color-danger-tint: #fff5f5;
+  --color-danger-border: #fecaca;
+  --color-danger-heading: #c53030;
+  --color-danger-body: #7b3030;
+  --color-danger-disabled: #fca5a5;
+  --color-muted: #8890a8;
+  --color-label: #4a5068;
+  --color-heading: #1a1d2e;
+  --color-success: #38a169;
+  --color-overlay: rgba(10, 10, 20, 0.55);
+  --shadow-focus-primary: 0 0 0 3px rgba(91, 78, 248, 0.1);
+  --shadow-focus-danger: 0 0 0 3px rgba(229, 62, 62, 0.1);
+}
+
+html,
+body {
+  height: 100%;
+}
