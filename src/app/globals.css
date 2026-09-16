@@ -5,6 +5,9 @@
     "Noto Sans JP", sans-serif;
   --font-body: var(--font-inter), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
     "Noto Sans JP", sans-serif;
+  --font-mypage: var(--font-noto-sans-jp), "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --color-bg: #f5f6fa;
   --color-surface: #ffffff;
   --color-border: #e2e5ef;
@@ -26,6 +29,14 @@
   --color-heading: #1a1d2e;
   --color-success: #38a169;
   --color-overlay: rgba(10, 10, 20, 0.55);
+  --color-page: #f8f7fc;
+  --color-ink: #1a1625;
+  --color-brand: #6c47ff;
+  --color-brand-soft: #f0eeff;
+  --color-subtle: #7b7490;
+  --color-line: #e4e1f0;
+  --color-copy: #3d3752;
+  --color-heart: #ff6b6b;
   --shadow-focus-primary: 0 0 0 3px rgba(91, 78, 248, 0.1);
   --shadow-focus-danger: 0 0 0 3px rgba(229, 62, 62, 0.1);
 }

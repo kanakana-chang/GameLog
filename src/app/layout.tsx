@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, JetBrains_Mono, Noto_Sans_JP, Outfit } from "next/font/google";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -14,18 +14,30 @@ const inter = Inter({
   weight: ["400", "500", "600"],
 });
 
+const notoSansJp = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["400", "600"],
+});
+
 export const metadata: Metadata = {
-  title: "アカウント設定 | GameLog",
-  description: "プロフィール情報・セキュリティ設定を管理できます",
+  title: "GameLog",
+  description: "ゲームのプレイ記録とレビューを残すマイページ",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ja"
-      className={`${outfit.variable} ${inter.variable} h-full antialiased`}
+      className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-bg font-body text-heading">{children}</body>
+      <body className="min-h-full bg-page font-mypage text-ink">{children}</body>
     </html>
   );
 }

@@ -1,5 +1,5 @@
-import { AccountSettings } from "@/components/account-settings/account-settings";
+import { MyPage } from "@/components/my-page/my-page";
 
 export default function Home() {
-  return <AccountSettings />;
+  return <MyPage />;
 }

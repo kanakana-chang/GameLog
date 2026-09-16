@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { DeleteDialog } from "./delete-dialog";
 import { FormField } from "./form-field";
@@ -22,8 +23,12 @@ const DELETED_DATA = [
   "ウィッシュリスト・ゲームコレクション",
 ];
 
-export function AccountSettings() {
-  const [activeTab, setActiveTab] = useState<Tab>("profile");
+export function AccountSettings({
+  initialTab = "profile",
+}: {
+  initialTab?: Tab;
+}) {
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [showCurrentPass, setShowCurrentPass] = useState(false);
@@ -106,9 +111,13 @@ export function AccountSettings() {
     <div className="min-h-full bg-bg font-body text-heading">
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-6 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-fg">
+          <Link
+            href="/"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-fg"
+            aria-label="マイページへ戻る"
+          >
             G
-          </div>
+          </Link>
           <span className="text-sm font-medium text-muted">/</span>
           <span className="text-sm font-semibold text-heading">アカウント設定</span>
         </div>
