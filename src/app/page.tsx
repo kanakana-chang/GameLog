@@ -1,5 +1,5 @@
-import { MyPage } from "@/components/my-page/my-page";
+import { GameTop } from "@/components/game-top/game-top";
 
 export default function Home() {
-  return <MyPage />;
+  return <GameTop />;
 }

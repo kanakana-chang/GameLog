@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Noto_Sans_JP, Outfit } from "next/font/google";
+import { AuthProvider } from "@/components/auth-provider";
+import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -28,7 +31,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "GameLog",
-  description: "ゲームのプレイ記録とレビューを残すマイページ",
+  description: "無課金での遊びやすさ・プレイボリューム・実際の口コミで、あなたにぴったりのゲームが見つかる",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -37,7 +40,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ja"
       className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-page font-mypage text-ink">{children}</body>
+      <body className="min-h-full bg-page font-mypage text-ink">
+        <AuthProvider>
+          <div className="flex min-h-full flex-col">
+            <Header />
+            <div className="flex-1">{children}</div>
+            <Footer />
+          </div>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

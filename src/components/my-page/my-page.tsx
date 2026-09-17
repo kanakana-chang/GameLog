@@ -40,24 +40,7 @@ export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
   };
 
   return (
-    <div className="min-h-full bg-page pb-16 font-mypage text-ink">
-      <div className="sticky top-0 z-30 border-b border-line bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <span className="font-display text-lg font-extrabold tracking-tight text-brand">
-            GameLog
-          </span>
-          {isOwner ? (
-            <Link
-              href="/settings"
-              className="flex items-center gap-1.5 text-sm text-subtle transition-colors hover:text-brand"
-            >
-              <IconSettings size={16} />
-              <span>設定</span>
-            </Link>
-          ) : null}
-        </div>
-      </div>
-
+    <div className="min-h-full bg-page font-mypage text-ink">
       <div className="mx-auto max-w-2xl px-4">
         <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
           <div className="relative h-24 bg-gradient-to-br from-brand via-[#8b6dff] to-[#c084fc]">

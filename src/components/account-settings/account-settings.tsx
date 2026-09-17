@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRef, useState } from "react";
 import { DeleteDialog } from "./delete-dialog";
 import { FormField } from "./form-field";
@@ -109,20 +108,6 @@ export function AccountSettings({
 
   return (
     <div className="min-h-full bg-bg font-body text-heading">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-4xl items-center gap-3 px-6 py-4">
-          <Link
-            href="/"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-fg"
-            aria-label="マイページへ戻る"
-          >
-            G
-          </Link>
-          <span className="text-sm font-medium text-muted">/</span>
-          <span className="text-sm font-semibold text-heading">アカウント設定</span>
-        </div>
-      </header>
-
       <div className="mx-auto max-w-4xl px-6 py-8">
         <div className="mb-8">
           <h1 className="mb-1 font-display text-2xl font-bold tracking-tight text-heading">
