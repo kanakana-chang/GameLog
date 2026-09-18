@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./auth-provider";
+import { LogoutModal } from "./logout-modal";
 
 const NAV_LINKS = ["レビュー", "掲示板", "ランキング", "記念カード"] as const;
 
@@ -45,8 +47,10 @@ function SearchIcon() {
 }
 
 function AccountMenu() {
+  const router = useRouter();
   const { avatarSrc, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,52 +66,77 @@ function AccountMenu() {
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [open]);
 
+  useEffect(() => {
+    if (!confirmOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setConfirmOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [confirmOpen]);
+
   return (
-    <div ref={menuRef} className="relative shrink-0">
-      <button
-        type="button"
-        onClick={() => setOpen((current) => !current)}
-        className="flex h-8 w-8 overflow-hidden rounded-full ring-1 ring-gray-200 transition hover:ring-indigo-400"
-        aria-label="アカウントメニュー"
-        aria-expanded={open}
-      >
-        <Image
-          src={avatarSrc}
-          alt="アカウント"
-          width={32}
-          height={32}
-          className="h-8 w-8 object-cover"
+    <>
+      <div ref={menuRef} className="relative shrink-0">
+        <button
+          type="button"
+          onClick={() => setOpen((current) => !current)}
+          className="flex h-8 w-8 overflow-hidden rounded-full ring-1 ring-gray-200 transition hover:ring-indigo-400"
+          aria-label="アカウントメニュー"
+          aria-expanded={open}
+        >
+          <Image
+            src={avatarSrc}
+            alt="アカウント"
+            width={32}
+            height={32}
+            className="h-8 w-8 object-cover"
+          />
+        </button>
+        {open ? (
+          <div className="absolute top-10 right-0 z-40 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+            <Link
+              href="/mypage"
+              onClick={() => setOpen(false)}
+              className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              マイページ
+            </Link>
+            <Link
+              href="/settings"
+              onClick={() => setOpen(false)}
+              className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              アカウント設定
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setConfirmOpen(true);
+              }}
+              className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            >
+              ログアウト
+            </button>
+          </div>
+        ) : null}
+      </div>
+      {confirmOpen ? (
+        <LogoutModal
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={() => {
+            setConfirmOpen(false);
+            logout();
+            router.push("/");
+          }}
         />
-      </button>
-      {open ? (
-        <div className="absolute top-10 right-0 z-40 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-          <Link
-            href="/mypage"
-            onClick={() => setOpen(false)}
-            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            マイページ
-          </Link>
-          <Link
-            href="/settings"
-            onClick={() => setOpen(false)}
-            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            アカウント設定
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              logout();
-            }}
-            className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-          >
-            ログアウト
-          </button>
-        </div>
       ) : null}
-    </div>
+    </>
   );
 }
 
