@@ -157,13 +157,12 @@ export function Header() {
             >
               ログイン
             </button>
-            <button
-              type="button"
-              onClick={login}
+            <Link
+              href="/register"
               className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-indigo-700 active:bg-indigo-800"
             >
               無料登録
-            </button>
+            </Link>
           </div>
         )}
       </div>

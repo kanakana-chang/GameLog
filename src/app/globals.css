@@ -39,6 +39,21 @@
   --color-heart: #ff6b6b;
   --shadow-focus-primary: 0 0 0 3px rgba(91, 78, 248, 0.1);
   --shadow-focus-danger: 0 0 0 3px rgba(229, 62, 62, 0.1);
+  --color-register-bg: #f8f9fc;
+  --color-register-fg: #0f1623;
+  --color-register-primary: #5b3ef5;
+  --color-register-muted: #6b7280;
+  --color-register-border: #e2e5f0;
+  --color-register-card: #ffffff;
+  --color-register-secondary: #3a3f5c;
+  --color-register-muted-bg: #f0f2f8;
+  --color-register-error: #f87171;
+  --color-register-weak: #f87171;
+  --color-register-medium: #fbbf24;
+  --color-register-strong: #34d399;
+  --color-register-panel: #1a0d4a;
+  --shadow-register-card: 0 8px 40px rgba(91, 62, 245, 0.08);
+  --shadow-register-btn: 0 4px 16px rgba(91, 62, 245, 0.35);
 }
 
 html,
