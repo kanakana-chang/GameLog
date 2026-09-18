@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Noto_Sans_JP, Outfit } from "next/font/google";
+import {
+  Inter,
+  JetBrains_Mono,
+  Noto_Sans_JP,
+  Outfit,
+  Rajdhani,
+} from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -29,6 +35,12 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "600"],
 });
 
+const rajdhani = Rajdhani({
+  variable: "--font-rajdhani",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "GameLog",
   description: "無課金での遊びやすさ・プレイボリューム・実際の口コミで、あなたにぴったりのゲームが見つかる",
@@ -38,7 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ja"
-      className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} ${rajdhani.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-page font-mypage text-ink">
         <AuthProvider>

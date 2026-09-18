@@ -54,6 +54,23 @@
   --color-register-panel: #1a0d4a;
   --shadow-register-card: 0 8px 40px rgba(91, 62, 245, 0.08);
   --shadow-register-btn: 0 4px 16px rgba(91, 62, 245, 0.35);
+  --font-login: var(--font-rajdhani), var(--font-outfit), "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --color-login-heading: #1a1340;
+  --color-login-violet: #7c3aed;
+  --color-login-tag: #8b7fc7;
+  --color-login-muted: #6b7280;
+  --color-login-label: #374151;
+  --color-login-input: #111827;
+  --color-login-border: #e5e7eb;
+  --color-login-faint: #9ca3af;
+  --color-login-field: #fafafa;
+  --color-login-disabled: #c4b5fd;
+  --shadow-login-card: 0 4px 40px rgba(124, 58, 237, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  --shadow-login-logo: 0 4px 14px rgba(124, 58, 237, 0.35);
+  --shadow-login-btn: 0 4px 16px rgba(124, 58, 237, 0.35);
+  --shadow-login-focus: 0 0 0 3px rgba(124, 58, 237, 0.12);
 }
 
 html,

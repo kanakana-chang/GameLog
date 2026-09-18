@@ -112,7 +112,7 @@ function AccountMenu() {
 }
 
 export function Header() {
-  const { isLoggedIn, login } = useAuth();
+  const { isLoggedIn } = useAuth();
 
   return (
     <header className="w-full border-b border-gray-200 bg-white shadow-sm">
@@ -150,13 +150,12 @@ export function Header() {
           <AccountMenu />
         ) : (
           <div className="flex shrink-0 items-center gap-4">
-            <button
-              type="button"
-              onClick={login}
+            <Link
+              href="/login"
               className="text-sm whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900"
             >
               ログイン
-            </button>
+            </Link>
             <Link
               href="/register"
               className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-indigo-700 active:bg-indigo-800"

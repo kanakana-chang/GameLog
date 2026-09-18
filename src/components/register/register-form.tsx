@@ -1,7 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { useAuth } from "@/components/auth-provider";
 
 type Step = "register" | "verify";
 type FieldErrors = {
@@ -33,7 +33,6 @@ const STRENGTH_CLASS = [
 ] as const;
 
 export function RegisterForm() {
-  const { login } = useAuth();
   const [step, setStep] = useState<Step>("register");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -178,13 +177,12 @@ export function RegisterForm() {
             </h1>
             <p className="text-sm text-register-muted">
               すでにアカウントをお持ちの方は{" "}
-              <button
-                type="button"
-                onClick={login}
+              <Link
+                href="/login"
                 className="font-semibold text-register-primary transition-opacity hover:opacity-70"
               >
                 ログイン
-              </button>
+              </Link>
             </p>
           </div>
 
