@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import {
   FEATURED_GAMES,
@@ -72,9 +73,10 @@ export function FeaturedGames() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {filtered.map((game) => (
-          <div
+          <Link
             key={game.id}
-            className="group cursor-pointer overflow-hidden rounded-2xl border border-[#e3e4ea] bg-white transition-all hover:shadow-lg"
+            href={`/games/${game.detailId}`}
+            className="group overflow-hidden rounded-2xl border border-[#e3e4ea] bg-white transition-all hover:shadow-lg"
           >
             <div className="relative h-36 overflow-hidden bg-[#f0f1f5]">
               <Image
@@ -129,17 +131,17 @@ export function FeaturedGames() {
                 </span>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
       <div className="mt-6 text-center">
-        <button
-          type="button"
-          className="rounded-full border border-[#e3e4ea] bg-white px-8 py-3 text-sm font-bold text-[#5c4dff] transition-colors hover:border-[#5c4dff] hover:bg-[#eeedf8]"
+        <Link
+          href="/games"
+          className="inline-block rounded-full border border-[#e3e4ea] bg-white px-8 py-3 text-sm font-bold text-[#5c4dff] transition-colors hover:border-[#5c4dff] hover:bg-[#eeedf8]"
         >
           すべてのゲームを見る →
-        </button>
+        </Link>
       </div>
     </section>
   );

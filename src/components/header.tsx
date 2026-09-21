@@ -153,15 +153,16 @@ export function Header() {
           </span>
         </Link>
 
-        <div className="relative max-w-sm flex-1">
+        <form action="/games" className="relative max-w-sm flex-1">
           <SearchIcon />
           <input
             type="search"
+            name="q"
             placeholder="ゲームを検索..."
             aria-label="ゲームを検索"
             className="w-full rounded-full border border-transparent bg-gray-100 py-2 pr-4 pl-9 text-sm transition-colors placeholder:text-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none"
           />
-        </div>
+        </form>
 
         <nav className="ml-auto hidden items-center gap-6 md:flex">
           {NAV_LINKS.map((label) => (

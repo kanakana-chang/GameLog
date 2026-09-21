@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { REVIEWS } from "./data";
 import { Stars, ThumbIcon } from "./icons";
@@ -32,9 +33,12 @@ export function ReviewFeed() {
             >
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-[#eeedf8] px-2.5 py-1 text-xs font-bold text-[#5c4dff]">
+                  <Link
+                    href={`/games/${review.detailId}`}
+                    className="rounded-full bg-[#eeedf8] px-2.5 py-1 text-xs font-bold text-[#5c4dff] hover:bg-[#e0def5]"
+                  >
                     {review.game}
-                  </span>
+                  </Link>
                   <span className="rounded-full bg-[#f0f1f5] px-2 py-0.5 text-xs text-[#7a7d8a]">
                     {review.platform}
                   </span>

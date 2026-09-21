@@ -10,6 +10,7 @@ export const HW_QUICK = [
 export const FEATURED_GAMES = [
   {
     id: 1,
+    detailId: 18,
     title: "ゼルダの伝説\nエコーズ オブ ウィズダム",
     platform: "Switch",
     genre: "アクションRPG",
@@ -24,6 +25,7 @@ export const FEATURED_GAMES = [
   },
   {
     id: 2,
+    detailId: 20,
     title: "モンスターハンター\nワイルズ",
     platform: "Switch / PS5",
     genre: "アクション",
@@ -38,6 +40,7 @@ export const FEATURED_GAMES = [
   },
   {
     id: 3,
+    detailId: 1,
     title: "ウマ娘\nプリティーダービー",
     platform: "スマホ",
     genre: "ガチャ育成",
@@ -52,6 +55,7 @@ export const FEATURED_GAMES = [
   },
   {
     id: 4,
+    detailId: 5,
     title: "スプラトゥーン3",
     platform: "Switch",
     genre: "シューター",
@@ -66,6 +70,7 @@ export const FEATURED_GAMES = [
   },
   {
     id: 5,
+    detailId: 2,
     title: "プロジェクトセカイ\nカラフルステージ",
     platform: "スマホ",
     genre: "リズム・ガチャ",
@@ -80,6 +85,7 @@ export const FEATURED_GAMES = [
   },
   {
     id: 6,
+    detailId: 21,
     title: "Call of Duty\nWarzone Mobile",
     platform: "スマホ",
     genre: "サバゲー",
@@ -101,6 +107,7 @@ export const REVIEWS = [
   {
     id: 1,
     game: "ウマ娘 プリティーダービー",
+    detailId: 1,
     platform: "スマホ",
     user: "たけし★ゲーマー",
     av: "T",
@@ -116,6 +123,7 @@ export const REVIEWS = [
   {
     id: 2,
     game: "スプラトゥーン3",
+    detailId: 5,
     platform: "Switch",
     user: "ナワバリ職人",
     av: "N",
@@ -131,6 +139,7 @@ export const REVIEWS = [
   {
     id: 3,
     game: "ゼルダの伝説 エコーズ",
+    detailId: 18,
     platform: "Switch",
     user: "はるか",
     av: "H",
@@ -146,6 +155,7 @@ export const REVIEWS = [
   {
     id: 4,
     game: "モンスターハンターワイルズ",
+    detailId: 20,
     platform: "Switch / PS5",
     user: "攻略マスター",
     av: "A",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import {
+  Barlow_Condensed,
   Inter,
   JetBrains_Mono,
   Noto_Sans_JP,
@@ -14,13 +15,13 @@ import "./globals.css";
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const notoSansJp = Noto_Sans_JP({
@@ -41,6 +42,12 @@ const rajdhani = Rajdhani({
   weight: ["500", "600", "700"],
 });
 
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow-condensed",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
 export const metadata: Metadata = {
   title: "GameLog",
   description: "無課金での遊びやすさ・プレイボリューム・実際の口コミで、あなたにぴったりのゲームが見つかる",
@@ -50,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ja"
-      className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} ${rajdhani.variable} h-full antialiased`}
+      className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} ${rajdhani.variable} ${barlowCondensed.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-page font-mypage text-ink">
         <AuthProvider>

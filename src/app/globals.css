@@ -73,6 +73,30 @@
   --shadow-login-focus: 0 0 0 3px rgba(124, 58, 237, 0.12);
   --color-logout-primary: #6c5ce7;
   --color-logout-overlay: rgba(10, 5, 30, 0.65);
+  --font-search: var(--font-barlow-condensed), var(--font-outfit), "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --color-search-bg: #f4f5f7;
+  --color-search-text: #1a1a2e;
+  --color-search-muted: #6b6b85;
+  --color-search-dim: #9999b3;
+  --color-search-border: #e2e4ec;
+  --color-search-primary: #6366f1;
+  --color-search-label: #3a3a52;
+  --color-detail-accent: #ff6b35;
+  --color-detail-accent-bg: #fff3ee;
+  --color-detail-accent-bd: #ffd4c0;
+  --color-detail-bg: #f5f6fa;
+  --color-detail-text: #1c1e2e;
+  --color-detail-muted: #5a6080;
+  --color-detail-dim: #9ba0be;
+  --color-detail-border: #e4e6f0;
+  --color-detail-green: #10b981;
+  --color-detail-green-bg: #d1fae5;
+  --color-detail-yellow: #f59e0b;
+  --color-detail-yellow-bg: #fef3c7;
+  --color-detail-red: #ef4444;
+  --color-detail-red-bg: #fee2e2;
+  --color-detail-overlay: rgba(20, 24, 50, 0.55);
 }
 
 @keyframes modal-in {

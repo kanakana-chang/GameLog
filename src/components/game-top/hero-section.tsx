@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { QUICK_TAGS, SEARCH_SUGGESTIONS } from "./data";
 import { SearchIcon } from "./icons";
 
 export function HeroSection({ onSearch }: { onSearch: (query: string) => void }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -27,6 +29,7 @@ export function HeroSection({ onSearch }: { onSearch: (query: string) => void })
     if (!value.trim()) return;
     onSearch(value);
     setShowSuggestions(false);
+    router.push(`/games?q=${encodeURIComponent(value.trim())}`);
   };
 
   return (
