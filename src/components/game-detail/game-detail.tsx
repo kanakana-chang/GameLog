@@ -372,37 +372,54 @@ function ReviewCard({ r, onReport }: { r: Review; onReport: () => void }) {
   );
 }
 
-function PostCard({ p, onReport }: { p: Post; onReport: () => void }) {
+function PostCard({
+  p,
+  gameId,
+  onReport,
+}: {
+  p: Post;
+  gameId: number;
+  onReport: () => void;
+}) {
   return (
-    <div className="flex cursor-pointer gap-3 rounded-[14px] border border-detail-border bg-white px-[18px] py-3.5 shadow-[0_1px_4px_rgba(30,40,100,0.04)] transition-all duration-[180ms] hover:border-detail-accent hover:shadow-[0_4px_16px_rgba(255,107,53,0.09)]">
-      <div
-        className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] font-display text-[13px] font-extrabold"
-        style={{ background: p.avBg, color: p.avC }}
+    <article className="relative overflow-hidden rounded-[14px] border border-detail-border bg-white shadow-[0_1px_4px_rgba(30,40,100,0.04)] transition-all duration-[180ms] hover:border-detail-accent hover:shadow-[0_4px_16px_rgba(255,107,53,0.09)]">
+      <Link
+        href={`/games/${gameId}/board/${p.id}`}
+        className="flex gap-3 py-3.5 pr-12 pl-[18px]"
       >
-        {p.av}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="mb-[3px] font-display text-sm font-bold text-detail-text">
-          {p.title}
+        <div
+          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] font-display text-[13px] font-extrabold"
+          style={{ background: p.avBg, color: p.avC }}
+        >
+          {p.av}
         </div>
-        <p className="mb-[7px] text-xs leading-relaxed text-detail-muted">{p.body}</p>
-        <div className="flex flex-wrap items-center gap-2">
-          {p.tags.map((t) => (
-            <Tag key={t} label={t} />
-          ))}
-          <span className="font-mono text-[10px] text-detail-dim">
-            {p.user} · {p.date}
-          </span>
-          <span className="font-mono text-[10px] text-detail-muted">💬 {p.replies}</span>
-          <span className="font-mono text-[10px] text-detail-dim">
-            👁 {p.views.toLocaleString()}
-          </span>
+        <div className="min-w-0 flex-1">
+          <div className="mb-[3px] font-display text-sm font-bold text-detail-text">
+            {p.title}
+          </div>
+          <p className="mb-[7px] text-xs leading-relaxed text-detail-muted">
+            {p.body}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {p.tags.map((t) => (
+              <Tag key={t} label={t} />
+            ))}
+            <span className="font-mono text-[10px] text-detail-dim">
+              {p.user} · {p.date}
+            </span>
+            <span className="font-mono text-[10px] text-detail-muted">
+              💬 {p.replies}
+            </span>
+            <span className="font-mono text-[10px] text-detail-dim">
+              👁 {p.views.toLocaleString()}
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="self-start" onClick={(e) => e.stopPropagation()}>
+      </Link>
+      <div className="absolute top-3.5 right-[18px]">
         <DotMenu onReport={onReport} />
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -881,9 +898,12 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                   🆓 {f2pOnly ? "無課金のみ表示中" : "無課金のみ表示"}
                 </button>
               </div>
-              <PrimaryBtn onClick={() => setToast("レビュー投稿は準備中です")}>
+              <Link
+                href={`/games/${detail.id}/review`}
+                className="shrink-0 rounded-[10px] bg-gradient-to-br from-detail-accent to-[#ff9158] px-5 py-[9px] font-display text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,107,53,0.25)]"
+              >
                 + レビューを書く
-              </PrimaryBtn>
+              </Link>
             </div>
             <div className="flex flex-col gap-2.5">
               {sortR.map((r) => (
@@ -909,6 +929,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                 <PostCard
                   key={p.id}
                   p={p}
+                  gameId={detail.id}
                   onReport={() =>
                     setReportTarget({ type: "post", id: p.id, title: p.title })
                   }

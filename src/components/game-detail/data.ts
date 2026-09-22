@@ -523,3 +523,15 @@ export function getGameDetail(id: string): GameDetailData | null {
 export function getSearchGame(id: string): SearchGame | undefined {
   return SEARCH_GAMES.find((item) => String(item.id) === id);
 }
+
+export function getThread(gameId: string, threadId: string) {
+  const detail = getGameDetail(gameId);
+  if (!detail) return null;
+  const post = detail.posts.find((item) => String(item.id) === threadId);
+  if (!post) return null;
+  return {
+    gameId: detail.id,
+    gameTitle: detail.title,
+    post,
+  };
+}
