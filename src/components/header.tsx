@@ -48,7 +48,7 @@ function SearchIcon() {
 
 function AccountMenu() {
   const router = useRouter();
-  const { avatarSrc, logout } = useAuth();
+  const { avatarSrc, isAdmin, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -98,7 +98,7 @@ function AccountMenu() {
           />
         </button>
         {open ? (
-          <div className="absolute top-10 right-0 z-40 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+          <div className="absolute top-10 right-0 z-40 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
             <Link
               href="/mypage"
               onClick={() => setOpen(false)}
@@ -106,6 +106,15 @@ function AccountMenu() {
             >
               マイページ
             </Link>
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                管理コンソール
+              </Link>
+            ) : null}
             <Link
               href="/settings"
               onClick={() => setOpen(false)}
@@ -144,7 +153,7 @@ export function Header() {
   const { isLoggedIn } = useAuth();
 
   return (
-    <header className="w-full border-b border-gray-200 bg-white shadow-sm">
+    <header className="relative z-50 w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <LogoMark />

@@ -4,6 +4,7 @@ import { createContext, useContext, useState } from "react";
 
 type AuthContextValue = {
   isLoggedIn: boolean;
+  isAdmin: boolean;
   login: () => void;
   logout: () => void;
   avatarSrc: string;
@@ -18,6 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         isLoggedIn,
+        isAdmin: true,
         login: () => setIsLoggedIn(true),
         logout: () => setIsLoggedIn(false),
         avatarSrc: "/mypage/avatar.jpg",

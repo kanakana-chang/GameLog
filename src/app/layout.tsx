@@ -7,9 +7,8 @@ import {
   Outfit,
   Rajdhani,
 } from "next/font/google";
+import { AppShell } from "@/components/app-shell";
 import { AuthProvider } from "@/components/auth-provider";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -59,13 +58,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ja"
       className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} ${rajdhani.variable} ${barlowCondensed.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-page font-mypage text-ink">
+      <body className="h-full min-h-full bg-page font-mypage text-ink">
         <AuthProvider>
-          <div className="flex min-h-full flex-col">
-            <Header />
-            <div className="flex flex-1 flex-col">{children}</div>
-            <Footer />
-          </div>
+          <AppShell>{children}</AppShell>
         </AuthProvider>
       </body>
     </html>
