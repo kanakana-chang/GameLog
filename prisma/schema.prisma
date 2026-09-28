@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model game_platform {
+  game_id     String    @db.Uuid
+  platform_id String    @db.Uuid
+  games       games     @relation(fields: [game_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  platforms   platforms @relation(fields: [platform_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([game_id, platform_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model games {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String          @db.VarChar
+  publisher       String          @db.VarChar
+  release_year    BigInt
+  genre           String          @db.VarChar
+  cover_image_url String
+  game_type       String          @db.VarChar
+  created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  game_platform   game_platform[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model platforms {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String          @db.VarChar
+  slug          String          @db.VarChar
+  category      String          @db.VarChar
+  created_at    DateTime        @default(now()) @db.Timestamptz(6)
+  game_platform game_platform[]
+}
