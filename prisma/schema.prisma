@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -27,6 +28,15 @@ model games {
   game_type       String          @db.VarChar
   created_at      DateTime        @default(now()) @db.Timestamptz(6)
   game_platform   game_platform[]
+  game_details    game_details?
+}
+
+model game_details {
+  game_id      String   @id @db.Uuid
+  payload      Json
+  model        String   @db.VarChar
+  generated_at DateTime @default(now()) @db.Timestamptz(6)
+  games        games    @relation(fields: [game_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.

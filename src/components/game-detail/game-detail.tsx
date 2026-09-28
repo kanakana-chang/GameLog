@@ -378,7 +378,7 @@ function PostCard({
   onReport,
 }: {
   p: Post;
-  gameId: number;
+  gameId: string | number;
   onReport: () => void;
 }) {
   return (
@@ -714,10 +714,13 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
         ? b.score - a.score
         : new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
-  const maxDist = Math.max(...detail.scoreDist.map((d) => d.count));
-  const f2pShare = Math.round(
-    (detail.reviews.filter((r) => r.f2p).length / detail.reviews.length) * 100,
-  );
+  const maxDist = Math.max(1, ...detail.scoreDist.map((d) => d.count), 0);
+  const f2pShare = detail.reviews.length
+    ? Math.round(
+        (detail.reviews.filter((r) => r.f2p).length / detail.reviews.length) *
+          100,
+      )
+    : 0;
 
   return (
     <div className="min-h-full bg-detail-bg font-body">
@@ -825,6 +828,24 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
           </div>
         </div>
 
+        {detail.summary ? (
+          <div className="mt-6 rounded-[14px] border border-detail-border bg-white px-5 py-[18px] shadow-[0_2px_8px_rgba(30,40,100,0.05)]">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <div className="font-mono text-[9px] tracking-[0.1em] text-detail-dim uppercase">
+                ゲーム概要
+              </div>
+              {detail.detailsGenerated ? (
+                <span className="rounded-full bg-[#EEF2FF] px-2 py-0.5 text-[10px] font-semibold text-[#4F46E5]">
+                  AIが公開情報から整理
+                </span>
+              ) : null}
+            </div>
+            <p className="text-[13px] leading-relaxed text-detail-text whitespace-pre-wrap">
+              {detail.summary}
+            </p>
+          </div>
+        ) : null}
+
         <div className="mt-6 grid grid-cols-1 gap-3 min-[860px]:grid-cols-3">
           <ScoreCard detail={detail} maxDist={maxDist} />
           <RadarCard axes={detail.axes} />
@@ -906,15 +927,21 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
               </Link>
             </div>
             <div className="flex flex-col gap-2.5">
-              {sortR.map((r) => (
-                <ReviewCard
-                  key={r.id}
-                  r={r}
-                  onReport={() =>
-                    setReportTarget({ type: "review", id: r.id, title: r.title })
-                  }
-                />
-              ))}
+              {sortR.length ? (
+                sortR.map((r) => (
+                  <ReviewCard
+                    key={r.id}
+                    r={r}
+                    onReport={() =>
+                      setReportTarget({ type: "review", id: r.id, title: r.title })
+                    }
+                  />
+                ))
+              ) : (
+                <div className="rounded-[14px] border border-dashed border-detail-border bg-white px-5 py-10 text-center text-[13px] text-detail-muted">
+                  まだレビューはありません。最初のレビューを書いてみましょう。
+                </div>
+              )}
             </div>
           </div>
         ) : null}
@@ -925,16 +952,22 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
               <PrimaryBtn onClick={() => setShowNewPost(true)}>+ 新規投稿</PrimaryBtn>
             </div>
             <div className="flex flex-col gap-2.5">
-              {posts.map((p) => (
-                <PostCard
-                  key={p.id}
-                  p={p}
-                  gameId={detail.id}
-                  onReport={() =>
-                    setReportTarget({ type: "post", id: p.id, title: p.title })
-                  }
-                />
-              ))}
+              {posts.length ? (
+                posts.map((p) => (
+                  <PostCard
+                    key={p.id}
+                    p={p}
+                    gameId={detail.id}
+                    onReport={() =>
+                      setReportTarget({ type: "post", id: p.id, title: p.title })
+                    }
+                  />
+                ))
+              ) : (
+                <div className="rounded-[14px] border border-dashed border-detail-border bg-white px-5 py-10 text-center text-[13px] text-detail-muted">
+                  まだ掲示板の投稿はありません。
+                </div>
+              )}
             </div>
           </div>
         ) : null}
@@ -988,26 +1021,30 @@ function ScoreCard({
         <div className="mb-[5px] font-mono text-sm text-detail-dim">/10</div>
       </div>
       <div className="text-[11px] text-detail-muted">
-        {detail.totalReviews.toLocaleString()} 件のレビュー
+        {detail.detailsGenerated
+          ? "公開情報からのAI推定"
+          : `${detail.totalReviews.toLocaleString()} 件のレビュー`}
       </div>
-      <div className="flex flex-col gap-1">
-        {detail.scoreDist.map((d) => (
-          <div key={d.label} className="flex items-center gap-[7px]">
-            <span className="w-[26px] shrink-0 text-right font-mono text-[10px] text-detail-muted">
-              {d.label}
-            </span>
-            <div className="h-1.5 flex-1 overflow-hidden rounded-[3px] bg-[#f0f2fa]">
-              <div
-                className="h-full rounded-[3px] bg-detail-accent opacity-55"
-                style={{ width: `${(d.count / maxDist) * 100}%` }}
-              />
+      {detail.scoreDist.length ? (
+        <div className="flex flex-col gap-1">
+          {detail.scoreDist.map((d) => (
+            <div key={d.label} className="flex items-center gap-[7px]">
+              <span className="w-[26px] shrink-0 text-right font-mono text-[10px] text-detail-muted">
+                {d.label}
+              </span>
+              <div className="h-1.5 flex-1 overflow-hidden rounded-[3px] bg-[#f0f2fa]">
+                <div
+                  className="h-full rounded-[3px] bg-detail-accent opacity-55"
+                  style={{ width: `${(d.count / maxDist) * 100}%` }}
+                />
+              </div>
+              <span className="min-w-7 text-right font-mono text-[10px] text-detail-dim">
+                {d.count}
+              </span>
             </div>
-            <span className="min-w-7 text-right font-mono text-[10px] text-detail-dim">
-              {d.count}
-            </span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : null}
       <div className="flex flex-col gap-[7px] border-t border-[#f0f2fa] pt-3">
         {detail.axes.map((a) => (
           <AxisBar
@@ -1084,7 +1121,9 @@ function PlayTimeCard({
         <div className="mb-1 font-mono text-base text-detail-dim">時間</div>
       </div>
       <div className="text-[11px] text-detail-muted">
-        {detail.totalReviews.toLocaleString()} 件より
+        {detail.detailsGenerated
+          ? "公開情報からの推定プレイ時間"
+          : `${detail.totalReviews.toLocaleString()} 件より`}
       </div>
       <div className="flex flex-col gap-2 rounded-[10px] bg-[#f8f9fc] px-3.5 py-3">
         <div className="mb-0.5 font-display text-xs font-bold text-detail-text">
@@ -1103,12 +1142,14 @@ function PlayTimeCard({
           </div>
         ))}
       </div>
-      <div className="rounded-lg border-l-[3px] border-detail-green bg-detail-green-bg px-3 py-2.5">
-        <div className="text-[11px] font-semibold text-[#065f46]">無課金ユーザーの声</div>
-        <div className="mt-0.5 text-[11px] text-[#047857]">
-          レビューの {f2pShare}% が「無課金でプレイ」と回答
+      {detail.reviews.length ? (
+        <div className="rounded-lg border-l-[3px] border-detail-green bg-detail-green-bg px-3 py-2.5">
+          <div className="text-[11px] font-semibold text-[#065f46]">無課金ユーザーの声</div>
+          <div className="mt-0.5 text-[11px] text-[#047857]">
+            レビューの {f2pShare}% が「無課金でプレイ」と回答
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

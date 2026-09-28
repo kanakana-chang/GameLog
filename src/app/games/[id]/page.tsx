@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GameDetail } from "@/components/game-detail/game-detail";
-import { getGameDetail, getSearchGame } from "@/components/game-detail/data";
+import {
+  getGameDetail,
+  applyGeneratedDetails,
+  getGameDetailFromSearch,
+  getSearchGame,
+} from "@/components/game-detail/data";
 import { SEARCH_GAMES } from "@/components/game-search/data";
+import { ensureGameDetails } from "@/lib/game-details";
+import { getSearchGameById } from "@/lib/games";
 
 type GameDetailPageProps = {
   params: Promise<{ id: string }>;
 };
+
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return SEARCH_GAMES.map((game) => ({ id: String(game.id) }));
@@ -16,7 +26,7 @@ export async function generateMetadata({
   params,
 }: GameDetailPageProps): Promise<Metadata> {
   const { id } = await params;
-  const game = getSearchGame(id);
+  const game = getSearchGame(id) ?? (await getSearchGameById(id));
   return {
     title: game ? `${game.title} | GameLog` : "ゲーム詳細 | GameLog",
     description: game
@@ -27,7 +37,17 @@ export async function generateMetadata({
 
 export default async function GameDetailPage({ params }: GameDetailPageProps) {
   const { id } = await params;
-  const detail = getGameDetail(id);
-  if (!detail) notFound();
-  return <GameDetail detail={detail} />;
+  const mockDetail = getGameDetail(id);
+  if (mockDetail) return <GameDetail detail={mockDetail} />;
+
+  const game = await getSearchGameById(id);
+  if (!game) notFound();
+
+  const generated = await ensureGameDetails(game);
+  const detail = getGameDetailFromSearch(game, { syntheticSocial: false });
+  return (
+    <GameDetail
+      detail={generated ? applyGeneratedDetails(detail, generated) : detail}
+    />
+  );
 }

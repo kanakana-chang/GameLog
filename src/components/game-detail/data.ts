@@ -1,4 +1,5 @@
 import { SEARCH_GAMES, type SearchGame } from "@/components/game-search/data";
+import type { GeneratedGameDetails } from "@/lib/game-details";
 
 export const STATUSES = [
   { key: "playing", label: "プレイ中", icon: "▶", color: "#10b981", bg: "#d1fae5" },
@@ -83,7 +84,7 @@ export type Achievement = {
 };
 
 export type GameDetailData = {
-  id: number;
+  id: string | number;
   title: string;
   developer: string;
   genre: string[];
@@ -102,6 +103,8 @@ export type GameDetailData = {
   screenshots: string[];
   reviews: Review[];
   posts: Post[];
+  summary?: string;
+  detailsGenerated?: boolean;
   myRecord: {
     playTime: number;
     sessions: number;
@@ -415,12 +418,22 @@ function genericPosts(game: SearchGame): Post[] {
   ];
 }
 
+function seedFromId(id: string | number) {
+  if (typeof id === "number") return id;
+  let hash = 0;
+  for (const char of id) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return hash;
+}
+
 function buildFromSearch(game: SearchGame): GameDetailData {
   const f2pScore = clamp(game.f2pScore * 20, 20, 100);
   const volume = clamp(game.volumeScore * 20, 20, 100);
-  const graphic = 68 + ((game.id * 13) % 25);
-  const control = 62 + ((game.id * 17) % 30);
-  const story = 48 + ((game.id * 11) % 40);
+  const seed = seedFromId(game.id);
+  const graphic = 68 + ((seed * 13) % 25);
+  const control = 62 + ((seed * 17) % 30);
+  const story = 48 + ((seed * 11) % 40);
   const kinka = game.hasGacha
     ? clamp(40 + game.f2pScore * 8, 30, 90)
     : clamp(62 + game.f2pScore * 7, 50, 98);
@@ -469,6 +482,58 @@ function buildFromSearch(game: SearchGame): GameDetailData {
       ],
     },
     scoreDist: scaleDist(game.ratingCount),
+  };
+}
+
+export function getGameDetailFromSearch(
+  game: SearchGame,
+  options: { syntheticSocial?: boolean } = {},
+): GameDetailData {
+  const base = buildFromSearch(game);
+  if (options.syntheticSocial === false) {
+    return {
+      ...base,
+      reviews: [],
+      posts: [],
+      totalReviews: 0,
+      scoreDist: [],
+    };
+  }
+  return base;
+}
+
+export function applyGeneratedDetails(
+  detail: GameDetailData,
+  generated: GeneratedGameDetails,
+): GameDetailData {
+  const platforms = detail.platforms.length ? detail.platforms : generated.platforms;
+  const tags = generated.tags.filter((tag) => !detail.genre.includes(tag));
+
+  return {
+    ...detail,
+    summary: generated.summary,
+    detailsGenerated: true,
+    platforms,
+    genre: [...detail.genre, ...tags].slice(0, 4),
+    releaseDate: generated.releaseDate,
+    priceLabel: generated.priceLabel,
+    ageRating: generated.ageRating,
+    monetization: {
+      type: generated.monetizationType,
+      monthly: generated.monthly,
+      ceiling: generated.ceiling,
+    },
+    avgPlayTime: generated.avgPlayTime,
+    avgScore: Math.round(generated.avgScore * 10) / 10,
+    f2pScore: generated.f2pScore,
+    axes: [
+      { key: "graphic", label: "グラフィック", value: generated.graphicScore },
+      { key: "f2p", label: "無課金遊びやすさ", value: generated.f2pScore },
+      { key: "volume", label: "ボリューム", value: generated.volumeScore },
+      { key: "control", label: "操作性・快適さ", value: generated.controlScore },
+      { key: "story", label: "ストーリー", value: generated.storyScore },
+      { key: "kinka", label: "課金圧の低さ", value: generated.kinkaScore },
+    ],
   };
 }
 

@@ -316,7 +316,7 @@ export function BoardThread({
   gameTitle,
   post,
 }: {
-  gameId: number;
+  gameId: string | number;
   gameTitle: string;
   post: Post;
 }) {

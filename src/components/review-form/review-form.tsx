@@ -9,7 +9,7 @@ type Status = "playing" | "cleared" | "dropped" | "want" | "on_hold";
 type ReviewMode = "quick" | "detailed";
 
 export type ReviewGameInfo = {
-  id: number;
+  id: string | number;
   title: string;
   jacket: string;
   platforms: string[];
@@ -67,7 +67,7 @@ const RATING_LABELS = ["", "最悪", "微妙", "普通", "良い", "神ゲー"] 
 
 const DEFAULT_PARAMS = Object.fromEntries(PARAMS.map((p) => [p.key, 5]));
 
-function draftKey(id: number) {
+function draftKey(id: string | number) {
   return `gamelog-review-draft-${id}`;
 }
 

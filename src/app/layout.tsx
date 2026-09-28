@@ -57,8 +57,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="ja"
       className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} ${rajdhani.variable} ${barlowCondensed.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="h-full min-h-full bg-page font-mypage text-ink">
+      <body className="h-full min-h-full bg-page font-mypage text-ink" suppressHydrationWarning>
         <AuthProvider>
           <AppShell>{children}</AppShell>
         </AuthProvider>

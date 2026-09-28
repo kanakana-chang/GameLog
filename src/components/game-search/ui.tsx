@@ -58,8 +58,13 @@ export function ScoreDots({ score, color }: { score: number; color: string }) {
   );
 }
 
-export function PlatformBadge({ platform }: { platform: Platform }) {
-  const config = PLATFORM_BADGE[platform];
+export function PlatformBadge({ platform }: { platform: string }) {
+  const config = PLATFORM_BADGE[platform as Platform] ?? {
+    color: "#4A5068",
+    bg: "#F5F6FA",
+    border: "#E2E5EF",
+    label: platform,
+  };
   return (
     <span
       className="rounded-[3px] px-1.5 py-px text-[10px] leading-[1.7] font-semibold tracking-[0.04em] whitespace-nowrap"

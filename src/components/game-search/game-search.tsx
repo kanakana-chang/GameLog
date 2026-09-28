@@ -6,6 +6,7 @@ import {
   SEARCH_GAMES,
   SORT_OPTIONS,
   type SearchFilters,
+  type SearchGame,
   type SortKey,
   type ViewMode,
 } from "./data";
@@ -16,9 +17,14 @@ import { CloseIcon, FilterIcon, GridIcon, ListIcon } from "./ui";
 type GameSearchProps = {
   initialFilters: SearchFilters;
   initialQuery: string;
+  games?: SearchGame[];
 };
 
-export function GameSearch({ initialFilters, initialQuery }: GameSearchProps) {
+export function GameSearch({
+  initialFilters,
+  initialQuery,
+  games = SEARCH_GAMES,
+}: GameSearchProps) {
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
   const [sort, setSort] = useState<SortKey>("popular");
   const [view, setView] = useState<ViewMode>("grid");
@@ -27,7 +33,7 @@ export function GameSearch({ initialFilters, initialQuery }: GameSearchProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const filtered = useMemo(() => {
-    let list = SEARCH_GAMES.filter((game) => {
+    let list = games.filter((game) => {
       if (
         query &&
         !game.title.includes(query) &&
@@ -68,7 +74,7 @@ export function GameSearch({ initialFilters, initialQuery }: GameSearchProps) {
     });
 
     return list;
-  }, [filters, sort, query]);
+  }, [filters, sort, query, games]);
 
   return (
     <div className="flex min-h-[calc(100dvh-4rem)] flex-1 flex-col bg-search-bg">

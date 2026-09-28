@@ -27,11 +27,11 @@ export type ViewMode = "grid" | "list";
 export type GachaFilter = "all" | "gacha" | "nogacha";
 
 export type SearchGame = {
-  id: number;
+  id: string | number;
   title: string;
   developer: string;
   genre: Genre;
-  platforms: Platform[];
+  platforms: Array<Platform | string>;
   rating: number;
   ratingCount: number;
   avgPlaytime: number;
