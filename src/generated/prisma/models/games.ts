@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model games
- * This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+ * 
  */
 export type gamesModel = runtime.Types.Result.DefaultSelection<Prisma.$gamesPayload>
 
@@ -240,8 +240,11 @@ export type gamesWhereInput = {
   cover_image_url?: Prisma.StringFilter<"games"> | string
   game_type?: Prisma.StringFilter<"games"> | string
   created_at?: Prisma.DateTimeFilter<"games"> | Date | string
-  game_platform?: Prisma.Game_platformListRelationFilter
   game_details?: Prisma.XOR<Prisma.Game_detailsNullableScalarRelationFilter, Prisma.game_detailsWhereInput> | null
+  game_platform?: Prisma.Game_platformListRelationFilter
+  reviews?: Prisma.ReviewsListRelationFilter
+  topics?: Prisma.TopicsListRelationFilter
+  user_game_statuses?: Prisma.User_game_statusesListRelationFilter
 }
 
 export type gamesOrderByWithRelationInput = {
@@ -253,8 +256,11 @@ export type gamesOrderByWithRelationInput = {
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
-  game_platform?: Prisma.game_platformOrderByRelationAggregateInput
   game_details?: Prisma.game_detailsOrderByWithRelationInput
+  game_platform?: Prisma.game_platformOrderByRelationAggregateInput
+  reviews?: Prisma.reviewsOrderByRelationAggregateInput
+  topics?: Prisma.topicsOrderByRelationAggregateInput
+  user_game_statuses?: Prisma.user_game_statusesOrderByRelationAggregateInput
 }
 
 export type gamesWhereUniqueInput = Prisma.AtLeast<{
@@ -269,8 +275,11 @@ export type gamesWhereUniqueInput = Prisma.AtLeast<{
   cover_image_url?: Prisma.StringFilter<"games"> | string
   game_type?: Prisma.StringFilter<"games"> | string
   created_at?: Prisma.DateTimeFilter<"games"> | Date | string
-  game_platform?: Prisma.Game_platformListRelationFilter
   game_details?: Prisma.XOR<Prisma.Game_detailsNullableScalarRelationFilter, Prisma.game_detailsWhereInput> | null
+  game_platform?: Prisma.Game_platformListRelationFilter
+  reviews?: Prisma.ReviewsListRelationFilter
+  topics?: Prisma.TopicsListRelationFilter
+  user_game_statuses?: Prisma.User_game_statusesListRelationFilter
 }, "id">
 
 export type gamesOrderByWithAggregationInput = {
@@ -312,8 +321,11 @@ export type gamesCreateInput = {
   cover_image_url: string
   game_type: string
   created_at?: Date | string
-  game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
+  game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
+  reviews?: Prisma.reviewsCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutGamesInput
 }
 
 export type gamesUncheckedCreateInput = {
@@ -325,8 +337,11 @@ export type gamesUncheckedCreateInput = {
   cover_image_url: string
   game_type: string
   created_at?: Date | string
-  game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
+  game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
+  reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsUncheckedCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutGamesInput
 }
 
 export type gamesUpdateInput = {
@@ -338,8 +353,11 @@ export type gamesUpdateInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
+  game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutGamesNestedInput
 }
 
 export type gamesUncheckedUpdateInput = {
@@ -351,8 +369,11 @@ export type gamesUncheckedUpdateInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
+  game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUncheckedUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUncheckedUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutGamesNestedInput
 }
 
 export type gamesCreateManyInput = {
@@ -474,6 +495,48 @@ export type gamesUpdateOneRequiredWithoutGame_detailsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.gamesUpdateToOneWithWhereWithoutGame_detailsInput, Prisma.gamesUpdateWithoutGame_detailsInput>, Prisma.gamesUncheckedUpdateWithoutGame_detailsInput>
 }
 
+export type gamesCreateNestedOneWithoutReviewsInput = {
+  create?: Prisma.XOR<Prisma.gamesCreateWithoutReviewsInput, Prisma.gamesUncheckedCreateWithoutReviewsInput>
+  connectOrCreate?: Prisma.gamesCreateOrConnectWithoutReviewsInput
+  connect?: Prisma.gamesWhereUniqueInput
+}
+
+export type gamesUpdateOneRequiredWithoutReviewsNestedInput = {
+  create?: Prisma.XOR<Prisma.gamesCreateWithoutReviewsInput, Prisma.gamesUncheckedCreateWithoutReviewsInput>
+  connectOrCreate?: Prisma.gamesCreateOrConnectWithoutReviewsInput
+  upsert?: Prisma.gamesUpsertWithoutReviewsInput
+  connect?: Prisma.gamesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.gamesUpdateToOneWithWhereWithoutReviewsInput, Prisma.gamesUpdateWithoutReviewsInput>, Prisma.gamesUncheckedUpdateWithoutReviewsInput>
+}
+
+export type gamesCreateNestedOneWithoutTopicsInput = {
+  create?: Prisma.XOR<Prisma.gamesCreateWithoutTopicsInput, Prisma.gamesUncheckedCreateWithoutTopicsInput>
+  connectOrCreate?: Prisma.gamesCreateOrConnectWithoutTopicsInput
+  connect?: Prisma.gamesWhereUniqueInput
+}
+
+export type gamesUpdateOneRequiredWithoutTopicsNestedInput = {
+  create?: Prisma.XOR<Prisma.gamesCreateWithoutTopicsInput, Prisma.gamesUncheckedCreateWithoutTopicsInput>
+  connectOrCreate?: Prisma.gamesCreateOrConnectWithoutTopicsInput
+  upsert?: Prisma.gamesUpsertWithoutTopicsInput
+  connect?: Prisma.gamesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.gamesUpdateToOneWithWhereWithoutTopicsInput, Prisma.gamesUpdateWithoutTopicsInput>, Prisma.gamesUncheckedUpdateWithoutTopicsInput>
+}
+
+export type gamesCreateNestedOneWithoutUser_game_statusesInput = {
+  create?: Prisma.XOR<Prisma.gamesCreateWithoutUser_game_statusesInput, Prisma.gamesUncheckedCreateWithoutUser_game_statusesInput>
+  connectOrCreate?: Prisma.gamesCreateOrConnectWithoutUser_game_statusesInput
+  connect?: Prisma.gamesWhereUniqueInput
+}
+
+export type gamesUpdateOneRequiredWithoutUser_game_statusesNestedInput = {
+  create?: Prisma.XOR<Prisma.gamesCreateWithoutUser_game_statusesInput, Prisma.gamesUncheckedCreateWithoutUser_game_statusesInput>
+  connectOrCreate?: Prisma.gamesCreateOrConnectWithoutUser_game_statusesInput
+  upsert?: Prisma.gamesUpsertWithoutUser_game_statusesInput
+  connect?: Prisma.gamesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.gamesUpdateToOneWithWhereWithoutUser_game_statusesInput, Prisma.gamesUpdateWithoutUser_game_statusesInput>, Prisma.gamesUncheckedUpdateWithoutUser_game_statusesInput>
+}
+
 export type gamesCreateWithoutGame_platformInput = {
   id?: string
   title: string
@@ -484,6 +547,9 @@ export type gamesCreateWithoutGame_platformInput = {
   game_type: string
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
+  reviews?: Prisma.reviewsCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutGamesInput
 }
 
 export type gamesUncheckedCreateWithoutGame_platformInput = {
@@ -496,6 +562,9 @@ export type gamesUncheckedCreateWithoutGame_platformInput = {
   game_type: string
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
+  reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsUncheckedCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutGamesInput
 }
 
 export type gamesCreateOrConnectWithoutGame_platformInput = {
@@ -524,6 +593,9 @@ export type gamesUpdateWithoutGame_platformInput = {
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutGamesNestedInput
 }
 
 export type gamesUncheckedUpdateWithoutGame_platformInput = {
@@ -536,6 +608,9 @@ export type gamesUncheckedUpdateWithoutGame_platformInput = {
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUncheckedUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUncheckedUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutGamesNestedInput
 }
 
 export type gamesCreateWithoutGame_detailsInput = {
@@ -548,6 +623,9 @@ export type gamesCreateWithoutGame_detailsInput = {
   game_type: string
   created_at?: Date | string
   game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
+  reviews?: Prisma.reviewsCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutGamesInput
 }
 
 export type gamesUncheckedCreateWithoutGame_detailsInput = {
@@ -560,6 +638,9 @@ export type gamesUncheckedCreateWithoutGame_detailsInput = {
   game_type: string
   created_at?: Date | string
   game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
+  reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsUncheckedCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutGamesInput
 }
 
 export type gamesCreateOrConnectWithoutGame_detailsInput = {
@@ -588,6 +669,9 @@ export type gamesUpdateWithoutGame_detailsInput = {
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutGamesNestedInput
 }
 
 export type gamesUncheckedUpdateWithoutGame_detailsInput = {
@@ -600,6 +684,237 @@ export type gamesUncheckedUpdateWithoutGame_detailsInput = {
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUncheckedUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUncheckedUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutGamesNestedInput
+}
+
+export type gamesCreateWithoutReviewsInput = {
+  id?: string
+  title: string
+  publisher: string
+  release_year: bigint | number
+  genre: string
+  cover_image_url: string
+  game_type: string
+  created_at?: Date | string
+  game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
+  game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutGamesInput
+}
+
+export type gamesUncheckedCreateWithoutReviewsInput = {
+  id?: string
+  title: string
+  publisher: string
+  release_year: bigint | number
+  genre: string
+  cover_image_url: string
+  game_type: string
+  created_at?: Date | string
+  game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
+  game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsUncheckedCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutGamesInput
+}
+
+export type gamesCreateOrConnectWithoutReviewsInput = {
+  where: Prisma.gamesWhereUniqueInput
+  create: Prisma.XOR<Prisma.gamesCreateWithoutReviewsInput, Prisma.gamesUncheckedCreateWithoutReviewsInput>
+}
+
+export type gamesUpsertWithoutReviewsInput = {
+  update: Prisma.XOR<Prisma.gamesUpdateWithoutReviewsInput, Prisma.gamesUncheckedUpdateWithoutReviewsInput>
+  create: Prisma.XOR<Prisma.gamesCreateWithoutReviewsInput, Prisma.gamesUncheckedCreateWithoutReviewsInput>
+  where?: Prisma.gamesWhereInput
+}
+
+export type gamesUpdateToOneWithWhereWithoutReviewsInput = {
+  where?: Prisma.gamesWhereInput
+  data: Prisma.XOR<Prisma.gamesUpdateWithoutReviewsInput, Prisma.gamesUncheckedUpdateWithoutReviewsInput>
+}
+
+export type gamesUpdateWithoutReviewsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher?: Prisma.StringFieldUpdateOperationsInput | string
+  release_year?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  genre?: Prisma.StringFieldUpdateOperationsInput | string
+  cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
+  game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
+  game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutGamesNestedInput
+}
+
+export type gamesUncheckedUpdateWithoutReviewsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher?: Prisma.StringFieldUpdateOperationsInput | string
+  release_year?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  genre?: Prisma.StringFieldUpdateOperationsInput | string
+  cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
+  game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
+  game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUncheckedUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutGamesNestedInput
+}
+
+export type gamesCreateWithoutTopicsInput = {
+  id?: string
+  title: string
+  publisher: string
+  release_year: bigint | number
+  genre: string
+  cover_image_url: string
+  game_type: string
+  created_at?: Date | string
+  game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
+  game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
+  reviews?: Prisma.reviewsCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutGamesInput
+}
+
+export type gamesUncheckedCreateWithoutTopicsInput = {
+  id?: string
+  title: string
+  publisher: string
+  release_year: bigint | number
+  genre: string
+  cover_image_url: string
+  game_type: string
+  created_at?: Date | string
+  game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
+  game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
+  reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutGamesInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutGamesInput
+}
+
+export type gamesCreateOrConnectWithoutTopicsInput = {
+  where: Prisma.gamesWhereUniqueInput
+  create: Prisma.XOR<Prisma.gamesCreateWithoutTopicsInput, Prisma.gamesUncheckedCreateWithoutTopicsInput>
+}
+
+export type gamesUpsertWithoutTopicsInput = {
+  update: Prisma.XOR<Prisma.gamesUpdateWithoutTopicsInput, Prisma.gamesUncheckedUpdateWithoutTopicsInput>
+  create: Prisma.XOR<Prisma.gamesCreateWithoutTopicsInput, Prisma.gamesUncheckedCreateWithoutTopicsInput>
+  where?: Prisma.gamesWhereInput
+}
+
+export type gamesUpdateToOneWithWhereWithoutTopicsInput = {
+  where?: Prisma.gamesWhereInput
+  data: Prisma.XOR<Prisma.gamesUpdateWithoutTopicsInput, Prisma.gamesUncheckedUpdateWithoutTopicsInput>
+}
+
+export type gamesUpdateWithoutTopicsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher?: Prisma.StringFieldUpdateOperationsInput | string
+  release_year?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  genre?: Prisma.StringFieldUpdateOperationsInput | string
+  cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
+  game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
+  game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutGamesNestedInput
+}
+
+export type gamesUncheckedUpdateWithoutTopicsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher?: Prisma.StringFieldUpdateOperationsInput | string
+  release_year?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  genre?: Prisma.StringFieldUpdateOperationsInput | string
+  cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
+  game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
+  game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUncheckedUpdateManyWithoutGamesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutGamesNestedInput
+}
+
+export type gamesCreateWithoutUser_game_statusesInput = {
+  id?: string
+  title: string
+  publisher: string
+  release_year: bigint | number
+  genre: string
+  cover_image_url: string
+  game_type: string
+  created_at?: Date | string
+  game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
+  game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
+  reviews?: Prisma.reviewsCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsCreateNestedManyWithoutGamesInput
+}
+
+export type gamesUncheckedCreateWithoutUser_game_statusesInput = {
+  id?: string
+  title: string
+  publisher: string
+  release_year: bigint | number
+  genre: string
+  cover_image_url: string
+  game_type: string
+  created_at?: Date | string
+  game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
+  game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
+  reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutGamesInput
+  topics?: Prisma.topicsUncheckedCreateNestedManyWithoutGamesInput
+}
+
+export type gamesCreateOrConnectWithoutUser_game_statusesInput = {
+  where: Prisma.gamesWhereUniqueInput
+  create: Prisma.XOR<Prisma.gamesCreateWithoutUser_game_statusesInput, Prisma.gamesUncheckedCreateWithoutUser_game_statusesInput>
+}
+
+export type gamesUpsertWithoutUser_game_statusesInput = {
+  update: Prisma.XOR<Prisma.gamesUpdateWithoutUser_game_statusesInput, Prisma.gamesUncheckedUpdateWithoutUser_game_statusesInput>
+  create: Prisma.XOR<Prisma.gamesCreateWithoutUser_game_statusesInput, Prisma.gamesUncheckedCreateWithoutUser_game_statusesInput>
+  where?: Prisma.gamesWhereInput
+}
+
+export type gamesUpdateToOneWithWhereWithoutUser_game_statusesInput = {
+  where?: Prisma.gamesWhereInput
+  data: Prisma.XOR<Prisma.gamesUpdateWithoutUser_game_statusesInput, Prisma.gamesUncheckedUpdateWithoutUser_game_statusesInput>
+}
+
+export type gamesUpdateWithoutUser_game_statusesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher?: Prisma.StringFieldUpdateOperationsInput | string
+  release_year?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  genre?: Prisma.StringFieldUpdateOperationsInput | string
+  cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
+  game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
+  game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUpdateManyWithoutGamesNestedInput
+}
+
+export type gamesUncheckedUpdateWithoutUser_game_statusesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher?: Prisma.StringFieldUpdateOperationsInput | string
+  release_year?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  genre?: Prisma.StringFieldUpdateOperationsInput | string
+  cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
+  game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
+  game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
+  reviews?: Prisma.reviewsUncheckedUpdateManyWithoutGamesNestedInput
+  topics?: Prisma.topicsUncheckedUpdateManyWithoutGamesNestedInput
 }
 
 
@@ -609,10 +924,16 @@ export type gamesUncheckedUpdateWithoutGame_detailsInput = {
 
 export type GamesCountOutputType = {
   game_platform: number
+  reviews: number
+  topics: number
+  user_game_statuses: number
 }
 
 export type GamesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   game_platform?: boolean | GamesCountOutputTypeCountGame_platformArgs
+  reviews?: boolean | GamesCountOutputTypeCountReviewsArgs
+  topics?: boolean | GamesCountOutputTypeCountTopicsArgs
+  user_game_statuses?: boolean | GamesCountOutputTypeCountUser_game_statusesArgs
 }
 
 /**
@@ -632,6 +953,27 @@ export type GamesCountOutputTypeCountGame_platformArgs<ExtArgs extends runtime.T
   where?: Prisma.game_platformWhereInput
 }
 
+/**
+ * GamesCountOutputType without action
+ */
+export type GamesCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.reviewsWhereInput
+}
+
+/**
+ * GamesCountOutputType without action
+ */
+export type GamesCountOutputTypeCountTopicsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.topicsWhereInput
+}
+
+/**
+ * GamesCountOutputType without action
+ */
+export type GamesCountOutputTypeCountUser_game_statusesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.user_game_statusesWhereInput
+}
+
 
 export type gamesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -642,8 +984,11 @@ export type gamesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   cover_image_url?: boolean
   game_type?: boolean
   created_at?: boolean
-  game_platform?: boolean | Prisma.games$game_platformArgs<ExtArgs>
   game_details?: boolean | Prisma.games$game_detailsArgs<ExtArgs>
+  game_platform?: boolean | Prisma.games$game_platformArgs<ExtArgs>
+  reviews?: boolean | Prisma.games$reviewsArgs<ExtArgs>
+  topics?: boolean | Prisma.games$topicsArgs<ExtArgs>
+  user_game_statuses?: boolean | Prisma.games$user_game_statusesArgs<ExtArgs>
   _count?: boolean | Prisma.GamesCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["games"]>
 
@@ -682,8 +1027,11 @@ export type gamesSelectScalar = {
 
 export type gamesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "publisher" | "release_year" | "genre" | "cover_image_url" | "game_type" | "created_at", ExtArgs["result"]["games"]>
 export type gamesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  game_platform?: boolean | Prisma.games$game_platformArgs<ExtArgs>
   game_details?: boolean | Prisma.games$game_detailsArgs<ExtArgs>
+  game_platform?: boolean | Prisma.games$game_platformArgs<ExtArgs>
+  reviews?: boolean | Prisma.games$reviewsArgs<ExtArgs>
+  topics?: boolean | Prisma.games$topicsArgs<ExtArgs>
+  user_game_statuses?: boolean | Prisma.games$user_game_statusesArgs<ExtArgs>
   _count?: boolean | Prisma.GamesCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type gamesIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -692,8 +1040,11 @@ export type gamesIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type $gamesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "games"
   objects: {
-    game_platform: Prisma.$game_platformPayload<ExtArgs>[]
     game_details: Prisma.$game_detailsPayload<ExtArgs> | null
+    game_platform: Prisma.$game_platformPayload<ExtArgs>[]
+    reviews: Prisma.$reviewsPayload<ExtArgs>[]
+    topics: Prisma.$topicsPayload<ExtArgs>[]
+    user_game_statuses: Prisma.$user_game_statusesPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1098,8 +1449,11 @@ readonly fields: gamesFieldRefs;
  */
 export interface Prisma__gamesClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  game_platform<T extends Prisma.games$game_platformArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.games$game_platformArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$game_platformPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   game_details<T extends Prisma.games$game_detailsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.games$game_detailsArgs<ExtArgs>>): Prisma.Prisma__game_detailsClient<runtime.Types.Result.GetResult<Prisma.$game_detailsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  game_platform<T extends Prisma.games$game_platformArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.games$game_platformArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$game_platformPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reviews<T extends Prisma.games$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.games$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$reviewsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  topics<T extends Prisma.games$topicsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.games$topicsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$topicsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  user_game_statuses<T extends Prisma.games$user_game_statusesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.games$user_game_statusesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$user_game_statusesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1530,6 +1884,25 @@ export type gamesDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
+ * games.game_details
+ */
+export type games$game_detailsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the game_details
+   */
+  select?: Prisma.game_detailsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the game_details
+   */
+  omit?: Prisma.game_detailsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.game_detailsInclude<ExtArgs> | null
+  where?: Prisma.game_detailsWhereInput
+}
+
+/**
  * games.game_platform
  */
 export type games$game_platformArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1554,22 +1927,75 @@ export type games$game_platformArgs<ExtArgs extends runtime.Types.Extensions.Int
 }
 
 /**
- * games.game_details
+ * games.reviews
  */
-export type games$game_detailsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type games$reviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the game_details
+   * Select specific fields to fetch from the reviews
    */
-  select?: Prisma.game_detailsSelect<ExtArgs> | null
+  select?: Prisma.reviewsSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the game_details
+   * Omit specific fields from the reviews
    */
-  omit?: Prisma.game_detailsOmit<ExtArgs> | null
+  omit?: Prisma.reviewsOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.game_detailsInclude<ExtArgs> | null
-  where?: Prisma.game_detailsWhereInput
+  include?: Prisma.reviewsInclude<ExtArgs> | null
+  where?: Prisma.reviewsWhereInput
+  orderBy?: Prisma.reviewsOrderByWithRelationInput | Prisma.reviewsOrderByWithRelationInput[]
+  cursor?: Prisma.reviewsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReviewsScalarFieldEnum | Prisma.ReviewsScalarFieldEnum[]
+}
+
+/**
+ * games.topics
+ */
+export type games$topicsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the topics
+   */
+  select?: Prisma.topicsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the topics
+   */
+  omit?: Prisma.topicsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.topicsInclude<ExtArgs> | null
+  where?: Prisma.topicsWhereInput
+  orderBy?: Prisma.topicsOrderByWithRelationInput | Prisma.topicsOrderByWithRelationInput[]
+  cursor?: Prisma.topicsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TopicsScalarFieldEnum | Prisma.TopicsScalarFieldEnum[]
+}
+
+/**
+ * games.user_game_statuses
+ */
+export type games$user_game_statusesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the user_game_statuses
+   */
+  select?: Prisma.user_game_statusesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the user_game_statuses
+   */
+  omit?: Prisma.user_game_statusesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.user_game_statusesInclude<ExtArgs> | null
+  where?: Prisma.user_game_statusesWhereInput
+  orderBy?: Prisma.user_game_statusesOrderByWithRelationInput | Prisma.user_game_statusesOrderByWithRelationInput[]
+  cursor?: Prisma.user_game_statusesWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.User_game_statusesScalarFieldEnum | Prisma.User_game_statusesScalarFieldEnum[]
 }
 
 /**

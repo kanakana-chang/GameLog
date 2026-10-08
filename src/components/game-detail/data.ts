@@ -45,7 +45,7 @@ export type GameAxis = {
 };
 
 export type Review = {
-  id: number;
+  id: string | number;
   user: string;
   av: string;
   avBg: string;

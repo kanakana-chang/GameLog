@@ -1,9 +1,13 @@
 "use client";
 
 import { CoverImage } from "@/components/cover-image";
+import { useAuth } from "@/components/auth-provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type Status = "playing" | "cleared" | "dropped" | "want" | "on_hold";
 type ReviewMode = "quick" | "detailed";
@@ -270,6 +274,7 @@ function Section({
 
 export function ReviewForm({ game }: { game: ReviewGameInfo }) {
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [mode, setMode] = useState<ReviewMode>("quick");
   const [status, setStatus] = useState<Status | null>(null);
   const [rating, setRating] = useState(0);
@@ -280,6 +285,8 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
   const [images, setImages] = useState<string[]>([]);
   const [params, setParams] = useState<Record<string, number>>(DEFAULT_PARAMS);
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [draftSaved, setDraftSaved] = useState(false);
 
   useEffect(() => {
@@ -344,14 +351,61 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
     window.setTimeout(() => setDraftSaved(false), 2000);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!canSubmit || submitted) return;
-    setSubmitted(true);
-    localStorage.removeItem(draftKey(game.id));
-    window.setTimeout(() => {
-      router.push(`/games/${game.id}`);
-    }, 1600);
+    if (!canSubmit || submitted || saving) return;
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    const hours = Number(playtime);
+    const playtimeHours =
+      Number.isFinite(hours) && hours > 0
+        ? playtimeUnit === "min"
+          ? hours / 60
+          : hours
+        : 0;
+    const imageUrl = images.find((src) => /^https?:\/\//.test(src)) ?? "";
+
+    try {
+      if (UUID_RE.test(String(game.id))) {
+        const response = await fetch(`/api/games/${game.id}/reviews`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rating,
+            status,
+            comment: review,
+            spoiler,
+            playtimeHours,
+            platform: game.platforms[0] ?? "",
+            params,
+            imageUrl,
+          }),
+        });
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        if (!response.ok) {
+          throw new Error(payload?.error ?? "レビューの投稿に失敗しました");
+        }
+      }
+
+      localStorage.removeItem(draftKey(game.id));
+      setSubmitted(true);
+      router.refresh();
+      window.setTimeout(() => {
+        router.push(`/games/${game.id}`);
+      }, 800);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "レビューの投稿に失敗しました");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const platformLabel = game.platforms.join(" • ");
@@ -656,19 +710,25 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
           </button>
           <button
             type="submit"
-            disabled={!canSubmit || submitted}
+            disabled={!canSubmit || submitted || saving}
             className={`flex-[2] rounded-xl py-3 text-sm font-bold transition-all duration-150 ${
               canSubmit
                 ? submitted
                   ? "scale-95 bg-emerald-500 text-white"
-                  : "bg-indigo-500 text-white shadow-md hover:bg-indigo-600 hover:shadow-indigo-200 active:scale-95"
+                  : "bg-indigo-500 text-white shadow-md hover:bg-indigo-600 hover:shadow-indigo-200 active:scale-95 disabled:opacity-70"
                 : "cursor-not-allowed bg-slate-100 text-slate-400"
             }`}
           >
-            {submitted ? "✅ 投稿しました！" : "レビューを投稿する"}
+            {submitted
+              ? "✅ 投稿しました！"
+              : saving
+                ? "投稿中..."
+                : "レビューを投稿する"}
           </button>
         </div>
-        {!canSubmit ? (
+        {error ? (
+          <p className="mt-2 text-center text-xs text-red-500">{error}</p>
+        ) : !canSubmit ? (
           <p className="mt-2 text-center text-xs text-slate-400">
             ステータスと評価★を選択してください
           </p>

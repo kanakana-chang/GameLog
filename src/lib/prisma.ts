@@ -18,6 +18,14 @@ function createPrismaClient() {
   });
 }
 
+if (
+  process.env.NODE_ENV !== "production" &&
+  globalForPrisma.prisma &&
+  !("reviews" in globalForPrisma.prisma)
+) {
+  globalForPrisma.prisma = undefined;
+}
+
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {

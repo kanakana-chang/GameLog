@@ -15,8 +15,12 @@ import {
 } from "@/components/game-search/data";
 import { prisma } from "@/lib/prisma";
 
-const UUID_RE =
+export const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isUuid(id: string) {
+  return UUID_RE.test(id);
+}
 
 const GENRE_ALIASES: Record<string, Genre> = {
   シューティング: "シューター",

@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model game_platform
- * This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+ * 
  */
 export type game_platformModel = runtime.Types.Result.DefaultSelection<Prisma.$game_platformPayload>
 

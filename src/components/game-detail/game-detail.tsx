@@ -18,7 +18,7 @@ import { EvalRadar } from "./radar-chart";
 type TabKey = "reviews" | "board" | "mylog";
 type SortKey = "helpful" | "new" | "score";
 type LogTab = "time" | "achv" | "shots";
-type ReportTarget = { type: "review" | "post"; id: number; title: string };
+type ReportTarget = { type: "review" | "post"; id: string | number; title: string };
 
 function Tag({ label }: { label: string }) {
   return (
@@ -267,9 +267,11 @@ function ReviewCard({ r, onReport }: { r: Review; onReport: () => void }) {
           </div>
           <div className="flex items-center gap-2">
             <StarRow score={r.score} />
-            <span className="font-mono text-[10px] text-detail-dim">
-              累計 {r.playTime.toLocaleString()}h
-            </span>
+            {r.playTime > 0 ? (
+              <span className="font-mono text-[10px] text-detail-dim">
+                累計 {r.playTime.toLocaleString()}h
+              </span>
+            ) : null}
           </div>
         </div>
         <div className="flex items-center gap-1.5">
