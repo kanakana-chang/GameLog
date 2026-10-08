@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { CoverImage } from "@/components/cover-image";
 import {
   ADMIN_GENRES,
   ADMIN_PLATFORMS,
-  INITIAL_GAMES,
   INITIAL_REPORTS,
   PLATFORM_COLORS,
   REASON_COLORS,
@@ -69,13 +68,17 @@ function StatCard({
   );
 }
 
+function uniqueOptions(values: string[]) {
+  return [...new Set(values.filter(Boolean))];
+}
+
 function GameForm({
   game,
   onSave,
   onCancel,
 }: {
   game: Partial<AdminGame> | null;
-  onSave: (g: AdminGame) => void;
+  onSave: (g: AdminGame) => Promise<void> | void;
   onCancel: () => void;
 }) {
   const empty: Partial<AdminGame> = {
@@ -94,6 +97,18 @@ function GameForm({
     ...empty,
     ...(game ?? {}),
   });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isEdit = Boolean(game?.id);
+
+  const genreOptions = uniqueOptions([
+    ...ADMIN_GENRES,
+    form.genre ?? "",
+  ]);
+  const platformOptions = uniqueOptions([
+    ...ADMIN_PLATFORMS,
+    ...(form.platform ?? []),
+  ]);
 
   function togglePlatform(p: Platform) {
     const cur = form.platform ?? [];
@@ -103,23 +118,35 @@ function GameForm({
     });
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!(form.platform ?? []).length) {
+      setError("対応プラットフォームを1つ以上選んでください");
+      return;
+    }
     const now = new Date().toISOString().split("T")[0];
-    onSave({
-      id: form.id ?? `g${Date.now()}`,
-      title: form.title!,
-      platform: form.platform ?? [],
-      genre: form.genre!,
-      releaseYear: form.releaseYear!,
-      developer: form.developer!,
-      freeToPlay: form.freeToPlay!,
-      hasCurrency: form.hasCurrency!,
-      avgPlaytime: form.avgPlaytime!,
-      coverUrl: form.coverUrl ?? "",
-      status: form.status!,
-      addedAt: form.addedAt ?? now,
-    });
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave({
+        id: form.id ?? "",
+        title: form.title!,
+        platform: form.platform ?? [],
+        genre: form.genre!,
+        releaseYear: form.releaseYear!,
+        developer: form.developer!,
+        freeToPlay: form.freeToPlay!,
+        hasCurrency: form.hasCurrency!,
+        avgPlaytime: form.avgPlaytime!,
+        coverUrl: form.coverUrl ?? "",
+        status: form.status!,
+        addedAt: form.addedAt ?? now,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存に失敗しました");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -130,7 +157,7 @@ function GameForm({
       >
         <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-slate-100 bg-white px-6 py-5">
           <h2 className="font-display text-base font-semibold text-slate-900">
-            {game?.id ? "ゲーム情報を編集" : "ゲームを新規追加"}
+            {isEdit ? "ゲーム情報を編集" : "ゲームを新規追加"}
           </h2>
           <button
             type="button"
@@ -188,7 +215,7 @@ function GameForm({
                 }
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-transparent focus:ring-2 focus:ring-violet-500 focus:outline-none"
               >
-                {ADMIN_GENRES.map((g) => (
+                {genreOptions.map((g) => (
                   <option key={g} value={g}>
                     {g}
                   </option>
@@ -202,7 +229,7 @@ function GameForm({
               <input
                 type="number"
                 min={1990}
-                max={2030}
+                max={2035}
                 value={form.releaseYear ?? 2024}
                 onChange={(e) =>
                   setForm({ ...form, releaseYear: +e.target.value })
@@ -217,7 +244,7 @@ function GameForm({
               対応プラットフォーム
             </label>
             <div className="flex flex-wrap gap-2">
-              {ADMIN_PLATFORMS.map((p) => (
+              {platformOptions.map((p) => (
                 <button
                   key={p}
                   type="button"
@@ -301,21 +328,29 @@ function GameForm({
               placeholder="https://..."
             />
           </div>
+
+          {error ? (
+            <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">
+              {error}
+            </p>
+          ) : null}
         </div>
 
         <div className="sticky bottom-0 flex justify-end gap-2 rounded-b-2xl border-t border-slate-100 bg-white px-6 py-4">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-200"
+            disabled={saving}
+            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-200 disabled:opacity-60"
           >
             キャンセル
           </button>
           <button
             type="submit"
-            className="rounded-lg bg-violet-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700"
+            disabled={saving}
+            className="rounded-lg bg-violet-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700 disabled:opacity-60"
           >
-            {game?.id ? "変更を保存" : "追加する"}
+            {saving ? "保存中..." : isEdit ? "変更を保存" : "追加する"}
           </button>
         </div>
       </form>
@@ -323,8 +358,8 @@ function GameForm({
   );
 }
 
-function GamesPanel() {
-  const [games, setGames] = useState<AdminGame[]>(INITIAL_GAMES);
+function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
+  const [games, setGames] = useState<AdminGame[]>(initialGames);
   const [search, setSearch] = useState("");
   const [filterPlatform, setFilterPlatform] = useState<Platform | "all">("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "archived">(
@@ -335,6 +370,8 @@ function GamesPanel() {
   );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pendingDelete, setPendingDelete] = useState<AdminGame | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const filtered = games.filter((g) => {
     const matchSearch =
@@ -346,13 +383,76 @@ function GamesPanel() {
     return matchSearch && matchPlatform && matchStatus;
   });
 
-  function saveGame(g: AdminGame) {
+  async function saveGame(g: AdminGame) {
+    const exists = Boolean(g.id) && games.some((item) => item.id === g.id);
+    const body = {
+      title: g.title,
+      developer: g.developer,
+      genre: g.genre,
+      releaseYear: g.releaseYear,
+      platform: g.platform,
+      freeToPlay: g.freeToPlay,
+      hasCurrency: g.hasCurrency,
+      coverUrl: g.coverUrl,
+    };
+    const response = await fetch(
+      exists ? `/api/admin/games/${g.id}` : "/api/admin/games",
+      {
+        method: exists ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+    const payload = (await response.json().catch(() => null)) as
+      | AdminGame
+      | { error?: string }
+      | null;
+    if (!response.ok || !payload || !("id" in payload)) {
+      throw new Error(
+        payload && "error" in payload && payload.error
+          ? payload.error
+          : exists
+            ? "ゲームの更新に失敗しました"
+            : "ゲームの追加に失敗しました",
+      );
+    }
+
     setGames((prev) =>
-      prev.find((x) => x.id === g.id)
-        ? prev.map((x) => (x.id === g.id ? g : x))
-        : [g, ...prev],
+      exists
+        ? prev.map((item) => (item.id === payload.id ? payload : item))
+        : [payload, ...prev.filter((item) => item.id !== payload.id)],
     );
     setEditing(undefined);
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const response = await fetch(`/api/admin/games/${pendingDelete.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(payload?.error ?? "ゲームの削除に失敗しました");
+      }
+      setGames((prev) => prev.filter((item) => item.id !== pendingDelete.id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(pendingDelete.id);
+        return next;
+      });
+      setPendingDelete(null);
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "ゲームの削除に失敗しました",
+      );
+    } finally {
+      setDeleting(false);
+    }
   }
 
   function toggleSelect(id: string) {
@@ -372,6 +472,15 @@ function GamesPanel() {
     );
     setSelectedIds(new Set());
   }
+
+  const platformFilters = uniqueOptions([
+    ...ADMIN_PLATFORMS,
+    ...games.flatMap((g) => g.platform),
+  ]);
+  const lastUpdated = games
+    .map((g) => g.addedAt)
+    .sort()
+    .at(-1);
 
   const allSelected =
     filtered.length > 0 && filtered.every((g) => selectedIds.has(g.id));
@@ -398,25 +507,33 @@ function GamesPanel() {
               このゲームを削除しますか？
             </h2>
             <p className="mt-2 text-sm text-slate-500">{pendingDelete.title}</p>
+            {deleteError ? (
+              <p className="mt-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">
+                {deleteError}
+              </p>
+            ) : null}
             <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setPendingDelete(null)}
-                className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-200"
+                onClick={() => {
+                  if (deleting) return;
+                  setPendingDelete(null);
+                  setDeleteError(null);
+                }}
+                disabled={deleting}
+                className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-200 disabled:opacity-60"
               >
                 キャンセル
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setGames((prev) =>
-                    prev.filter((x) => x.id !== pendingDelete.id),
-                  );
-                  setPendingDelete(null);
+                  void confirmDelete();
                 }}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                disabled={deleting}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-60"
               >
-                削除する
+                {deleting ? "削除中..." : "削除する"}
               </button>
             </div>
           </div>
@@ -475,7 +592,7 @@ function GamesPanel() {
           className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm transition focus:ring-2 focus:ring-violet-500 focus:outline-none"
         >
           <option value="all">全プラットフォーム</option>
-          {ADMIN_PLATFORMS.map((p) => (
+          {platformFilters.map((p) => (
             <option key={p} value={p}>
               {p}
             </option>
@@ -581,7 +698,7 @@ function GamesPanel() {
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                         {g.coverUrl ? (
-                          <Image
+                          <CoverImage
                             src={g.coverUrl}
                             alt={g.title}
                             width={40}
@@ -656,7 +773,10 @@ function GamesPanel() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setPendingDelete(g)}
+                        onClick={() => {
+                          setDeleteError(null);
+                          setPendingDelete(g);
+                        }}
                         title="削除"
                         aria-label={`${g.title}を削除`}
                         className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
@@ -697,7 +817,9 @@ function GamesPanel() {
           <span className="font-mono text-xs text-slate-400">
             {filtered.length} / {games.length} タイトル
           </span>
-          <span className="text-xs text-slate-400">最終更新: 2024-06-12</span>
+          <span className="text-xs text-slate-400">
+            最終更新: {lastUpdated ?? "—"}
+          </span>
         </div>
       </div>
     </div>
@@ -927,7 +1049,11 @@ const NAV_ITEMS: {
   },
 ];
 
-export function AdminDashboard() {
+export function AdminDashboard({
+  initialGames,
+}: {
+  initialGames: AdminGame[];
+}) {
   const router = useRouter();
   const { isLoggedIn, isAdmin } = useAuth();
   const [nav, setNav] = useState<AdminNav>("games");
@@ -1080,7 +1206,7 @@ export function AdminDashboard() {
               : "flex-1 p-5"
           }
         >
-          {nav === "games" ? <GamesPanel /> : null}
+          {nav === "games" ? <GamesPanel initialGames={initialGames} /> : null}
           {nav === "reports" ? (
             <ReportsPanel
               reports={reports}

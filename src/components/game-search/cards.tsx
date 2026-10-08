@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { CoverImage } from "@/components/cover-image";
 import Link from "next/link";
 import { useState } from "react";
 import type { SearchGame } from "./data";
@@ -21,7 +21,7 @@ export function GameCardGrid({ game }: { game: SearchGame }) {
       }`}
     >
       <div className="relative overflow-hidden bg-search-bg pt-[56.25%]">
-        <Image
+        <CoverImage
           src={game.img}
           alt={game.title}
           fill
@@ -117,7 +117,7 @@ export function GameCardList({ game }: { game: SearchGame }) {
       }`}
     >
       <div className="relative h-[132px] w-[148px] shrink-0 overflow-hidden bg-search-bg">
-        <Image
+        <CoverImage
           src={game.img}
           alt={game.title}
           fill

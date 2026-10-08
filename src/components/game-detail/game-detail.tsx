@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { CoverImage } from "@/components/cover-image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -725,7 +725,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
   return (
     <div className="min-h-full bg-detail-bg font-body">
       <div className="relative h-60 overflow-hidden">
-        <Image
+        <CoverImage
           src={detail.coverWide}
           alt=""
           fill
@@ -760,7 +760,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
       <div className="mx-auto max-w-[1060px] px-[18px] pb-20">
         <div className="relative z-10 mt-[-80px] grid grid-cols-1 gap-[22px] min-[540px]:grid-cols-[120px_1fr] min-[860px]:grid-cols-[148px_1fr]">
           <div className="relative mx-auto aspect-[320/440] w-[148px] overflow-hidden rounded-[14px] border-[3px] border-white shadow-[0_12px_36px_rgba(30,40,100,0.15)] min-[540px]:mx-0 min-[540px]:w-full">
-            <Image
+            <CoverImage
               src={detail.jacket}
               alt={detail.title}
               fill
@@ -836,13 +836,29 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
               </div>
               {detail.detailsGenerated ? (
                 <span className="rounded-full bg-[#EEF2FF] px-2 py-0.5 text-[10px] font-semibold text-[#4F46E5]">
-                  AIが公開情報から整理
+                  公開情報から整理
                 </span>
               ) : null}
             </div>
             <p className="text-[13px] leading-relaxed text-detail-text whitespace-pre-wrap">
               {detail.summary}
             </p>
+            {detail.sources?.length ? (
+              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-detail-dim">
+                <span>出典</span>
+                {detail.sources.map((source) => (
+                  <a
+                    key={source.url}
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="underline decoration-[#c8cadb] underline-offset-2 hover:text-detail-text"
+                  >
+                    {source.title}
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -1022,7 +1038,7 @@ function ScoreCard({
       </div>
       <div className="text-[11px] text-detail-muted">
         {detail.detailsGenerated
-          ? "公開情報からのAI推定"
+          ? "公開情報からの推定"
           : `${detail.totalReviews.toLocaleString()} 件のレビュー`}
       </div>
       {detail.scoreDist.length ? (
@@ -1279,7 +1295,7 @@ function MyLog({
                   key={src}
                   className="relative aspect-video cursor-pointer overflow-hidden rounded-xl border border-detail-border bg-[#f0f2fa] transition-transform duration-[180ms] hover:scale-[1.02]"
                 >
-                  <Image
+                  <CoverImage
                     src={src}
                     alt={`screenshot-${i + 1}`}
                     fill

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GameDetail } from "@/components/game-detail/game-detail";
 import {
-  getGameDetail,
   applyGeneratedDetails,
+  getGameDetail,
   getGameDetailFromSearch,
   getSearchGame,
 } from "@/components/game-detail/data";
@@ -43,11 +43,10 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
   const game = await getSearchGameById(id);
   if (!game) notFound();
 
-  const generated = await ensureGameDetails(game);
-  const detail = getGameDetailFromSearch(game, { syntheticSocial: false });
-  return (
-    <GameDetail
-      detail={generated ? applyGeneratedDetails(detail, generated) : detail}
-    />
+  const assembled = await ensureGameDetails(game);
+  const detail = applyGeneratedDetails(
+    getGameDetailFromSearch(game, { syntheticSocial: false }),
+    assembled,
   );
+  return <GameDetail detail={detail} />;
 }

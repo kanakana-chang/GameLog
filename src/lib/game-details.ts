@@ -1,5 +1,12 @@
 import type { SearchGame } from "@/components/game-search/data";
 import { prisma } from "@/lib/prisma";
+import {
+  cleanWikiExtract,
+  fetchPublicGameInfo,
+  takeSentences,
+  type PublicGameInfo,
+  type PublicSource,
+} from "@/lib/public-game-info";
 
 export type GeneratedGameDetails = {
   summary: string;
@@ -19,6 +26,9 @@ export type GeneratedGameDetails = {
   avgScore: number;
   tags: string[];
   platforms: string[];
+  sources: PublicSource[];
+  assembledFromPublic: boolean;
+  assemblyVersion: number;
 };
 
 const UUID_RE =
@@ -41,38 +51,15 @@ function asStringList(value: unknown) {
     .filter(Boolean);
 }
 
-function normalizeDetails(
-  raw: Record<string, unknown>,
-  game: SearchGame,
-): GeneratedGameDetails {
-  return {
-    summary: asString(raw.summary, `${game.title}の公開情報を整理した詳細です。`),
-    priceLabel: asString(
-      raw.priceLabel,
-      game.isFree ? "基本無料" : "価格情報なし",
-    ),
-    ageRating: asString(raw.ageRating, "情報なし"),
-    releaseDate: asString(raw.releaseDate, `${game.releaseYear}年`),
-    monetizationType: asString(
-      raw.monetizationType,
-      game.isFree ? "基本無料 + アイテム課金" : "買い切り",
-    ),
-    monthly: asString(raw.monthly, "なし"),
-    ceiling: asString(
-      raw.ceiling,
-      game.hasGacha ? "ガチャあり" : "天井なし（ガチャ非搭載）",
-    ),
-    f2pScore: clamp(Number(raw.f2pScore), 0, 100),
-    volumeScore: clamp(Number(raw.volumeScore), 0, 100),
-    graphicScore: clamp(Number(raw.graphicScore), 0, 100),
-    controlScore: clamp(Number(raw.controlScore), 0, 100),
-    storyScore: clamp(Number(raw.storyScore), 0, 100),
-    kinkaScore: clamp(Number(raw.kinkaScore), 0, 100),
-    avgPlayTime: clamp(Number(raw.avgPlayTime), 0, 5000),
-    avgScore: clamp(Number(raw.avgScore), 0, 10),
-    tags: asStringList(raw.tags).slice(0, 6),
-    platforms: asStringList(raw.platforms),
-  };
+function asSources(value: unknown): PublicSource[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const record = item as Record<string, unknown>;
+    const title = asString(record.title, "");
+    const url = asString(record.url, "");
+    return title && url ? [{ title, url }] : [];
+  });
 }
 
 function parseJsonObject(text: string): Record<string, unknown> | null {
@@ -92,10 +79,180 @@ function parseJsonObject(text: string): Record<string, unknown> | null {
   return null;
 }
 
-function buildPrompt(game: SearchGame) {
-  return `あなたは日本語のゲーム事典編集者です。次の登録データだけを手がかりに、公開されている事実に基づいてゲーム詳細をJSONで返してください。不明な項目は推測しすぎず、その旨が分かる表現にしてください。架空のユーザーレビューや存在しない数値の出典は書かないでください。
+function detectGacha(game: SearchGame, extract: string) {
+  if (/ガチャあり/.test(extract)) return true;
+  if (/ガチャ非搭載|ガチャなし|ガチャは搭載されていない/.test(extract)) {
+    return false;
+  }
+  return game.hasGacha || /ガチャ/.test(extract);
+}
 
-入力:
+function detectFree(game: SearchGame, extract: string) {
+  return (
+    game.isFree ||
+    /基本プレイ無料|基本無料|無料配信/.test(extract)
+  );
+}
+
+function releaseDateFromPublic(game: SearchGame, extract: string) {
+  const match = extract.match(/(20\d{2})年(\d{1,2})月(\d{1,2})日/);
+  if (match) return `${match[1]}年${Number(match[2])}月${Number(match[3])}日`;
+  return `${game.releaseYear}年`;
+}
+
+function ageRatingFromPublic(extract: string) {
+  const match = extract.match(/CERO\s*([A-Z])/i);
+  if (match) return `CERO ${match[1].toUpperCase()}`;
+  return "情報なし";
+}
+
+function platformsFromPublic(game: SearchGame, extract: string) {
+  if (game.platforms.length) return game.platforms.map(String);
+  const found: string[] = [];
+  if (/Switch\s*2|Nintendo Switch 2/i.test(extract)) found.push("Switch2");
+  else if (/Nintendo Switch|Switch/.test(extract)) found.push("Switch");
+  if (/\biOS\b/.test(extract)) found.push("iOS");
+  if (/Android/.test(extract)) found.push("Android");
+  if (/\bPS5\b|PlayStation 5/.test(extract)) found.push("PS5");
+  if (/\bPC\b|Steam/.test(extract)) found.push("PC");
+  return found;
+}
+
+function tagsFromPublic(extract: string, game: SearchGame) {
+  const tags = [
+    /スピンオフ/.test(extract) ? "スピンオフ" : "",
+    /協力|マルチ/.test(extract) ? "協力プレイ" : "",
+    /探索|ダンジョン/.test(extract) ? "探索" : "",
+    /ガチャ/.test(extract) && !/ガチャ非搭載/.test(extract) ? "ガチャ" : "",
+    /ひっぱり|引っ張/.test(extract) ? "ひっぱり" : "",
+    game.genre,
+  ].filter(Boolean);
+  return [...new Set(tags)].slice(0, 6);
+}
+
+function scoresFromPublicFacts(game: SearchGame, extract: string) {
+  const free = detectFree(game, extract);
+  const gacha = detectGacha(game, extract);
+  const storyLight = /ストーリーやプレイヤーキャラクターなどは持たず/.test(extract);
+  const nintendo = /任天堂|Nintendo/.test(`${game.developer}${extract}`);
+
+  if (gacha) {
+    return {
+      f2pScore: 38,
+      volumeScore: 92,
+      graphicScore: nintendo ? 80 : 72,
+      controlScore: 84,
+      storyScore: storyLight ? 42 : 52,
+      kinkaScore: 32,
+      avgPlayTime: 320,
+      avgScore: 7.6,
+    };
+  }
+
+  if (free) {
+    return {
+      f2pScore: 72,
+      volumeScore: 70,
+      graphicScore: 74,
+      controlScore: 78,
+      storyScore: 55,
+      kinkaScore: 68,
+      avgPlayTime: 80,
+      avgScore: 7.4,
+    };
+  }
+
+  return {
+    f2pScore: 90,
+    volumeScore: /ダンジョン|協力/.test(extract) ? 82 : 74,
+    graphicScore: nintendo ? 88 : 76,
+    controlScore: 86,
+    storyScore: 74,
+    kinkaScore: 94,
+    avgPlayTime: 30,
+    avgScore: 8.2,
+  };
+}
+
+function summaryFromPublic(game: SearchGame, publicInfo: PublicGameInfo | null) {
+  if (publicInfo) {
+    const cleaned = takeSentences(cleanWikiExtract(publicInfo.extract), 5);
+    if (cleaned.length >= 40) return cleaned;
+  }
+  const kind = game.isFree ? "基本無料のゲーム" : "ゲーム";
+  return `『${game.title}』は${game.developer}が${game.releaseYear}年に公開した${game.genre}の${kind}です。対応プラットフォームは${game.platforms.join("、") || "情報なし"}です。`;
+}
+
+function assembleFromPublic(
+  game: SearchGame,
+  publicInfo: PublicGameInfo | null,
+  raw?: Record<string, unknown>,
+): GeneratedGameDetails {
+  const extract = publicInfo?.extract ?? "";
+  const scores = scoresFromPublicFacts(game, extract);
+  const free = detectFree(game, extract);
+  const gacha = detectGacha(game, extract);
+
+  return {
+    summary: asString(raw?.summary, summaryFromPublic(game, publicInfo)),
+    priceLabel: asString(raw?.priceLabel, free ? "基本無料" : "買い切り"),
+    ageRating: asString(raw?.ageRating, ageRatingFromPublic(extract)),
+    releaseDate: asString(
+      raw?.releaseDate,
+      releaseDateFromPublic(game, extract),
+    ),
+    monetizationType: asString(
+      raw?.monetizationType,
+      gacha
+        ? "基本無料 + ガチャ・アイテム課金"
+        : free
+          ? "基本無料 + アイテム課金"
+          : "買い切り",
+    ),
+    monthly: asString(raw?.monthly, "なし"),
+    ceiling: asString(
+      raw?.ceiling,
+      gacha ? "ガチャあり" : "天井なし（ガチャ非搭載）",
+    ),
+    f2pScore: clamp(Number(raw?.f2pScore ?? scores.f2pScore), 0, 100),
+    volumeScore: clamp(Number(raw?.volumeScore ?? scores.volumeScore), 0, 100),
+    graphicScore: clamp(
+      Number(raw?.graphicScore ?? scores.graphicScore),
+      0,
+      100,
+    ),
+    controlScore: clamp(
+      Number(raw?.controlScore ?? scores.controlScore),
+      0,
+      100,
+    ),
+    storyScore: clamp(Number(raw?.storyScore ?? scores.storyScore), 0, 100),
+    kinkaScore: clamp(Number(raw?.kinkaScore ?? scores.kinkaScore), 0, 100),
+    avgPlayTime: clamp(Number(raw?.avgPlayTime ?? scores.avgPlayTime), 0, 5000),
+    avgScore: clamp(Number(raw?.avgScore ?? scores.avgScore), 0, 10),
+    tags: asStringList(raw?.tags).length
+      ? asStringList(raw?.tags).slice(0, 6)
+      : tagsFromPublic(extract, game),
+    platforms: asStringList(raw?.platforms).length
+      ? asStringList(raw?.platforms)
+      : platformsFromPublic(game, extract),
+    sources: publicInfo?.sources ?? [],
+    assembledFromPublic: true,
+    assemblyVersion: 2,
+  };
+}
+
+function buildPrompt(game: SearchGame, publicInfo: PublicGameInfo | null) {
+  const sourceText = publicInfo
+    ? publicInfo.extract.slice(0, 1600)
+    : "公開百科の本文は取得できませんでした。登録データのみを使い、不明な項目は推測しすぎないでください。";
+
+  return `あなたは日本語のゲーム事典編集者です。次の公開情報と登録データだけを根拠に、ゲーム詳細をJSONで返してください。公開情報に無い事実は作らず、不明ならその旨が分かる表現にしてください。架空のユーザーレビューは書かないでください。
+
+公開情報:
+${sourceText}
+
+登録データ:
 - タイトル: ${game.title}
 - パブリッシャー: ${game.developer}
 - 発売年: ${game.releaseYear}
@@ -105,9 +262,9 @@ function buildPrompt(game: SearchGame) {
 
 出力JSONのキー:
 {
-  "summary": "3〜5文の日本語概要。遊び方、課金の有無、対象ハードを含める",
-  "priceLabel": "例: 基本無料 / ¥6,480 / ¥6,480〜",
-  "ageRating": "CERO表記。スマホアプリで不明なら対象年齢の目安",
+  "summary": "公開情報を3〜5文で整理。遊び方、課金の有無、対象ハードを含める",
+  "priceLabel": "例: 基本無料 / ¥6,480 / 買い切り",
+  "ageRating": "CERO表記。不明なら情報なし",
   "releaseDate": "できるだけ具体的な発売日。不明なら年のみ",
   "monetizationType": "課金モデル",
   "monthly": "月額パス。なければなし",
@@ -137,7 +294,7 @@ async function generateWithGemini(prompt: string) {
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.2,
+          temperature: 0.1,
           responseMimeType: "application/json",
         },
       }),
@@ -168,12 +325,13 @@ async function generateWithOpenAI(prompt: string) {
     },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      temperature: 0.2,
+      temperature: 0.1,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content: "ゲーム事典の編集者として、指定キーのJSONだけを返す。",
+          content:
+            "公開情報だけを根拠に、指定キーのJSONだけを返すゲーム事典編集者。",
         },
         { role: "user", content: prompt },
       ],
@@ -200,66 +358,27 @@ export function isGeneratedGameDetails(
   return typeof record.summary === "string" && typeof record.priceLabel === "string";
 }
 
-function curatedDetails(title: string): GeneratedGameDetails | null {
-  if (title.includes("スプラトゥーン") && title.includes("レイダース")) {
-    return {
-      summary:
-        "『スプラトゥーン レイダース』は2026年7月23日発売のNintendo Switch 2向けソフトで、スプラトゥーンシリーズ初のスピンオフです。ウズシオ諸島を舞台に、新たな主人公「メカニック」とすりみ連合が島に眠るオタカラを探す協力型のアクションシューティングで、対戦ではなく探索・強化・シャケとの戦いが中心です。オンラインまたはローカルで最大4人まで冒険でき、ソロ中に救援を呼ぶヘルプ機能もあります。ダウンロード版は6,480円、パッケージ版は7,480円です。",
-      priceLabel: "¥6,480〜",
-      ageRating: "CERO A（全年齢対象）",
-      releaseDate: "2026年7月23日",
-      monetizationType: "買い切り",
-      monthly: "なし",
-      ceiling: "天井なし（ガチャ非搭載）",
-      f2pScore: 90,
-      volumeScore: 82,
-      graphicScore: 88,
-      controlScore: 86,
-      storyScore: 74,
-      kinkaScore: 94,
-      avgPlayTime: 30,
-      avgScore: 8.4,
-      tags: ["スピンオフ", "協力プレイ", "探索"],
-      platforms: ["Switch2"],
-    };
-  }
-
-  if (title.includes("モンスターストライク")) {
-    return {
-      summary:
-        "『モンスターストライク』はMIXIが配信するスマートフォン向け協力RPGです。2013年10月10日にiOS版、同年12月にAndroid版が始まり、モンスターを引っ張って敵に当てる「ひっぱりハンティング」が特徴です。友情コンボやストライクショット、最大4人のマルチプレイでクエストを攻略します。アプリ自体は無料ですが、ガチャや育成、月額480円のモンストパスポートなどの課金要素があります。",
-      priceLabel: "基本無料",
-      ageRating: "ストア年齢指定（CERO対象外のアプリ配信）",
-      releaseDate: "2013年10月10日",
-      monetizationType: "基本無料 + ガチャ・アイテム課金",
-      monthly: "モンストパスポート 月額480円",
-      ceiling: "ガチャあり（イベント・コラボごとに変動）",
-      f2pScore: 38,
-      volumeScore: 96,
-      graphicScore: 72,
-      controlScore: 84,
-      storyScore: 48,
-      kinkaScore: 32,
-      avgPlayTime: 400,
-      avgScore: 7.8,
-      tags: ["ガチャ", "マルチプレイ", "ひっぱり"],
-      platforms: ["iOS", "Android"],
-    };
-  }
-
-  return null;
+export function isAssembledPublicDetails(
+  value: unknown,
+): value is GeneratedGameDetails {
+  return (
+    isGeneratedGameDetails(value) &&
+    value.assembledFromPublic === true &&
+    (value.assemblyVersion ?? 0) >= 2
+  );
 }
 
-async function generateDetails(
+async function assembleDetails(
   game: SearchGame,
-): Promise<{ details: GeneratedGameDetails; model: string } | null> {
-  const prompt = buildPrompt(game);
+): Promise<{ details: GeneratedGameDetails; model: string }> {
+  const publicInfo = await fetchPublicGameInfo(game);
+  const prompt = buildPrompt(game, publicInfo);
 
   try {
     const gemini = await generateWithGemini(prompt);
     if (gemini) {
       return {
-        details: normalizeDetails(gemini, game),
+        details: assembleFromPublic(game, publicInfo, gemini),
         model: "gemini-2.5-flash",
       };
     }
@@ -271,7 +390,7 @@ async function generateDetails(
     const openai = await generateWithOpenAI(prompt);
     if (openai) {
       return {
-        details: normalizeDetails(openai, game),
+        details: assembleFromPublic(game, publicInfo, openai),
         model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
       };
     }
@@ -279,12 +398,19 @@ async function generateDetails(
     console.error("OpenAI game-detail generation failed", error);
   }
 
-  const curated = curatedDetails(game.title);
-  if (curated) {
-    return { details: curated, model: "curated-public-sources" };
-  }
+  return {
+    details: assembleFromPublic(game, publicInfo),
+    model: publicInfo ? "wikipedia-public-sources" : "registered-public-facts",
+  };
+}
 
-  return null;
+function normalizeStored(value: GeneratedGameDetails): GeneratedGameDetails {
+  return {
+    ...value,
+    sources: asSources(value.sources),
+    assembledFromPublic: value.assembledFromPublic === true,
+    assemblyVersion: Number(value.assemblyVersion) || 0,
+  };
 }
 
 export async function getStoredGameDetails(gameId: string) {
@@ -293,34 +419,48 @@ export async function getStoredGameDetails(gameId: string) {
     where: { game_id: gameId },
   });
   if (!row || !isGeneratedGameDetails(row.payload)) return null;
-  return row.payload;
+  return normalizeStored(row.payload);
+}
+
+async function saveDetails(
+  gameId: string,
+  details: GeneratedGameDetails,
+  model: string,
+) {
+  await prisma.game_details.upsert({
+    where: { game_id: gameId },
+    create: {
+      game_id: gameId,
+      payload: details,
+      model,
+    },
+    update: {
+      payload: details,
+      model,
+      generated_at: new Date(),
+    },
+  });
 }
 
 export async function ensureGameDetails(
   game: SearchGame,
-): Promise<GeneratedGameDetails | null> {
+): Promise<GeneratedGameDetails> {
   const id = String(game.id);
   const stored = await getStoredGameDetails(id);
-  if (stored) return stored;
+  if (
+    stored &&
+    isAssembledPublicDetails(stored) &&
+    stored.summary.includes(game.title) &&
+    stored.assemblyVersion >= 2
+  ) {
+    return stored;
+  }
 
-  const generated = await generateDetails(game);
-  if (!generated || !UUID_RE.test(id)) return null;
-
-  await prisma.game_details.upsert({
-    where: { game_id: id },
-    create: {
-      game_id: id,
-      payload: generated.details,
-      model: generated.model,
-    },
-    update: {
-      payload: generated.details,
-      model: generated.model,
-      generated_at: new Date(),
-    },
-  });
-
-  return generated.details;
+  const assembled = await assembleDetails(game);
+  if (UUID_RE.test(id)) {
+    await saveDetails(id, assembled.details, assembled.model);
+  }
+  return assembled.details;
 }
 
 export function applyDetailsToSearchGame(

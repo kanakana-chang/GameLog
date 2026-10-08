@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { CoverImage } from "@/components/cover-image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -406,7 +406,7 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
       <div className="mx-auto max-w-2xl space-y-4 px-4 py-6 pb-28">
         <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
           <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-indigo-400 to-purple-600 shadow-md">
-            <Image
+            <CoverImage
               src={game.jacket}
               alt={game.title}
               fill

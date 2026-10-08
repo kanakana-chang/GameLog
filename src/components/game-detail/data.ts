@@ -105,6 +105,7 @@ export type GameDetailData = {
   posts: Post[];
   summary?: string;
   detailsGenerated?: boolean;
+  sources?: { title: string; url: string }[];
   myRecord: {
     playTime: number;
     sessions: number;
@@ -455,7 +456,7 @@ function buildFromSearch(game: SearchGame): GameDetailData {
       ceiling: game.hasGacha ? "ガチャあり（天井はタイトルによる）" : "天井なし（ガチャ非搭載）",
     },
     jacket: game.img,
-    coverWide: "/games/gaming-alt.jpg",
+    coverWide: game.img,
     avgPlayTime: game.avgPlaytime,
     totalReviews: game.ratingCount,
     avgScore,
@@ -513,6 +514,7 @@ export function applyGeneratedDetails(
     ...detail,
     summary: generated.summary,
     detailsGenerated: true,
+    sources: generated.sources,
     platforms,
     genre: [...detail.genre, ...tags].slice(0, 4),
     releaseDate: generated.releaseDate,

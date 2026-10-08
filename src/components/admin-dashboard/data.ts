@@ -1,4 +1,12 @@
-export type Platform = "Switch" | "iOS" | "Android" | "Steam" | "PS5" | "Xbox";
+export type Platform =
+  | "Switch"
+  | "Switch2"
+  | "iOS"
+  | "Android"
+  | "Steam"
+  | "PS5"
+  | "Xbox"
+  | (string & {});
 export type Genre =
   | "Action"
   | "RPG"
@@ -7,7 +15,8 @@ export type Genre =
   | "Simulation"
   | "Sports"
   | "Gacha"
-  | "Survival";
+  | "Survival"
+  | (string & {});
 export type ReportStatus = "open" | "hidden" | "dismissed";
 export type ReportReason =
   | "inappropriate"
@@ -45,6 +54,7 @@ export type AdminReport = {
 
 export const ADMIN_PLATFORMS: Platform[] = [
   "Switch",
+  "Switch2",
   "iOS",
   "Android",
   "Steam",
@@ -287,9 +297,11 @@ export const STATUS_LABELS: Record<string, string> = {
 
 export const PLATFORM_COLORS: Record<string, string> = {
   Switch: "border-red-100 bg-red-50 text-red-600",
+  Switch2: "border-red-100 bg-red-50 text-red-600",
   iOS: "border-sky-100 bg-sky-50 text-sky-600",
   Android: "border-green-100 bg-green-50 text-green-600",
   Steam: "border-indigo-100 bg-indigo-50 text-indigo-600",
+  PC: "border-indigo-100 bg-indigo-50 text-indigo-600",
   PS5: "border-blue-100 bg-blue-50 text-blue-700",
   Xbox: "border-emerald-100 bg-emerald-50 text-emerald-700",
 };
