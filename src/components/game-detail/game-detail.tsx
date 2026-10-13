@@ -1,7 +1,9 @@
 "use client";
 
 import { CoverImage } from "@/components/cover-image";
+import { useAuth } from "@/components/auth-provider";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   POST_TAGS,
@@ -412,9 +414,11 @@ function PostCard({
             <span className="font-mono text-[10px] text-detail-muted">
               💬 {p.replies}
             </span>
-            <span className="font-mono text-[10px] text-detail-dim">
-              👁 {p.views.toLocaleString()}
-            </span>
+            {p.views > 0 ? (
+              <span className="font-mono text-[10px] text-detail-dim">
+                👁 {p.views.toLocaleString()}
+              </span>
+            ) : null}
           </div>
         </div>
       </Link>
@@ -553,11 +557,17 @@ function NewPostModal({
   onSubmit,
 }: {
   onClose: () => void;
-  onSubmit: (p: Post) => void;
+  onSubmit: (input: {
+    title: string;
+    body: string;
+    tags: string[];
+  }) => Promise<void> | void;
 }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [selTags, setSelTags] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const valid = title.trim().length > 0 && body.trim().length > 0;
 
   function toggleTag(t: string) {
@@ -570,22 +580,22 @@ function NewPostModal({
     );
   }
 
-  function submit() {
-    if (!valid) return;
-    onSubmit({
-      id: Date.now(),
-      user: "あなた",
-      av: "あ",
-      avBg: "#fff3ee",
-      avC: "#ff6b35",
-      date: new Date().toISOString().slice(0, 10),
-      title: title.trim(),
-      body: body.trim(),
-      replies: 0,
-      views: 1,
-      tags: selTags,
-    });
-    onClose();
+  async function submit() {
+    if (!valid || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onSubmit({
+        title: title.trim(),
+        body: body.trim(),
+        tags: selTags,
+      });
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "トピックの投稿に失敗しました");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -653,25 +663,34 @@ function NewPostModal({
           </div>
         </div>
 
+        {error ? (
+          <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-[12px] text-red-600">
+            {error}
+          </p>
+        ) : null}
+
         <div className="flex justify-end gap-2 border-t border-detail-border pt-1">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-[10px] border border-detail-border bg-white px-[18px] py-[9px] font-display text-[13px] font-semibold text-detail-muted"
+            disabled={saving}
+            className="rounded-[10px] border border-detail-border bg-white px-[18px] py-[9px] font-display text-[13px] font-semibold text-detail-muted disabled:opacity-60"
           >
             キャンセル
           </button>
           <button
             type="button"
-            onClick={submit}
-            disabled={!valid}
+            onClick={() => {
+              void submit();
+            }}
+            disabled={!valid || saving}
             className={`rounded-[10px] px-[22px] py-[9px] font-display text-[13px] font-bold text-white ${
               valid
-                ? "bg-gradient-to-br from-detail-accent to-[#ff9158] shadow-[0_4px_14px_rgba(255,107,53,0.25)]"
+                ? "bg-gradient-to-br from-detail-accent to-[#ff9158] shadow-[0_4px_14px_rgba(255,107,53,0.25)] disabled:opacity-70"
                 : "cursor-default bg-[#dde0f0]"
             }`}
           >
-            投稿する
+            {saving ? "投稿中..." : "投稿する"}
           </button>
         </div>
       </div>
@@ -693,6 +712,11 @@ function Toast({ msg, onEnd }: { msg: string; onEnd: () => void }) {
 }
 
 export function GameDetail({ detail }: { detail: GameDetailData }) {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const persistBoard = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    String(detail.id),
+  );
   const [status, setStatus] = useState<string | null>("playing");
   const [tab, setTab] = useState<TabKey>("reviews");
   const [sort, setSort] = useState<SortKey>("helpful");
@@ -1009,9 +1033,52 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
       {showNewPost ? (
         <NewPostModal
           onClose={() => setShowNewPost(false)}
-          onSubmit={(p) => {
-            setPosts((prev) => [p, ...prev]);
+          onSubmit={async (input) => {
+            if (!isLoggedIn) {
+              router.push("/login");
+              return;
+            }
+            if (!persistBoard) {
+              setPosts((prev) => [
+                {
+                  id: Date.now(),
+                  user: "あなた",
+                  av: "あ",
+                  avBg: "#fff3ee",
+                  avC: "#ff6b35",
+                  date: new Date().toISOString().slice(0, 10),
+                  title: input.title,
+                  body: input.body,
+                  replies: 0,
+                  views: 1,
+                  tags: input.tags,
+                },
+                ...prev,
+              ]);
+              setToast("トピックを投稿しました！");
+              return;
+            }
+
+            const response = await fetch(`/api/games/${detail.id}/topics`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(input),
+            });
+            const payload = (await response.json().catch(() => null)) as
+              | Post
+              | { error?: string }
+              | null;
+            if (!response.ok || !payload || !("id" in payload)) {
+              throw new Error(
+                payload && "error" in payload && payload.error
+                  ? payload.error
+                  : "トピックの投稿に失敗しました",
+              );
+            }
+            setPosts((prev) => [payload, ...prev]);
             setToast("トピックを投稿しました！");
+            router.refresh();
+            router.push(`/games/${detail.id}/board/${payload.id}`);
           }}
         />
       ) : null}

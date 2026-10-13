@@ -1,5 +1,5 @@
 export type ThreadReply = {
-  id: number;
+  id: string | number;
   userId: string;
   userName: string;
   avatar: string;

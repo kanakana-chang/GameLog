@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 import type { Post } from "@/components/game-detail/data";
 import {
   CURRENT_USER,
@@ -13,7 +15,7 @@ import {
 
 type ReportTarget =
   | { type: "thread"; label: string }
-  | { type: "reply"; id: number; label: string };
+  | { type: "reply"; id: string | number; label: string };
 
 function AvatarBadge({
   initials,
@@ -239,7 +241,7 @@ function ReplyCard({
   onReport,
 }: {
   reply: ThreadReply;
-  onLike: (id: number) => void;
+  onLike: (id: string | number) => void;
   onReport: (target: ReportTarget) => void;
 }) {
   return (
@@ -315,33 +317,48 @@ export function BoardThread({
   gameId,
   gameTitle,
   post,
+  initialReplies,
+  persist = false,
 }: {
   gameId: string | number;
   gameTitle: string;
   post: Post;
+  initialReplies?: ThreadReply[];
+  persist?: boolean;
 }) {
-  const [replies, setReplies] = useState<ThreadReply[]>(() => [
-    {
-      id: 0,
-      userId: post.user,
-      userName: post.user,
-      avatar: post.av,
-      color: post.avC,
-      content: post.body,
-      isSpoiler: false,
-      likes: 12,
-      likedByMe: false,
-      timestamp: `${post.date} 12:00`,
-    },
-    ...THREAD_REPLIES,
-  ]);
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const [replies, setReplies] = useState<ThreadReply[]>(() =>
+    persist
+      ? (initialReplies ?? [])
+      : [
+          {
+            id: 0,
+            userId: post.user,
+            userName: post.user,
+            avatar: post.av,
+            color: post.avC,
+            content: post.body,
+            isSpoiler: false,
+            likes: 12,
+            likedByMe: false,
+            timestamp: `${post.date} 12:00`,
+          },
+          ...THREAD_REPLIES,
+        ],
+  );
   const [draft, setDraft] = useState("");
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const composer = persist
+    ? { id: "guest", name: "ゲスト", avatar: "ゲ", color: "#4F46E5" }
+    : CURRENT_USER;
 
-  function handleLike(id: number) {
+  function handleLike(id: string | number) {
     setReplies((prev) =>
       prev.map((r) =>
         r.id === id
@@ -355,30 +372,77 @@ export function BoardThread({
     );
   }
 
-  function handlePost() {
+  async function handlePost() {
     const text = draft.trim();
-    if (!text) return;
-    const now = new Date();
-    const ts = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    setReplies((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        userId: CURRENT_USER.id,
-        userName: CURRENT_USER.name,
-        avatar: CURRENT_USER.avatar,
-        color: CURRENT_USER.color,
-        content: text,
-        isSpoiler,
-        likes: 0,
-        likedByMe: false,
-        timestamp: ts,
-        image: attachedImage ?? undefined,
-      },
-    ]);
-    setDraft("");
-    setIsSpoiler(false);
-    setAttachedImage(null);
+    if (!text || saving) return;
+    if (persist && !isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    if (!persist) {
+      const now = new Date();
+      const ts = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      setReplies((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          userId: CURRENT_USER.id,
+          userName: CURRENT_USER.name,
+          avatar: CURRENT_USER.avatar,
+          color: CURRENT_USER.color,
+          content: text,
+          isSpoiler,
+          likes: 0,
+          likedByMe: false,
+          timestamp: ts,
+          image: attachedImage ?? undefined,
+        },
+      ]);
+      setDraft("");
+      setIsSpoiler(false);
+      setAttachedImage(null);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `/api/games/${gameId}/topics/${post.id}/posts`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: text,
+            spoiler: isSpoiler,
+            imageUrl: attachedImage && /^https?:\/\//.test(attachedImage)
+              ? attachedImage
+              : "",
+          }),
+        },
+      );
+      const payload = (await response.json().catch(() => null)) as
+        | ThreadReply
+        | { error?: string }
+        | null;
+      if (!response.ok || !payload || !("id" in payload)) {
+        throw new Error(
+          payload && "error" in payload && payload.error
+            ? payload.error
+            : "レスの投稿に失敗しました",
+        );
+      }
+      setReplies((prev) => [...prev, payload]);
+      setDraft("");
+      setIsSpoiler(false);
+      setAttachedImage(null);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "レスの投稿に失敗しました");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -455,18 +519,18 @@ export function BoardThread({
         <div className="mx-auto max-w-2xl">
           <div className="mb-2 flex items-center gap-2">
             <AvatarBadge
-              initials={CURRENT_USER.avatar}
-              color={CURRENT_USER.color}
+              initials={composer.avatar}
+              color={composer.color}
               size="sm"
             />
             <span className="text-[12px] font-semibold text-[#1a1a2e]">
-              {CURRENT_USER.name}
+              {composer.name}
             </span>
             <span className="font-mono text-[11px] text-[#6b6b8a]">
-              {CURRENT_USER.id}
+              {composer.id}
             </span>
             <span className="ml-auto text-[11px] text-[#6b6b8a]">
-              アカウント連携済み
+              {persist ? "ゲスト投稿" : "アカウント連携済み"}
             </span>
           </div>
 
@@ -536,13 +600,18 @@ export function BoardThread({
 
             <button
               type="button"
-              onClick={handlePost}
-              disabled={!draft.trim()}
+              onClick={() => {
+                void handlePost();
+              }}
+              disabled={!draft.trim() || saving}
               className="ml-auto rounded-full bg-[#5b4cf5] px-5 py-1.5 text-[13px] font-semibold text-white transition-all hover:bg-[#4a3de0] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              投稿
+              {saving ? "投稿中..." : "投稿"}
             </button>
           </div>
+          {error ? (
+            <p className="mt-2 text-[12px] text-[#e53e3e]">{error}</p>
+          ) : null}
         </div>
       </div>
 

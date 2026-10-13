@@ -10,6 +10,7 @@ import {
 import { SEARCH_GAMES } from "@/components/game-search/data";
 import { ensureGameDetails } from "@/lib/game-details";
 import { getSearchGameById } from "@/lib/games";
+import { attachGameTopics, getGameTopics } from "@/lib/board";
 import { attachGameReviews, getGameReviews } from "@/lib/reviews";
 
 type GameDetailPageProps = {
@@ -44,16 +45,20 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
   const game = await getSearchGameById(id);
   if (!game) notFound();
 
-  const [assembled, reviews] = await Promise.all([
+  const [assembled, reviews, topics] = await Promise.all([
     ensureGameDetails(game),
     getGameReviews(id),
+    getGameTopics(id),
   ]);
-  const detail = attachGameReviews(
-    applyGeneratedDetails(
-      getGameDetailFromSearch(game, { syntheticSocial: false }),
-      assembled,
+  const detail = attachGameTopics(
+    attachGameReviews(
+      applyGeneratedDetails(
+        getGameDetailFromSearch(game, { syntheticSocial: false }),
+        assembled,
+      ),
+      reviews,
     ),
-    reviews,
+    topics,
   );
   return <GameDetail detail={detail} />;
 }

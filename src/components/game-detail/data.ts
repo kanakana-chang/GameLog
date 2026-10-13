@@ -64,7 +64,7 @@ export type Review = {
 };
 
 export type Post = {
-  id: number;
+  id: string | number;
   user: string;
   av: string;
   avBg: string;
