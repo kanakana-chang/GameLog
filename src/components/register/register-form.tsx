@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 
 type Step = "register" | "verify";
 type FieldErrors = {
@@ -32,7 +34,18 @@ const STRENGTH_CLASS = [
   "bg-register-strong text-register-strong",
 ] as const;
 
-export function RegisterForm() {
+function fieldFromMessage(message: string): keyof FieldErrors | null {
+  if (message.includes("上限")) return null;
+  if (message.includes("表示名")) return "displayName";
+  if (message.includes("メール")) return "email";
+  if (message.includes("パスワード")) return "password";
+  if (message.includes("同意") || message.includes("利用規約")) return "agreed";
+  return null;
+}
+
+export function RegisterForm({ initialError = "" }: { initialError?: string }) {
+  const router = useRouter();
+  const { login } = useAuth();
   const [step, setStep] = useState<Step>("register");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -41,6 +54,7 @@ export function RegisterForm() {
   const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [formError, setFormError] = useState(initialError);
 
   const strength =
     password.length === 0
@@ -64,7 +78,7 @@ export function RegisterForm() {
     return next;
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const next = validate();
     if (Object.keys(next).length > 0) {
@@ -72,11 +86,40 @@ export function RegisterForm() {
       return;
     }
     setErrors({});
+    setFormError("");
     setSubmitting(true);
-    window.setTimeout(() => {
-      setSubmitting(false);
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName, email, password, agreed }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        session?: boolean;
+      } | null;
+      if (!response.ok) {
+        const message = payload?.error || "アカウントの作成に失敗しました";
+        const field = fieldFromMessage(message);
+        if (field) {
+          setErrors({ [field]: message });
+        } else {
+          setFormError(message);
+        }
+        return;
+      }
+      if (payload?.session) {
+        login();
+        router.push("/");
+        router.refresh();
+        return;
+      }
       setStep("verify");
-    }, 1400);
+    } catch {
+      setFormError("アカウントの作成に失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (step === "verify") {
@@ -187,9 +230,22 @@ export function RegisterForm() {
           </div>
 
           <div className="mb-6 grid grid-cols-2 gap-3">
-            <SnsButton icon={<GoogleIcon />} label="Google" />
-            <SnsButton icon={<XIcon />} label="X (Twitter)" />
+            <SnsButton
+              href="/api/auth/oauth/google?return=/register"
+              icon={<GoogleIcon />}
+              label="Google"
+            />
+            <SnsButton
+              href="/api/auth/oauth/twitter?return=/register"
+              icon={<XIcon />}
+              label="X (Twitter)"
+            />
           </div>
+          {formError ? (
+            <p className="mb-6 rounded-xl border border-register-error/30 bg-register-error/5 px-3 py-2 text-xs text-register-error">
+              {formError}
+            </p>
+          ) : null}
 
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-register-border" />
@@ -339,6 +395,12 @@ export function RegisterForm() {
               ) : null}
             </div>
 
+            {formError ? (
+              <p className="rounded-xl border border-register-error/30 bg-register-error/5 px-3 py-2 text-xs text-register-error">
+                {formError}
+              </p>
+            ) : null}
+
             <button
               type="submit"
               disabled={submitting}
@@ -391,20 +453,22 @@ function GameLogo({ white = false }: { white?: boolean }) {
 }
 
 function SnsButton({
+  href,
   icon,
   label,
 }: {
+  href: string;
   icon: React.ReactNode;
   label: string;
 }) {
   return (
-    <button
-      type="button"
+    <a
+      href={href}
       className="flex items-center justify-center gap-2.5 rounded-xl border-[1.5px] border-register-border bg-register-card py-3 text-sm font-medium text-register-secondary transition-all duration-150 hover:border-[#c4bef8] hover:bg-[#faf9ff] hover:shadow-sm active:scale-95"
     >
       {icon}
       <span className="font-display">{label}</span>
-    </button>
+    </a>
   );
 }
 

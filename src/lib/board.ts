@@ -226,6 +226,7 @@ export async function getBoardThread(gameId: string, topicId: string) {
 export async function createGameTopic(
   gameId: string,
   input: TopicInput,
+  userId?: string | null,
 ): Promise<Post> {
   if (!isUuid(gameId)) throw new Error("ゲームが見つかりません");
 
@@ -242,6 +243,7 @@ export async function createGameTopic(
         create: {
           content: encodeFirstPost(input.body, input.tags),
           is_spoiler: input.spoiler,
+          user_id: userId || null,
         },
       },
     },
@@ -260,6 +262,7 @@ export async function createTopicReply(
   gameId: string,
   topicId: string,
   input: ReplyInput,
+  userId?: string | null,
 ): Promise<ThreadReply> {
   if (!isUuid(gameId) || !isUuid(topicId)) {
     throw new Error("スレッドが見つかりません");
@@ -274,6 +277,7 @@ export async function createTopicReply(
   const created = await prisma.posts.create({
     data: {
       topic_id: topicId,
+      user_id: userId || null,
       content: input.content,
       is_spoiler: input.spoiler,
       image_url: imageUrlForStore(input.imageUrl),

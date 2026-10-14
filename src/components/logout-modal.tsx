@@ -1,9 +1,16 @@
 type LogoutModalProps = {
+  displayName: string;
+  email: string;
   onConfirm: () => void;
   onCancel: () => void;
 };
 
-export function LogoutModal({ onConfirm, onCancel }: LogoutModalProps) {
+export function LogoutModal({
+  displayName,
+  email,
+  onConfirm,
+  onCancel,
+}: LogoutModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-logout-overlay px-4 backdrop-blur-[4px]"
@@ -43,13 +50,13 @@ export function LogoutModal({ onConfirm, onCancel }: LogoutModalProps) {
 
           <div className="flex w-full items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#6C5CE7] to-[#a78bfa] text-sm font-bold text-white">
-              GL
+              {(displayName.trim().slice(0, 1) || "G").toUpperCase()}
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-800">
-                GameLogユーザー
+                {displayName}
               </p>
-              <p className="text-xs text-gray-400">user@gamelog.jp</p>
+              <p className="text-xs text-gray-400">{email}</p>
             </div>
           </div>
 

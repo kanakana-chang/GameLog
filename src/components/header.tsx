@@ -46,9 +46,35 @@ function SearchIcon() {
   );
 }
 
+function AccountAvatar({
+  src,
+  name,
+}: {
+  src: string;
+  name: string;
+}) {
+  if (src) {
+    return (
+      <Image
+        src={src}
+        alt="アカウント"
+        width={32}
+        height={32}
+        className="h-8 w-8 object-cover"
+      />
+    );
+  }
+
+  return (
+    <span className="flex h-8 w-8 items-center justify-center bg-indigo-600 text-xs font-bold text-white">
+      {(name.trim().slice(0, 1) || "G").toUpperCase()}
+    </span>
+  );
+}
+
 function AccountMenu() {
   const router = useRouter();
-  const { avatarSrc, isAdmin, logout } = useAuth();
+  const { avatarSrc, isAdmin, logout, user } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -89,13 +115,7 @@ function AccountMenu() {
           aria-label="アカウントメニュー"
           aria-expanded={open}
         >
-          <Image
-            src={avatarSrc}
-            alt="アカウント"
-            width={32}
-            height={32}
-            className="h-8 w-8 object-cover"
-          />
+          <AccountAvatar src={avatarSrc} name={user?.displayName ?? ""} />
         </button>
         {open ? (
           <div className="absolute top-10 right-0 z-40 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
@@ -137,11 +157,15 @@ function AccountMenu() {
       </div>
       {confirmOpen ? (
         <LogoutModal
+          displayName={user?.displayName ?? "ゲスト"}
+          email={user?.email ?? ""}
           onCancel={() => setConfirmOpen(false)}
           onConfirm={() => {
             setConfirmOpen(false);
-            logout();
-            router.push("/");
+            void logout().then(() => {
+              router.push("/");
+              router.refresh();
+            });
           }}
         />
       ) : null}

@@ -262,6 +262,7 @@ export async function getGameReviews(gameId: string): Promise<Review[]> {
 export async function createGameReview(
   gameId: string,
   input: ReviewInput,
+  userId?: string | null,
 ): Promise<Review> {
   if (!isUuid(gameId)) {
     throw new Error("ゲームが見つかりません");
@@ -273,6 +274,7 @@ export async function createGameReview(
   const created = await prisma.reviews.create({
     data: {
       game_id: gameId,
+      user_id: userId || null,
       rating_overall: scoreFromStars(input.rating),
       param_1: input.params.graphics,
       param_2: input.params.story,

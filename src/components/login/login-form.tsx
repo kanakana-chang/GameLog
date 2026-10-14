@@ -10,7 +10,7 @@ type View = "login" | "reset";
 const fieldClassName =
   "w-full rounded-[10px] border-[1.5px] border-login-border bg-login-field px-3.5 py-2.5 font-body text-sm text-login-input outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-login-faint focus:border-login-violet focus:bg-white focus:shadow-login-focus";
 
-export function LoginForm() {
+export function LoginForm({ initialError = "" }: { initialError?: string }) {
   const router = useRouter();
   const { login } = useAuth();
   const [view, setView] = useState<View>("login");
@@ -20,24 +20,58 @@ export function LoginForm() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(initialError);
 
-  const handleLogin = (event: React.FormEvent) => {
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
+    setError("");
     setLoading(true);
-    window.setTimeout(() => {
-      setLoading(false);
-      login();
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        setError(payload?.error || "ログインに失敗しました");
+        return;
+      }
+      await login();
       router.push("/");
-    }, 1200);
+      router.refresh();
+    } catch {
+      setError("ログインに失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReset = (event: React.FormEvent) => {
+  const handleReset = async (event: React.FormEvent) => {
     event.preventDefault();
+    setError("");
     setLoading(true);
-    window.setTimeout(() => {
-      setLoading(false);
+    try {
+      const response = await fetch("/api/auth/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        setError(payload?.error || "リセットメールの送信に失敗しました");
+        return;
+      }
       setResetSent(true);
-    }, 1000);
+    } catch {
+      setError("リセットメールの送信に失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -112,8 +146,16 @@ export function LoginForm() {
               </p>
 
               <div className="mb-6 flex flex-col gap-3">
-                <SnsButton icon={<GoogleIcon />} label="Googleでログイン" />
-                <SnsButton icon={<XIcon />} label="X（Twitter）でログイン" />
+                <SnsButton
+                  href="/api/auth/oauth/google?return=/login"
+                  icon={<GoogleIcon />}
+                  label="Googleでログイン"
+                />
+                <SnsButton
+                  href="/api/auth/oauth/twitter?return=/login"
+                  icon={<XIcon />}
+                  label="X（Twitter）でログイン"
+                />
               </div>
 
               <div className="mb-6 flex items-center gap-3">
@@ -153,7 +195,10 @@ export function LoginForm() {
                     </label>
                     <button
                       type="button"
-                      onClick={() => setView("reset")}
+                      onClick={() => {
+                        setError("");
+                        setView("reset");
+                      }}
                       className="text-xs font-medium text-login-violet"
                     >
                       パスワードを忘れた？
@@ -182,6 +227,12 @@ export function LoginForm() {
                   </div>
                 </div>
 
+                {error ? (
+                  <p className="rounded-[10px] border border-[rgba(220,38,38,0.18)] bg-[rgba(220,38,38,0.06)] px-3 py-2 font-body text-xs text-[#b91c1c]">
+                    {error}
+                  </p>
+                ) : null}
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -209,6 +260,7 @@ export function LoginForm() {
                   setView("login");
                   setResetSent(false);
                   setResetEmail("");
+                  setError("");
                 }}
                 className="mb-6 flex items-center gap-1.5 text-[13px] font-medium text-login-violet"
               >
@@ -250,6 +302,11 @@ export function LoginForm() {
                         className={fieldClassName}
                       />
                     </div>
+                    {error ? (
+                      <p className="rounded-[10px] border border-[rgba(220,38,38,0.18)] bg-[rgba(220,38,38,0.06)] px-3 py-2 font-body text-xs text-[#b91c1c]">
+                        {error}
+                      </p>
+                    ) : null}
                     <button
                       type="submit"
                       disabled={loading}
@@ -273,20 +330,22 @@ export function LoginForm() {
 }
 
 function SnsButton({
+  href,
   icon,
   label,
 }: {
+  href: string;
   icon: React.ReactNode;
   label: string;
 }) {
   return (
-    <button
-      type="button"
+    <a
+      href={href}
       className="flex items-center justify-center gap-2.5 rounded-[10px] border border-login-border bg-white px-4 py-[11px] text-sm font-medium text-login-label transition-all duration-150 hover:border-[#d1d5db] hover:bg-[#f9fafb]"
     >
       {icon}
       {label}
-    </button>
+    </a>
   );
 }
 
