@@ -32,6 +32,7 @@ export type ProfilesMinAggregateOutputType = {
   about_text: string | null
   is_deleted: boolean | null
   created_at: Date | null
+  role: string | null
 }
 
 export type ProfilesMaxAggregateOutputType = {
@@ -42,6 +43,7 @@ export type ProfilesMaxAggregateOutputType = {
   about_text: string | null
   is_deleted: boolean | null
   created_at: Date | null
+  role: string | null
 }
 
 export type ProfilesCountAggregateOutputType = {
@@ -52,6 +54,7 @@ export type ProfilesCountAggregateOutputType = {
   about_text: number
   is_deleted: number
   created_at: number
+  role: number
   _all: number
 }
 
@@ -64,6 +67,7 @@ export type ProfilesMinAggregateInputType = {
   about_text?: true
   is_deleted?: true
   created_at?: true
+  role?: true
 }
 
 export type ProfilesMaxAggregateInputType = {
@@ -74,6 +78,7 @@ export type ProfilesMaxAggregateInputType = {
   about_text?: true
   is_deleted?: true
   created_at?: true
+  role?: true
 }
 
 export type ProfilesCountAggregateInputType = {
@@ -84,6 +89,7 @@ export type ProfilesCountAggregateInputType = {
   about_text?: true
   is_deleted?: true
   created_at?: true
+  role?: true
   _all?: true
 }
 
@@ -167,6 +173,7 @@ export type ProfilesGroupByOutputType = {
   about_text: string | null
   is_deleted: boolean
   created_at: Date
+  role: string
   _count: ProfilesCountAggregateOutputType | null
   _min: ProfilesMinAggregateOutputType | null
   _max: ProfilesMaxAggregateOutputType | null
@@ -198,6 +205,7 @@ export type profilesWhereInput = {
   about_text?: Prisma.StringNullableFilter<"profiles"> | string | null
   is_deleted?: Prisma.BoolFilter<"profiles"> | boolean
   created_at?: Prisma.DateTimeFilter<"profiles"> | Date | string
+  role?: Prisma.StringFilter<"profiles"> | string
   post_likes?: Prisma.Post_likesListRelationFilter
   posts?: Prisma.PostsListRelationFilter
   users?: Prisma.XOR<Prisma.UsersScalarRelationFilter, Prisma.usersWhereInput>
@@ -214,6 +222,7 @@ export type profilesOrderByWithRelationInput = {
   about_text?: Prisma.SortOrderInput | Prisma.SortOrder
   is_deleted?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   post_likes?: Prisma.post_likesOrderByRelationAggregateInput
   posts?: Prisma.postsOrderByRelationAggregateInput
   users?: Prisma.usersOrderByWithRelationInput
@@ -233,6 +242,7 @@ export type profilesWhereUniqueInput = Prisma.AtLeast<{
   about_text?: Prisma.StringNullableFilter<"profiles"> | string | null
   is_deleted?: Prisma.BoolFilter<"profiles"> | boolean
   created_at?: Prisma.DateTimeFilter<"profiles"> | Date | string
+  role?: Prisma.StringFilter<"profiles"> | string
   post_likes?: Prisma.Post_likesListRelationFilter
   posts?: Prisma.PostsListRelationFilter
   users?: Prisma.XOR<Prisma.UsersScalarRelationFilter, Prisma.usersWhereInput>
@@ -249,6 +259,7 @@ export type profilesOrderByWithAggregationInput = {
   about_text?: Prisma.SortOrderInput | Prisma.SortOrder
   is_deleted?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   _count?: Prisma.profilesCountOrderByAggregateInput
   _max?: Prisma.profilesMaxOrderByAggregateInput
   _min?: Prisma.profilesMinOrderByAggregateInput
@@ -265,6 +276,7 @@ export type profilesScalarWhereWithAggregatesInput = {
   about_text?: Prisma.StringNullableWithAggregatesFilter<"profiles"> | string | null
   is_deleted?: Prisma.BoolWithAggregatesFilter<"profiles"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"profiles"> | Date | string
+  role?: Prisma.StringWithAggregatesFilter<"profiles"> | string
 }
 
 export type profilesCreateInput = {
@@ -274,6 +286,7 @@ export type profilesCreateInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
@@ -290,6 +303,7 @@ export type profilesUncheckedCreateInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
@@ -304,6 +318,7 @@ export type profilesUpdateInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
@@ -320,6 +335,7 @@ export type profilesUncheckedUpdateInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
@@ -335,6 +351,7 @@ export type profilesCreateManyInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
 }
 
 export type profilesUpdateManyMutationInput = {
@@ -344,6 +361,7 @@ export type profilesUpdateManyMutationInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type profilesUncheckedUpdateManyInput = {
@@ -354,6 +372,7 @@ export type profilesUncheckedUpdateManyInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type ProfilesNullableScalarRelationFilter = {
@@ -374,6 +393,7 @@ export type profilesCountOrderByAggregateInput = {
   about_text?: Prisma.SortOrder
   is_deleted?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  role?: Prisma.SortOrder
 }
 
 export type profilesMaxOrderByAggregateInput = {
@@ -384,6 +404,7 @@ export type profilesMaxOrderByAggregateInput = {
   about_text?: Prisma.SortOrder
   is_deleted?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  role?: Prisma.SortOrder
 }
 
 export type profilesMinOrderByAggregateInput = {
@@ -394,6 +415,7 @@ export type profilesMinOrderByAggregateInput = {
   about_text?: Prisma.SortOrder
   is_deleted?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+  role?: Prisma.SortOrder
 }
 
 export type profilesCreateNestedOneWithoutUsersInput = {
@@ -511,6 +533,7 @@ export type profilesCreateWithoutUsersInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
@@ -525,6 +548,7 @@ export type profilesUncheckedCreateWithoutUsersInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
@@ -555,6 +579,7 @@ export type profilesUpdateWithoutUsersInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
@@ -569,6 +594,7 @@ export type profilesUncheckedUpdateWithoutUsersInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
@@ -583,6 +609,7 @@ export type profilesCreateWithoutPost_likesInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
@@ -598,6 +625,7 @@ export type profilesUncheckedCreateWithoutPost_likesInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
@@ -627,6 +655,7 @@ export type profilesUpdateWithoutPost_likesInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
@@ -642,6 +671,7 @@ export type profilesUncheckedUpdateWithoutPost_likesInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
@@ -655,6 +685,7 @@ export type profilesCreateWithoutPostsInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
@@ -670,6 +701,7 @@ export type profilesUncheckedCreateWithoutPostsInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
@@ -699,6 +731,7 @@ export type profilesUpdateWithoutPostsInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
@@ -714,6 +747,7 @@ export type profilesUncheckedUpdateWithoutPostsInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
@@ -727,6 +761,7 @@ export type profilesCreateWithoutReportsInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
@@ -742,6 +777,7 @@ export type profilesUncheckedCreateWithoutReportsInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
@@ -771,6 +807,7 @@ export type profilesUpdateWithoutReportsInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
@@ -786,6 +823,7 @@ export type profilesUncheckedUpdateWithoutReportsInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
@@ -799,6 +837,7 @@ export type profilesCreateWithoutReviewsInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
@@ -814,6 +853,7 @@ export type profilesUncheckedCreateWithoutReviewsInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
@@ -843,6 +883,7 @@ export type profilesUpdateWithoutReviewsInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
@@ -858,6 +899,7 @@ export type profilesUncheckedUpdateWithoutReviewsInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
@@ -871,6 +913,7 @@ export type profilesCreateWithoutUser_game_statusesInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
@@ -886,6 +929,7 @@ export type profilesUncheckedCreateWithoutUser_game_statusesInput = {
   about_text?: string | null
   is_deleted?: boolean
   created_at?: Date | string
+  role?: string
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
@@ -915,6 +959,7 @@ export type profilesUpdateWithoutUser_game_statusesInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
@@ -930,6 +975,7 @@ export type profilesUncheckedUpdateWithoutUser_game_statusesInput = {
   about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
@@ -1011,6 +1057,7 @@ export type profilesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   about_text?: boolean
   is_deleted?: boolean
   created_at?: boolean
+  role?: boolean
   post_likes?: boolean | Prisma.profiles$post_likesArgs<ExtArgs>
   posts?: boolean | Prisma.profiles$postsArgs<ExtArgs>
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
@@ -1028,6 +1075,7 @@ export type profilesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   about_text?: boolean
   is_deleted?: boolean
   created_at?: boolean
+  role?: boolean
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["profiles"]>
 
@@ -1039,6 +1087,7 @@ export type profilesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   about_text?: boolean
   is_deleted?: boolean
   created_at?: boolean
+  role?: boolean
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["profiles"]>
 
@@ -1050,9 +1099,10 @@ export type profilesSelectScalar = {
   about_text?: boolean
   is_deleted?: boolean
   created_at?: boolean
+  role?: boolean
 }
 
-export type profilesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "display_name" | "avatar_url" | "about_text" | "is_deleted" | "created_at", ExtArgs["result"]["profiles"]>
+export type profilesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "display_name" | "avatar_url" | "about_text" | "is_deleted" | "created_at" | "role", ExtArgs["result"]["profiles"]>
 export type profilesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   post_likes?: boolean | Prisma.profiles$post_likesArgs<ExtArgs>
   posts?: boolean | Prisma.profiles$postsArgs<ExtArgs>
@@ -1087,6 +1137,7 @@ export type $profilesPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     about_text: string | null
     is_deleted: boolean
     created_at: Date
+    role: string
   }, ExtArgs["result"]["profiles"]>
   composites: {}
 }
@@ -1523,6 +1574,7 @@ export interface profilesFieldRefs {
   readonly about_text: Prisma.FieldRef<"profiles", 'String'>
   readonly is_deleted: Prisma.FieldRef<"profiles", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"profiles", 'DateTime'>
+  readonly role: Prisma.FieldRef<"profiles", 'String'>
 }
     
 

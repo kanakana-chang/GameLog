@@ -15,7 +15,8 @@ export function jsonError(error: unknown, fallback: string) {
               message.includes("選択") ||
               message.includes("正しく") ||
               message.includes("同意") ||
-              message.includes("未対応")
+              message.includes("未対応") ||
+              message.includes("画像")
             ? 400
             : 500;
   return NextResponse.json({ error: message }, { status });

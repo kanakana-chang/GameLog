@@ -1,6 +1,9 @@
+import { UserAvatar } from "@/components/user-avatar";
+
 type LogoutModalProps = {
   displayName: string;
   email: string;
+  avatarSrc?: string;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -8,6 +11,7 @@ type LogoutModalProps = {
 export function LogoutModal({
   displayName,
   email,
+  avatarSrc = "",
   onConfirm,
   onCancel,
 }: LogoutModalProps) {
@@ -49,14 +53,12 @@ export function LogoutModal({
           </div>
 
           <div className="flex w-full items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#6C5CE7] to-[#a78bfa] text-sm font-bold text-white">
-              {(displayName.trim().slice(0, 1) || "G").toUpperCase()}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-800">
+            <UserAvatar src={avatarSrc} name={displayName} size={40} />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-gray-800">
                 {displayName}
               </p>
-              <p className="text-xs text-gray-400">{email}</p>
+              <p className="truncate text-xs text-gray-400">{email}</p>
             </div>
           </div>
 

@@ -1,8 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
+import { UserAvatar } from "@/components/user-avatar";
 import { GAMES, REVIEWS, TABS, type GameStatus } from "./data";
 import { GameCard } from "./game-card";
 import {
@@ -18,10 +20,16 @@ const BANNER_PATTERN =
   "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")";
 
 export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
+  const router = useRouter();
+  const { user, ready, isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState<GameStatus>("全て");
   const [activeSection, setActiveSection] = useState<"shelf" | "reviews">(
     "shelf",
   );
+
+  useEffect(() => {
+    if (ready && !isLoggedIn) router.replace("/login");
+  }, [ready, isLoggedIn, router]);
 
   const totalHours = GAMES.reduce((sum, game) => sum + game.hours, 0);
   const clearedCount = GAMES.filter((game) => game.status === "クリア済み").length;
@@ -39,6 +47,8 @@ export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
     やめた: GAMES.filter((game) => game.status === "やめた").length,
   };
 
+  if (!ready || !user) return null;
+
   return (
     <div className="min-h-full bg-page font-mypage text-ink">
       <div className="mx-auto max-w-2xl px-4">
@@ -53,14 +63,14 @@ export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
           <div className="px-5 pb-5">
             <div className="-mt-10 mb-4 flex items-end justify-between">
               <div className="relative">
-                <Image
-                  src="/mypage/avatar.jpg"
-                  alt="ユーザーアバター"
-                  width={80}
-                  height={80}
-                  className="h-20 w-20 rounded-2xl border-4 border-white bg-line object-cover shadow-md"
-                  priority
-                />
+                <div className="rounded-2xl border-4 border-white bg-line shadow-md">
+                  <UserAvatar
+                    src={user.avatarSrc}
+                    name={user.displayName}
+                    size={80}
+                    rounded="2xl"
+                  />
+                </div>
                 <div className="absolute -right-1 -bottom-1 h-5 w-5 rounded-full border-2 border-white bg-emerald-400" />
               </div>
               {isOwner ? (
@@ -86,15 +96,16 @@ export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
             <div className="mb-4">
               <div className="mb-1 flex items-center gap-2">
                 <h1 className="font-display text-xl font-bold text-ink">
-                  たかし@ゲーム廃人
+                  {user.displayName}
                 </h1>
-                <span className="rounded-full bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand">
-                  Lv.42
-                </span>
               </div>
-              <p className="text-sm leading-relaxed text-subtle">
-                Switch・スマホゲーム好き。無課金勢。ゼルダ・スプラ・原神あたりが最近のメイン。クリア率高めを目指してます🎮
-              </p>
+              <p className="text-sm text-subtle">@{user.username}</p>
+              <p className="text-sm text-subtle">{user.email}</p>
+              {user.aboutText ? (
+                <p className="mt-2 text-sm leading-relaxed text-subtle">
+                  {user.aboutText}
+                </p>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-3 gap-3">

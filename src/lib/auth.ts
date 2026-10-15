@@ -24,6 +24,14 @@ export type LoginInput = {
   password: string;
 };
 
+export type ProfileUpdateInput = {
+  username: string;
+  displayName: string;
+  email: string;
+  aboutText: string;
+  favoriteGenre: string;
+};
+
 export const OAUTH_PROVIDERS = ["google", "twitter"] as const;
 export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number];
 
@@ -105,6 +113,44 @@ export function parseResetInput(body: unknown) {
     throw new Error("有効なメールアドレスを入力してください");
   }
   return { email };
+}
+
+function formText(form: FormData, key: string) {
+  const value = form.get(key);
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export function parseProfileForm(form: FormData): ProfileUpdateInput {
+  const username = formText(form, "username");
+  const displayName = formText(form, "displayName");
+  const email = formText(form, "email");
+  const aboutText = formText(form, "aboutText");
+  const favoriteGenre = formText(form, "favoriteGenre");
+
+  if (!username) throw new Error("ユーザー名を入力してください");
+  if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+    throw new Error(
+      "ユーザー名は3〜30文字の半角英数字と_で入力してください",
+    );
+  }
+  if (!displayName) throw new Error("表示名を入力してください");
+  if (displayName.length > 50) {
+    throw new Error("表示名は50文字以内で入力してください");
+  }
+  if (!EMAIL_RE.test(email)) {
+    throw new Error("有効なメールアドレスを入力してください");
+  }
+  if (email.length > 255) {
+    throw new Error("メールアドレスが正しくありません");
+  }
+  if (favoriteGenre.length > 50) {
+    throw new Error("好きなジャンルは50文字以内で入力してください");
+  }
+  if (aboutText.length > 1000) {
+    throw new Error("自己紹介は1000文字以内で入力してください");
+  }
+
+  return { username, displayName, email, aboutText, favoriteGenre };
 }
 
 export function parseOAuthProvider(value: string): OAuthProvider {
@@ -335,6 +381,7 @@ function isAdminUser(user: User) {
 
 function avatarSrcFrom(url: string | null | undefined) {
   if (!url) return "";
+  if (url.startsWith("data:image/")) return url;
   try {
     const parsed = new URL(url);
     if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
@@ -342,6 +389,60 @@ function avatarSrcFrom(url: string | null | undefined) {
     return "";
   }
   return "";
+}
+
+function decodeAboutMeta(about: string | null | undefined) {
+  const raw = about ?? "";
+  const match = raw.match(/^<!--gl:(.*?)-->\n?([\s\S]*)$/);
+  if (!match) return { text: raw, genre: "" };
+  try {
+    const meta = JSON.parse(match[1]) as { genre?: unknown };
+    return {
+      text: match[2] ?? "",
+      genre: typeof meta.genre === "string" ? meta.genre : "",
+    };
+  } catch {
+    return { text: raw, genre: "" };
+  }
+}
+
+function encodeAboutMeta(text: string, genre: string) {
+  const trimmedGenre = genre.trim();
+  if (!trimmedGenre) return text || null;
+  return `<!--gl:${JSON.stringify({ genre: trimmedGenre })}-->\n${text}`;
+}
+
+const AVATAR_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+]);
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+
+async function storeAvatar(userId: string, file: File): Promise<string> {
+  if (file.size > AVATAR_MAX_BYTES) {
+    throw new Error("画像は2MB以内で選択してください");
+  }
+  const type = file.type || "image/jpeg";
+  if (!AVATAR_TYPES.has(type)) {
+    throw new Error("JPG・PNG・GIFで選択してください");
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const ext = type === "image/jpeg" ? "jpg" : type.split("/")[1];
+  const path = `${userId}/avatar.${ext}`;
+  const supabase = await createClient();
+  const { error } = await supabase.storage.from("avatars").upload(path, buffer, {
+    contentType: type,
+    upsert: true,
+  });
+  if (!error) {
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    return `${data.publicUrl}?t=${Date.now()}`;
+  }
+  console.error("Avatar storage upload failed", error.message);
+  return `data:${type};base64,${buffer.toString("base64")}`;
 }
 
 async function toAuthUser(user: User): Promise<AuthUser> {
@@ -352,6 +453,7 @@ async function toAuthUser(user: User): Promise<AuthUser> {
     usernameFromUser(user, displayName),
     avatarFromUser(user),
   );
+  const about = decodeAboutMeta(profile.about_text);
 
   return {
     id: user.id,
@@ -359,6 +461,8 @@ async function toAuthUser(user: User): Promise<AuthUser> {
     displayName: profile.display_name,
     username: profile.username,
     avatarSrc: avatarSrcFrom(profile.avatar_url) || avatarFromUser(user),
+    aboutText: about.text,
+    favoriteGenre: about.genre,
     isAdmin: isAdminUser(user),
   };
 }
@@ -413,6 +517,71 @@ export async function logoutUser() {
     console.error("Supabase signOut failed", error.message);
     throw new Error("ログアウトに失敗しました");
   }
+}
+
+export async function updateProfile(
+  input: ProfileUpdateInput,
+  avatar: File | null,
+): Promise<{ user: AuthUser; emailPending: boolean }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) throw new Error("ログインしてください");
+
+  const user = data.user;
+  const displayName = displayNameFromUser(user);
+  await ensureProfile(
+    user.id,
+    displayName,
+    usernameFromUser(user, displayName),
+    avatarFromUser(user),
+  );
+  const avatarUrl = avatar ? await storeAvatar(user.id, avatar) : undefined;
+  const aboutText = encodeAboutMeta(input.aboutText, input.favoriteGenre);
+
+  try {
+    await prisma.profiles.update({
+      where: { id: user.id },
+      data: {
+        username: input.username,
+        display_name: input.displayName,
+        about_text: aboutText,
+        ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
+      },
+    });
+  } catch (updateError) {
+    if (isUniqueViolation(updateError, "username")) {
+      throw new Error("このユーザー名は既に使われています");
+    }
+    throw updateError;
+  }
+
+  const authUpdate: {
+    email?: string;
+    data: { display_name: string; username: string };
+  } = {
+    data: {
+      display_name: input.displayName,
+      username: input.username,
+    },
+  };
+  const emailPending = input.email !== (user.email ?? "");
+  if (emailPending) authUpdate.email = input.email;
+
+  const { error: authError } = await supabase.auth.updateUser(authUpdate);
+  if (authError) {
+    mapAuthError(authError.message, "プロフィールの保存に失敗しました");
+  }
+
+  const updated = await toAuthUser({
+    ...user,
+    email: emailPending ? user.email : input.email,
+    user_metadata: {
+      ...user.user_metadata,
+      display_name: input.displayName,
+      username: input.username,
+    },
+  });
+  return { user: updated, emailPending };
 }
 
 export async function requestPasswordReset(email: string, redirectTo: string) {

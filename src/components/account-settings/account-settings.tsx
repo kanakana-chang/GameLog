@@ -1,6 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
+import { UserAvatar } from "@/components/user-avatar";
 import { DeleteDialog } from "./delete-dialog";
 import { FormField } from "./form-field";
 import { PasswordField } from "./password-field";
@@ -28,21 +31,40 @@ export function AccountSettings({
   initialTab?: Tab;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+  const router = useRouter();
+  const { user, ready, isLoggedIn, login } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState({
-    username: "StarHunter_Ryota",
-    displayName: "龍太",
-    email: "ryota.k@gmail.com",
-    bio: "Nintendo Switch と FPS が好き。無課金でも楽しめるゲームを中心にプレイ中。",
-    favoriteGenre: "RPG / ガチャ",
+    username: "",
+    displayName: "",
+    email: "",
+    bio: "",
+    favoriteGenre: "",
   });
+
+  useEffect(() => {
+    if (ready && !isLoggedIn) router.replace("/login");
+  }, [ready, isLoggedIn, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    setProfile({
+      username: user.username,
+      displayName: user.displayName,
+      email: user.email,
+      bio: user.aboutText,
+      favoriteGenre: user.favoriteGenre,
+    });
+    setAvatarSrc(user.avatarSrc || null);
+  }, [user]);
 
   const [passwords, setPasswords] = useState({
     current: "",
@@ -51,21 +73,71 @@ export function AccountSettings({
   });
 
   const [profileSaved, setProfileSaved] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileNotice, setProfileNotice] = useState("");
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [accountDeleted, setAccountDeleted] = useState(false);
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setAvatarSrc(URL.createObjectURL(file));
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileError("画像は2MB以内で選択してください");
+      event.target.value = "";
+      return;
     }
+    setProfileError("");
+    setAvatarFile(file);
+    setAvatarSrc((current) => {
+      if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
   };
 
-  const handleProfileSave = (event: React.FormEvent) => {
+  const handleProfileSave = async (event: React.FormEvent) => {
     event.preventDefault();
-    setProfileSaved(true);
-    window.setTimeout(() => setProfileSaved(false), 2500);
+    setProfileError("");
+    setProfileNotice("");
+    setProfileSaved(false);
+    setProfileSaving(true);
+    try {
+      const body = new FormData();
+      body.set("username", profile.username);
+      body.set("displayName", profile.displayName);
+      body.set("email", profile.email);
+      body.set("aboutText", profile.bio);
+      body.set("favoriteGenre", profile.favoriteGenre);
+      if (avatarFile) body.set("avatar", avatarFile);
+
+      const response = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        body,
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        emailPending?: boolean;
+      } | null;
+      if (!response.ok) {
+        setProfileError(payload?.error ?? "プロフィールの保存に失敗しました");
+        return;
+      }
+
+      if (avatarSrc?.startsWith("blob:")) URL.revokeObjectURL(avatarSrc);
+      setAvatarFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      await login();
+      setProfileSaved(true);
+      if (payload?.emailPending) {
+        setProfileNotice("メール変更の確認メールを送信しました");
+      }
+      window.setTimeout(() => setProfileSaved(false), 2500);
+    } catch {
+      setProfileError("プロフィールの保存に失敗しました");
+    } finally {
+      setProfileSaving(false);
+    }
   };
 
   const handlePasswordSave = (event: React.FormEvent) => {
@@ -95,6 +167,8 @@ export function AccountSettings({
       setAccountDeleted(true);
     }
   };
+
+  if (!ready || !user) return null;
 
   if (accountDeleted) {
     return (
@@ -156,7 +230,7 @@ export function AccountSettings({
 
                 <div className="mb-6 flex items-center gap-4 border-b border-border pb-6">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-softer">
-                    {avatarSrc ? (
+                    {avatarSrc?.startsWith("blob:") ? (
                       // eslint-disable-next-line @next/next/no-img-element -- local blob preview
                       <img
                         src={avatarSrc}
@@ -164,7 +238,11 @@ export function AccountSettings({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="text-2xl leading-none">🎮</span>
+                      <UserAvatar
+                        src={avatarSrc}
+                        name={profile.displayName || user.displayName}
+                        size={64}
+                      />
                     )}
                   </div>
                   <div>
@@ -181,7 +259,7 @@ export function AccountSettings({
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
                       className="hidden"
                       onChange={handleAvatarChange}
                     />
@@ -249,16 +327,26 @@ export function AccountSettings({
                     />
                   </div>
 
-                  <div className="flex items-center gap-3 pt-1">
+                  {profileError ? (
+                    <p className="text-xs font-medium text-danger">{profileError}</p>
+                  ) : null}
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
                     <button
                       type="submit"
-                      className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-fg transition-all duration-150 hover:bg-primary-hover"
+                      disabled={profileSaving}
+                      className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-fg transition-all duration-150 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      変更を保存
+                      {profileSaving ? "保存中..." : "変更を保存"}
                     </button>
                     {profileSaved ? (
                       <span className="text-xs font-medium text-success">
                         ✓ 保存しました
+                      </span>
+                    ) : null}
+                    {profileNotice ? (
+                      <span className="text-xs font-medium text-muted">
+                        {profileNotice}
                       </span>
                     ) : null}
                   </div>

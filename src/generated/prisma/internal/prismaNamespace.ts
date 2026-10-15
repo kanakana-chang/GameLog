@@ -3810,7 +3810,8 @@ export const ProfilesScalarFieldEnum = {
   avatar_url: 'avatar_url',
   about_text: 'about_text',
   is_deleted: 'is_deleted',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  role: 'role'
 } as const
 
 export type ProfilesScalarFieldEnum = (typeof ProfilesScalarFieldEnum)[keyof typeof ProfilesScalarFieldEnum]

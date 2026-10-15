@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { UserAvatar } from "@/components/user-avatar";
 import { useAuth } from "./auth-provider";
 import { LogoutModal } from "./logout-modal";
 
@@ -43,32 +43,6 @@ function SearchIcon() {
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.35-4.35" />
     </svg>
-  );
-}
-
-function AccountAvatar({
-  src,
-  name,
-}: {
-  src: string;
-  name: string;
-}) {
-  if (src) {
-    return (
-      <Image
-        src={src}
-        alt="アカウント"
-        width={32}
-        height={32}
-        className="h-8 w-8 object-cover"
-      />
-    );
-  }
-
-  return (
-    <span className="flex h-8 w-8 items-center justify-center bg-indigo-600 text-xs font-bold text-white">
-      {(name.trim().slice(0, 1) || "G").toUpperCase()}
-    </span>
   );
 }
 
@@ -115,7 +89,7 @@ function AccountMenu() {
           aria-label="アカウントメニュー"
           aria-expanded={open}
         >
-          <AccountAvatar src={avatarSrc} name={user?.displayName ?? ""} />
+          <UserAvatar src={avatarSrc} name={user?.displayName ?? ""} size={32} />
         </button>
         {open ? (
           <div className="absolute top-10 right-0 z-40 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
@@ -159,6 +133,7 @@ function AccountMenu() {
         <LogoutModal
           displayName={user?.displayName ?? "ゲスト"}
           email={user?.email ?? ""}
+          avatarSrc={avatarSrc}
           onCancel={() => setConfirmOpen(false)}
           onConfirm={() => {
             setConfirmOpen(false);
