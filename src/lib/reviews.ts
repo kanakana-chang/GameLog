@@ -115,6 +115,18 @@ function titleFromComment(comment: string, rating: number) {
   return labels[rating] || "レビュー";
 }
 
+function publicAvatarSrc(url: string | null | undefined) {
+  if (!url) return "";
+  if (url.startsWith("data:image/")) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
+  } catch {
+    return "";
+  }
+  return "";
+}
+
 function imageUrlForStore(url: string) {
   if (!url) return null;
   if (url.startsWith("data:")) return null;
@@ -178,11 +190,15 @@ function toDetailReview(row: ReviewRow, fallbackPlatform: string): Review {
   const score = Number(row.rating_overall);
   const f2pScore = meta.f2p ?? row.param_5;
   const text = meta.text.trim();
-  const author = row.profiles?.display_name || row.profiles?.username || "ゲスト";
+  const author =
+    row.profiles?.display_name || row.profiles?.username || "ゲスト";
 
   return {
     id: row.id,
     user: author,
+    username: row.profiles?.username ?? "",
+    accountId: row.profiles?.id ?? row.user_id ?? "",
+    avatarSrc: publicAvatarSrc(row.profiles?.avatar_url),
     av: author.slice(0, 1).toUpperCase() || AVATAR.av,
     avBg: AVATAR.avBg,
     avC: AVATAR.avC,
@@ -262,8 +278,9 @@ export async function getGameReviews(gameId: string): Promise<Review[]> {
 export async function createGameReview(
   gameId: string,
   input: ReviewInput,
-  userId?: string | null,
+  userId: string,
 ): Promise<Review> {
+  if (!userId) throw new Error("ログインしてください");
   if (!isUuid(gameId)) {
     throw new Error("ゲームが見つかりません");
   }
@@ -274,7 +291,7 @@ export async function createGameReview(
   const created = await prisma.reviews.create({
     data: {
       game_id: gameId,
-      user_id: userId || null,
+      user_id: userId,
       rating_overall: scoreFromStars(input.rating),
       param_1: input.params.graphics,
       param_2: input.params.story,

@@ -2,6 +2,7 @@
 
 import { CoverImage } from "@/components/cover-image";
 import { useAuth } from "@/components/auth-provider";
+import { UserAvatar } from "@/components/user-avatar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -231,7 +232,15 @@ function DotMenu({ onReport }: { onReport: () => void }) {
   );
 }
 
-function ReviewCard({ r, onReport }: { r: Review; onReport: () => void }) {
+function ReviewCard({
+  r,
+  isMine,
+  onReport,
+}: {
+  r: Review;
+  isMine: boolean;
+  onReport: () => void;
+}) {
   const [exp, setExp] = useState(false);
   const [spoiler, setSpoiler] = useState(false);
   const [vote, setVote] = useState<boolean | null>(null);
@@ -250,17 +259,31 @@ function ReviewCard({ r, onReport }: { r: Review; onReport: () => void }) {
   return (
     <div className="flex flex-col gap-3 rounded-[14px] border border-detail-border bg-white px-5 py-[18px] shadow-[0_2px_8px_rgba(30,40,100,0.05)]">
       <div className="flex items-start gap-3">
-        <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-base font-extrabold"
-          style={{ background: r.avBg, color: r.avC }}
-        >
-          {r.av}
-        </div>
+        {r.avatarSrc ? (
+          <UserAvatar src={r.avatarSrc} name={r.user} size={40} rounded="2xl" />
+        ) : (
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-base font-extrabold"
+            style={{ background: r.avBg, color: r.avC }}
+          >
+            {r.av}
+          </div>
+        )}
         <div className="flex-1">
           <div className="mb-0.5 flex flex-wrap items-center gap-1.5">
             <span className="font-display text-[13px] font-bold text-detail-text">
               {r.user}
             </span>
+            {r.username ? (
+              <span className="font-mono text-[10px] text-detail-muted">
+                @{r.username}
+              </span>
+            ) : null}
+            {isMine ? (
+              <span className="rounded-full bg-detail-accent-bg px-1.5 py-0.5 text-[10px] font-semibold text-detail-accent">
+                自分
+              </span>
+            ) : null}
             <KinkBadge kink={r.kink} />
             <span className="rounded px-[7px] py-px font-mono text-[10px] text-detail-muted bg-[#f0f2fa]">
               {r.platform}
@@ -391,12 +414,18 @@ function PostCard({
         href={`/games/${gameId}/board/${p.id}`}
         className="flex gap-3 py-3.5 pr-12 pl-[18px]"
       >
-        <div
-          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] font-display text-[13px] font-extrabold"
-          style={{ background: p.avBg, color: p.avC }}
-        >
-          {p.av}
-        </div>
+        {p.avatarSrc ? (
+          <div className="mt-0.5 shrink-0">
+            <UserAvatar src={p.avatarSrc} name={p.user} size={36} />
+          </div>
+        ) : (
+          <div
+            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] font-display text-[13px] font-extrabold"
+            style={{ background: p.avBg, color: p.avC }}
+          >
+            {p.av}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <div className="mb-[3px] font-display text-sm font-bold text-detail-text">
             {p.title}
@@ -409,7 +438,8 @@ function PostCard({
               <Tag key={t} label={t} />
             ))}
             <span className="font-mono text-[10px] text-detail-dim">
-              {p.user} · {p.date}
+              {p.user}
+              {p.username ? ` @${p.username}` : ""} · {p.date}
             </span>
             <span className="font-mono text-[10px] text-detail-muted">
               💬 {p.replies}
@@ -555,6 +585,7 @@ function ReportModal({
 function NewPostModal({
   onClose,
   onSubmit,
+  author,
 }: {
   onClose: () => void;
   onSubmit: (input: {
@@ -562,6 +593,7 @@ function NewPostModal({
     body: string;
     tags: string[];
   }) => Promise<void> | void;
+  author: { displayName: string; username: string; avatarSrc: string };
 }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -608,6 +640,24 @@ function NewPostModal({
       </div>
 
       <div className="flex flex-col gap-3.5 px-[22px] pt-4 pb-[22px]">
+        <div className="flex items-center gap-2.5 rounded-lg border border-detail-border bg-[#fafbff] px-3 py-2.5">
+          <UserAvatar
+            src={author.avatarSrc || null}
+            name={author.displayName}
+            size={32}
+          />
+          <div className="min-w-0">
+            <div className="truncate text-[13px] font-semibold text-detail-text">
+              {author.displayName}
+            </div>
+            <div className="truncate font-mono text-[11px] text-detail-muted">
+              @{author.username}
+            </div>
+          </div>
+          <span className="ml-auto shrink-0 text-[11px] font-medium text-detail-accent">
+            アカウント連携済み
+          </span>
+        </div>
         <div>
           <label className="mb-1.5 block text-xs text-detail-muted">
             タイトル <span className="text-detail-red">*</span>
@@ -713,7 +763,7 @@ function Toast({ msg, onEnd }: { msg: string; onEnd: () => void }) {
 
 export function GameDetail({ detail }: { detail: GameDetailData }) {
   const router = useRouter();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const persistBoard = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     String(detail.id),
   );
@@ -962,7 +1012,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                 </button>
               </div>
               <Link
-                href={`/games/${detail.id}/review`}
+                href={isLoggedIn ? `/games/${detail.id}/review` : "/login"}
                 className="shrink-0 rounded-[10px] bg-gradient-to-br from-detail-accent to-[#ff9158] px-5 py-[9px] font-display text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,107,53,0.25)]"
               >
                 + レビューを書く
@@ -974,6 +1024,10 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                   <ReviewCard
                     key={r.id}
                     r={r}
+                    isMine={Boolean(
+                      user &&
+                        (r.accountId === user.id || r.username === user.username),
+                    )}
                     onReport={() =>
                       setReportTarget({ type: "review", id: r.id, title: r.title })
                     }
@@ -991,7 +1045,17 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
         {tab === "board" ? (
           <div className="mt-[18px]">
             <div className="mb-3.5 flex justify-end">
-              <PrimaryBtn onClick={() => setShowNewPost(true)}>+ 新規投稿</PrimaryBtn>
+              <PrimaryBtn
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    router.push("/login");
+                    return;
+                  }
+                  setShowNewPost(true);
+                }}
+              >
+                + 新規投稿
+              </PrimaryBtn>
             </div>
             <div className="flex flex-col gap-2.5">
               {posts.length ? (
@@ -1030,9 +1094,14 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
           onClose={() => setReportTarget(null)}
         />
       ) : null}
-      {showNewPost ? (
+      {showNewPost && user ? (
         <NewPostModal
           onClose={() => setShowNewPost(false)}
+          author={{
+            displayName: user.displayName,
+            username: user.username,
+            avatarSrc: user.avatarSrc,
+          }}
           onSubmit={async (input) => {
             if (!isLoggedIn) {
               router.push("/login");
@@ -1042,8 +1111,11 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
               setPosts((prev) => [
                 {
                   id: Date.now(),
-                  user: "あなた",
-                  av: "あ",
+                  user: user.displayName,
+                  username: user.username,
+                  accountId: user.id,
+                  avatarSrc: user.avatarSrc,
+                  av: user.displayName.slice(0, 1).toUpperCase() || "あ",
                   avBg: "#fff3ee",
                   avC: "#ff6b35",
                   date: new Date().toISOString().slice(0, 10),

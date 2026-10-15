@@ -11,6 +11,8 @@ export function jsonError(error: unknown, fallback: string) {
         : message.includes("ログインしてください") ||
             message.includes("確認が完了")
           ? 401
+          : message.includes("権限")
+            ? 403
           : message.includes("入力") ||
               message.includes("選択") ||
               message.includes("正しく") ||

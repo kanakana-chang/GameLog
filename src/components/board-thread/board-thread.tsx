@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import type { Post } from "@/components/game-detail/data";
+import { UserAvatar } from "@/components/user-avatar";
 import {
   CURRENT_USER,
   THREAD_REPLIES,
@@ -20,12 +21,22 @@ type ReportTarget =
 function AvatarBadge({
   initials,
   color,
+  src,
+  name,
   size = "md",
 }: {
   initials: string;
   color: string;
+  src?: string;
+  name?: string;
   size?: "sm" | "md";
 }) {
+  const px = size === "sm" ? 28 : 36;
+  if (src || name) {
+    return (
+      <UserAvatar src={src || null} name={name || initials} size={px} />
+    );
+  }
   return (
     <div
       className={`flex shrink-0 items-center justify-center rounded-full font-bold text-white ${
@@ -237,25 +248,41 @@ function ReportModal({
 
 function ReplyCard({
   reply,
+  isMine,
   onLike,
   onReport,
 }: {
   reply: ThreadReply;
+  isMine: boolean;
   onLike: (id: string | number) => void;
   onReport: (target: ReportTarget) => void;
 }) {
   return (
     <div className="rounded-xl border border-[#e2e2ee] bg-white p-4 transition-colors hover:border-[#c8c5f5]">
       <div className="flex items-start gap-3">
-        <AvatarBadge initials={reply.avatar} color={reply.color} />
+        <AvatarBadge
+          initials={reply.avatar}
+          color={reply.color}
+          src={reply.avatarSrc}
+          name={reply.userName}
+        />
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
             <span className="text-[13px] font-semibold text-[#1a1a2e]">
               {reply.userName}
             </span>
-            {reply.userId && reply.userId !== reply.userName ? (
+            {reply.username ? (
+              <span className="font-mono text-[11px] text-[#6b6b8a]">
+                @{reply.username}
+              </span>
+            ) : reply.userId && reply.userId !== reply.userName ? (
               <span className="font-mono text-[11px] text-[#6b6b8a]">
                 {reply.userId}
+              </span>
+            ) : null}
+            {isMine ? (
+              <span className="rounded-full bg-[#f0efff] px-1.5 py-0.5 text-[10px] font-semibold text-[#5b4cf5]">
+                自分
               </span>
             ) : null}
             <span className="ml-auto text-[11px] text-[#6b6b8a]">
@@ -327,7 +354,7 @@ export function BoardThread({
   persist?: boolean;
 }) {
   const router = useRouter();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const [replies, setReplies] = useState<ThreadReply[]>(() =>
     persist
       ? (initialReplies ?? [])
@@ -354,9 +381,17 @@ export function BoardThread({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const composer = persist
-    ? { id: "guest", name: "ゲスト", avatar: "ゲ", color: "#4F46E5" }
-    : CURRENT_USER;
+  const composer = user
+    ? {
+        id: user.username ? `@${user.username}` : user.id,
+        name: user.displayName,
+        avatar: user.displayName.slice(0, 1).toUpperCase() || "ゲ",
+        avatarSrc: user.avatarSrc,
+        color: "#4F46E5",
+      }
+    : persist
+      ? null
+      : CURRENT_USER;
 
   function handleLike(id: string | number) {
     setReplies((prev) =>
@@ -387,9 +422,12 @@ export function BoardThread({
         ...prev,
         {
           id: Date.now(),
-          userId: CURRENT_USER.id,
-          userName: CURRENT_USER.name,
-          avatar: CURRENT_USER.avatar,
+          userId: user?.id ?? CURRENT_USER.id,
+          userName: user?.displayName ?? CURRENT_USER.name,
+          username: user?.username,
+          accountId: user?.id,
+          avatar: user?.displayName.slice(0, 1).toUpperCase() || CURRENT_USER.avatar,
+          avatarSrc: user?.avatarSrc,
           color: CURRENT_USER.color,
           content: text,
           isSpoiler,
@@ -509,6 +547,11 @@ export function BoardThread({
           <ReplyCard
             key={reply.id}
             reply={reply}
+            isMine={Boolean(
+              user &&
+                (reply.accountId === user.id ||
+                  reply.username === user.username),
+            )}
             onLike={handleLike}
             onReport={setReportTarget}
           />
@@ -517,10 +560,13 @@ export function BoardThread({
 
       <div className="fixed right-0 bottom-0 left-0 z-30 border-t border-[#e2e2ee] bg-white px-4 pt-3 pb-4">
         <div className="mx-auto max-w-2xl">
+          {composer ? (
           <div className="mb-2 flex items-center gap-2">
             <AvatarBadge
               initials={composer.avatar}
               color={composer.color}
+              src={"avatarSrc" in composer ? composer.avatarSrc : undefined}
+              name={composer.name}
               size="sm"
             />
             <span className="text-[12px] font-semibold text-[#1a1a2e]">
@@ -529,11 +575,26 @@ export function BoardThread({
             <span className="font-mono text-[11px] text-[#6b6b8a]">
               {composer.id}
             </span>
-            <span className="ml-auto text-[11px] text-[#6b6b8a]">
-              {persist ? "ゲスト投稿" : "アカウント連携済み"}
+            <span className="ml-auto text-[11px] font-medium text-[#5b4cf5]">
+              アカウント連携済み
             </span>
           </div>
+          ) : (
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <p className="text-[12px] text-[#6b6b8a]">
+              投稿にはログインが必要です
+            </p>
+            <Link
+              href="/login"
+              className="rounded-full bg-[#5b4cf5] px-4 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#4a3de0]"
+            >
+              ログイン
+            </Link>
+          </div>
+          )}
 
+          {composer ? (
+            <>
           {attachedImage ? (
             <div className="relative mb-2 inline-block">
               {/* data URL preview */}
@@ -611,6 +672,8 @@ export function BoardThread({
           </div>
           {error ? (
             <p className="mt-2 text-[12px] text-[#e53e3e]">{error}</p>
+          ) : null}
+            </>
           ) : null}
         </div>
       </div>

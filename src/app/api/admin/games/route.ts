@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import { createAdminGame, parseAdminGameInput } from "@/lib/games";
 import { adminGameErrorResponse } from "@/lib/admin-game-api";
+import { requireAdminUser } from "@/lib/auth";
+import { createAdminGame, parseAdminGameInput } from "@/lib/games";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
+    await requireAdminUser();
     const game = await createAdminGame(parseAdminGameInput(await request.json()));
     return NextResponse.json(game, { status: 201 });
   } catch (error) {

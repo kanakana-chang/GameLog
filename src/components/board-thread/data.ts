@@ -2,7 +2,10 @@ export type ThreadReply = {
   id: string | number;
   userId: string;
   userName: string;
+  username?: string;
+  accountId?: string;
   avatar: string;
+  avatarSrc?: string;
   color: string;
   content: string;
   isSpoiler: boolean;

@@ -2,6 +2,7 @@
 
 import { CoverImage } from "@/components/cover-image";
 import { useAuth } from "@/components/auth-provider";
+import { UserAvatar } from "@/components/user-avatar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -274,7 +275,7 @@ function Section({
 
 export function ReviewForm({ game }: { game: ReviewGameInfo }) {
   const router = useRouter();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user, ready } = useAuth();
   const [mode, setMode] = useState<ReviewMode>("quick");
   const [status, setStatus] = useState<Status | null>(null);
   const [rating, setRating] = useState(0);
@@ -288,6 +289,10 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draftSaved, setDraftSaved] = useState(false);
+
+  useEffect(() => {
+    if (ready && !isLoggedIn) router.replace("/login");
+  }, [ready, isLoggedIn, router]);
 
   useEffect(() => {
     try {
@@ -411,6 +416,8 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
   const platformLabel = game.platforms.join(" • ");
   const genreLabel = game.genre[0] ?? "";
 
+  if (!ready || !user) return null;
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -482,6 +489,25 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
               編集中
             </span>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 rounded-2xl border border-slate-100 bg-white px-4 py-3 shadow-sm">
+          <UserAvatar
+            src={user.avatarSrc || null}
+            name={user.displayName}
+            size={36}
+          />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-slate-800">
+              {user.displayName}
+            </p>
+            <p className="truncate font-mono text-[11px] text-slate-400">
+              @{user.username}
+            </p>
+          </div>
+          <span className="ml-auto shrink-0 text-[11px] font-medium text-indigo-600">
+            アカウント連携済み
+          </span>
         </div>
 
         <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">

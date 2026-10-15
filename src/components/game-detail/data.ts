@@ -47,6 +47,9 @@ export type GameAxis = {
 export type Review = {
   id: string | number;
   user: string;
+  username?: string;
+  accountId?: string;
+  avatarSrc?: string;
   av: string;
   avBg: string;
   avC: string;
@@ -66,6 +69,9 @@ export type Review = {
 export type Post = {
   id: string | number;
   user: string;
+  username?: string;
+  accountId?: string;
+  avatarSrc?: string;
   av: string;
   avBg: string;
   avC: string;

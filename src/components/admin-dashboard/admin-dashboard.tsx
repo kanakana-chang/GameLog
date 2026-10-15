@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { CoverImage } from "@/components/cover-image";
+import { UserAvatar } from "@/components/user-avatar";
 import {
   ADMIN_GENRES,
   ADMIN_PLATFORMS,
@@ -1055,16 +1056,17 @@ export function AdminDashboard({
   initialGames: AdminGame[];
 }) {
   const router = useRouter();
-  const { isLoggedIn, isAdmin } = useAuth();
+  const { isLoggedIn, isAdmin, user, ready } = useAuth();
   const [nav, setNav] = useState<AdminNav>("games");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [reports, setReports] = useState<AdminReport[]>(INITIAL_REPORTS);
 
   useEffect(() => {
+    if (!ready) return;
     if (!isLoggedIn || !isAdmin) router.replace("/");
-  }, [isLoggedIn, isAdmin, router]);
+  }, [ready, isLoggedIn, isAdmin, router]);
 
-  if (!isLoggedIn || !isAdmin) return null;
+  if (!ready || !user || !isLoggedIn || !isAdmin) return null;
 
   const current = NAV_ITEMS.find((n) => n.key === nav)!;
   const openCount = reports.filter((r) => r.status === "open").length;
@@ -1135,14 +1137,16 @@ export function AdminDashboard({
 
         <div className="border-t border-slate-100 px-4 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">
-              管
-            </div>
+            <UserAvatar
+              src={user.avatarSrc}
+              name={user.displayName}
+              size={28}
+            />
             <div className="min-w-0">
               <div className="truncate text-xs font-medium text-slate-700">
-                admin@gamelog.jp
+                {user.displayName}
               </div>
-              <div className="text-xs text-slate-400">スーパー管理者</div>
+              <div className="truncate text-xs text-slate-400">{user.email}</div>
             </div>
           </div>
         </div>

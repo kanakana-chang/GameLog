@@ -371,7 +371,8 @@ function adminEmails() {
     .filter(Boolean);
 }
 
-function isAdminUser(user: User) {
+function isAdminUser(user: User, profileRole?: string) {
+  if (profileRole === "admin") return true;
   const meta = user.app_metadata ?? {};
   if (meta.role === "admin" || meta.is_admin === true) return true;
   if (user.role === "admin") return true;
@@ -463,7 +464,7 @@ async function toAuthUser(user: User): Promise<AuthUser> {
     avatarSrc: avatarSrcFrom(profile.avatar_url) || avatarFromUser(user),
     aboutText: about.text,
     favoriteGenre: about.genre,
-    isAdmin: isAdminUser(user),
+    isAdmin: isAdminUser(user, profile.role),
   };
 }
 
@@ -498,6 +499,14 @@ export async function requireSessionUser(): Promise<AuthUser> {
   if (!user) throw new Error("ログインしてください");
   return user;
 }
+
+export async function requireAdminUser(): Promise<AuthUser> {
+  const user = await requireSessionUser();
+  if (!user.isAdmin) throw new Error("管理者権限が必要です");
+  return user;
+}
+
+export { grantAdminRole } from "@/lib/admin-users";
 
 export async function loginUser(input: LoginInput): Promise<AuthUser> {
   const supabase = await createClient();

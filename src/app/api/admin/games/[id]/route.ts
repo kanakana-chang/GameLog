@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { adminGameErrorResponse } from "@/lib/admin-game-api";
+import { requireAdminUser } from "@/lib/auth";
 import {
   deleteAdminGame,
   parseAdminGameInput,
   updateAdminGame,
 } from "@/lib/games";
-import { adminGameErrorResponse } from "@/lib/admin-game-api";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireAdminUser();
     const { id } = await params;
     const game = await updateAdminGame(id, parseAdminGameInput(await request.json()));
     return NextResponse.json(game);
@@ -27,6 +29,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireAdminUser();
     const { id } = await params;
     await deleteAdminGame(id);
     return new NextResponse(null, { status: 204 });

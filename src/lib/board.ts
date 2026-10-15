@@ -62,13 +62,30 @@ function encodeFirstPost(body: string, tags: string[]) {
   return `<!--gl:${JSON.stringify({ tags })}-->\n${body}`;
 }
 
+function publicAvatarSrc(url: string | null | undefined) {
+  if (!url) return "";
+  if (url.startsWith("data:image/")) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
+  } catch {
+    return "";
+  }
+  return "";
+}
+
 function authorFromProfile(profile?: {
+  id: string;
   display_name: string;
   username: string;
+  avatar_url: string | null;
 } | null) {
   const name = profile?.display_name || profile?.username || "ゲスト";
   return {
+    accountId: profile?.id ?? "",
     user: name,
+    username: profile?.username ?? "",
+    avatarSrc: publicAvatarSrc(profile?.avatar_url),
     av: name.slice(0, 1).toUpperCase() || AVATAR.av,
     avBg: AVATAR.avBg,
     avC: AVATAR.avC,
@@ -142,6 +159,9 @@ function toListPost(topic: TopicWithPosts): Post {
   return {
     id: topic.id,
     user: author.user,
+    username: author.username,
+    accountId: author.accountId,
+    avatarSrc: author.avatarSrc,
     av: author.av,
     avBg: author.avBg,
     avC: author.avC,
@@ -163,9 +183,12 @@ function toThreadReply(
 
   return {
     id: post.id,
-    userId: author.user,
+    userId: author.accountId || author.username || author.user,
     userName: author.user,
+    username: author.username,
+    accountId: author.accountId,
     avatar: author.av,
+    avatarSrc: author.avatarSrc,
     color: author.avC,
     content: meta.text,
     isSpoiler: post.is_spoiler,
@@ -226,8 +249,9 @@ export async function getBoardThread(gameId: string, topicId: string) {
 export async function createGameTopic(
   gameId: string,
   input: TopicInput,
-  userId?: string | null,
+  userId: string,
 ): Promise<Post> {
+  if (!userId) throw new Error("ログインしてください");
   if (!isUuid(gameId)) throw new Error("ゲームが見つかりません");
 
   const game = await prisma.games.findUnique({ where: { id: gameId } });
@@ -243,7 +267,7 @@ export async function createGameTopic(
         create: {
           content: encodeFirstPost(input.body, input.tags),
           is_spoiler: input.spoiler,
-          user_id: userId || null,
+          user_id: userId,
         },
       },
     },
@@ -262,8 +286,9 @@ export async function createTopicReply(
   gameId: string,
   topicId: string,
   input: ReplyInput,
-  userId?: string | null,
+  userId: string,
 ): Promise<ThreadReply> {
+  if (!userId) throw new Error("ログインしてください");
   if (!isUuid(gameId) || !isUuid(topicId)) {
     throw new Error("スレッドが見つかりません");
   }
@@ -277,7 +302,7 @@ export async function createTopicReply(
   const created = await prisma.posts.create({
     data: {
       topic_id: topicId,
-      user_id: userId || null,
+      user_id: userId,
       content: input.content,
       is_spoiler: input.spoiler,
       image_url: imageUrlForStore(input.imageUrl),
