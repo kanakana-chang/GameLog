@@ -14,6 +14,7 @@ import {
   REASON_LABELS,
   STATUS_COLORS,
   STATUS_LABELS,
+  TARGET_TYPE_LABELS,
   type AdminGame,
   type AdminNav,
   type AdminReport,
@@ -829,13 +830,28 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
 
 function ReportsPanel({
   reports,
+  error,
   onUpdateStatus,
 }: {
   reports: AdminReport[];
-  onUpdateStatus: (id: string, status: ReportStatus) => void;
+  error: string | null;
+  onUpdateStatus: (id: string, status: ReportStatus) => Promise<void>;
 }) {
   const [filter, setFilter] = useState<ReportStatus | "all">("all");
   const [reasonFilter, setReasonFilter] = useState<ReportReason | "all">("all");
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function handleStatus(id: string, status: ReportStatus) {
+    if (busyId) return;
+    setBusyId(id);
+    try {
+      await onUpdateStatus(id, status);
+    } catch {
+      /* 親で error を表示 */
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   const filtered = reports.filter((r) => {
     const matchStatus = filter === "all" || r.status === filter;
@@ -906,6 +922,12 @@ function ReportsPanel({
         </div>
       </div>
 
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+
       <div className="space-y-3">
         {filtered.map((rep) => (
           <div
@@ -916,7 +938,7 @@ function ReportsPanel({
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-400">
-                    {rep.targetType === "review" ? "レビュー" : "コメント"}
+                    {TARGET_TYPE_LABELS[rep.targetType]}
                   </span>
                   <span className="font-display text-sm font-semibold text-slate-700">
                     {rep.gameTitle}
@@ -939,6 +961,11 @@ function ReportsPanel({
                 >
                   {rep.targetContent}
                 </p>
+                {rep.comment ? (
+                  <p className="mt-2 text-xs text-slate-500">
+                    補足: {rep.comment}
+                  </p>
+                ) : null}
               </div>
 
               <div className="flex items-center justify-between">
@@ -950,8 +977,11 @@ function ReportsPanel({
                     <>
                       <button
                         type="button"
-                        onClick={() => onUpdateStatus(rep.id, "hidden")}
-                        className="flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200"
+                        disabled={busyId === rep.id}
+                        onClick={() => {
+                          void handleStatus(rep.id, "hidden");
+                        }}
+                        className="flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <svg
                           width={14}
@@ -972,8 +1002,11 @@ function ReportsPanel({
                       </button>
                       <button
                         type="button"
-                        onClick={() => onUpdateStatus(rep.id, "dismissed")}
-                        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100"
+                        disabled={busyId === rep.id}
+                        onClick={() => {
+                          void handleStatus(rep.id, "dismissed");
+                        }}
+                        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         却下
                       </button>
@@ -982,8 +1015,11 @@ function ReportsPanel({
                   {rep.status === "hidden" ? (
                     <button
                       type="button"
-                      onClick={() => onUpdateStatus(rep.id, "open")}
-                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100"
+                      disabled={busyId === rep.id}
+                      onClick={() => {
+                        void handleStatus(rep.id, "open");
+                      }}
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       表示に戻す
                     </button>
@@ -991,8 +1027,11 @@ function ReportsPanel({
                   {rep.status === "dismissed" ? (
                     <button
                       type="button"
-                      onClick={() => onUpdateStatus(rep.id, "open")}
-                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100"
+                      disabled={busyId === rep.id}
+                      onClick={() => {
+                        void handleStatus(rep.id, "open");
+                      }}
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       再度確認する
                     </button>
@@ -1052,19 +1091,56 @@ const NAV_ITEMS: {
 
 export function AdminDashboard({
   initialGames,
+  initialReports = INITIAL_REPORTS,
 }: {
   initialGames: AdminGame[];
+  initialReports?: AdminReport[];
 }) {
   const router = useRouter();
   const { isLoggedIn, isAdmin, user, ready } = useAuth();
   const [nav, setNav] = useState<AdminNav>("games");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [reports, setReports] = useState<AdminReport[]>(INITIAL_REPORTS);
+  const [reports, setReports] = useState<AdminReport[]>(initialReports);
+  const [reportsError, setReportsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!ready) return;
     if (!isLoggedIn || !isAdmin) router.replace("/");
   }, [ready, isLoggedIn, isAdmin, router]);
+
+  useEffect(() => {
+    if (nav !== "reports") return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch("/api/admin/reports");
+        const payload = (await response.json().catch(() => null)) as
+          | AdminReport[]
+          | { error?: string }
+          | null;
+        if (!response.ok || !Array.isArray(payload)) {
+          throw new Error(
+            payload && !Array.isArray(payload) && payload.error
+              ? payload.error
+              : "通報の取得に失敗しました",
+          );
+        }
+        if (!cancelled) {
+          setReports(payload);
+          setReportsError(null);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setReportsError(
+            error instanceof Error ? error.message : "通報の取得に失敗しました",
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [nav]);
 
   if (!ready || !user || !isLoggedIn || !isAdmin) return null;
 
@@ -1214,11 +1290,30 @@ export function AdminDashboard({
           {nav === "reports" ? (
             <ReportsPanel
               reports={reports}
-              onUpdateStatus={(id, status) =>
+              error={reportsError}
+              onUpdateStatus={async (id, status) => {
+                const response = await fetch(`/api/admin/reports/${id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ status }),
+                });
+                const payload = (await response.json().catch(() => null)) as
+                  | AdminReport
+                  | { error?: string }
+                  | null;
+                if (!response.ok || !payload || !("id" in payload)) {
+                  const message =
+                    payload && "error" in payload && payload.error
+                      ? payload.error
+                      : "通報の更新に失敗しました";
+                  setReportsError(message);
+                  throw new Error(message);
+                }
+                setReportsError(null);
                 setReports((prev) =>
-                  prev.map((r) => (r.id === id ? { ...r, status } : r)),
-                )
-              }
+                  prev.map((item) => (item.id === id ? payload : item)),
+                );
+              }}
             />
           ) : null}
         </main>

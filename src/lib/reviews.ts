@@ -1,6 +1,7 @@
 import type { GameDetailData, Kink, Review } from "@/components/game-detail/data";
 import { isUuid } from "@/lib/games";
 import { prisma } from "@/lib/prisma";
+import { getHiddenTargetSets } from "@/lib/reports";
 
 const AVATAR = {
   av: "G",
@@ -265,8 +266,13 @@ export async function getGameReviews(gameId: string): Promise<Review[]> {
   });
   if (!game) return [];
 
+  const hidden = await getHiddenTargetSets();
+  const hiddenIds = [...hidden.reviews];
   const rows = await prisma.reviews.findMany({
-    where: { game_id: gameId },
+    where: {
+      game_id: gameId,
+      ...(hiddenIds.length ? { id: { notIn: hiddenIds } } : {}),
+    },
     include: { profiles: true },
     orderBy: { created_at: "desc" },
   });

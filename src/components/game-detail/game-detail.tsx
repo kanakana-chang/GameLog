@@ -312,7 +312,7 @@ function ReviewCard({
             </div>
             <div className="font-mono text-[9px] text-detail-dim">/10</div>
           </div>
-          <DotMenu onReport={onReport} />
+          {isMine ? null : <DotMenu onReport={onReport} />}
         </div>
       </div>
 
@@ -402,10 +402,12 @@ function ReviewCard({
 function PostCard({
   p,
   gameId,
+  isMine,
   onReport,
 }: {
   p: Post;
   gameId: string | number;
+  isMine: boolean;
   onReport: () => void;
 }) {
   return (
@@ -452,23 +454,69 @@ function PostCard({
           </div>
         </div>
       </Link>
-      <div className="absolute top-3.5 right-[18px]">
-        <DotMenu onReport={onReport} />
-      </div>
+      {isMine ? null : (
+        <div className="absolute top-3.5 right-[18px]">
+          <DotMenu onReport={onReport} />
+        </div>
+      )}
     </article>
   );
 }
 
 function ReportModal({
   target,
+  persist,
   onClose,
 }: {
   target: ReportTarget;
+  persist: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState("");
   const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit() {
+    if (!selected || saving) return;
+    if (persist && !isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+    if (!persist) {
+      setDone(true);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetType: target.type === "review" ? "review" : "topic",
+          targetId: String(target.id),
+          reason: selected,
+          comment: detail.trim(),
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "通報の送信に失敗しました");
+      }
+      setDone(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "通報の送信に失敗しました");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <Overlay onClose={onClose}>
@@ -508,6 +556,17 @@ function ReportModal({
           </div>
 
           <div className="flex flex-col gap-2.5 px-[22px] pt-4 pb-[22px]">
+            {persist && !isLoggedIn ? (
+              <div className="mb-1 rounded-[10px] border border-detail-border bg-[#fafbff] px-3.5 py-3 text-[13px] text-detail-muted">
+                通報にはログインが必要です。
+                <Link
+                  href="/login"
+                  className="ml-2 font-semibold text-detail-accent"
+                >
+                  ログイン
+                </Link>
+              </div>
+            ) : null}
             <div className="mb-1 text-xs text-detail-muted">
               通報理由を選択してください（必須）
             </div>
@@ -554,6 +613,10 @@ function ReportModal({
               />
             </div>
 
+            {error ? (
+              <p className="text-[12px] text-detail-red">{error}</p>
+            ) : null}
+
             <div className="mt-1 flex justify-end gap-2">
               <button
                 type="button"
@@ -564,15 +627,15 @@ function ReportModal({
               </button>
               <button
                 type="button"
-                disabled={!selected}
+                disabled={!selected || saving}
                 onClick={() => {
-                  if (selected) setDone(true);
+                  void handleSubmit();
                 }}
                 className={`rounded-[10px] px-5 py-[9px] font-display text-[13px] font-bold text-white ${
-                  selected ? "bg-detail-red" : "cursor-default bg-[#dde0f0]"
+                  selected && !saving ? "bg-detail-red" : "cursor-default bg-[#dde0f0]"
                 }`}
               >
-                通報する
+                {saving ? "送信中..." : "通報する"}
               </button>
             </div>
           </div>
@@ -1064,6 +1127,10 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                     key={p.id}
                     p={p}
                     gameId={detail.id}
+                    isMine={Boolean(
+                      user &&
+                        (p.accountId === user.id || p.username === user.username),
+                    )}
                     onReport={() =>
                       setReportTarget({ type: "post", id: p.id, title: p.title })
                     }
@@ -1091,6 +1158,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
       {reportTarget ? (
         <ReportModal
           target={reportTarget}
+          persist={persistBoard}
           onClose={() => setReportTarget(null)}
         />
       ) : null}

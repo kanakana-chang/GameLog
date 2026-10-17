@@ -15,7 +15,7 @@ import {
 } from "./data";
 
 type ReportTarget =
-  | { type: "thread"; label: string }
+  | { type: "thread"; id: string | number; label: string }
   | { type: "reply"; id: string | number; label: string };
 
 function AvatarBadge({
@@ -142,18 +142,57 @@ function MenuButton({ onReport }: { onReport: () => void }) {
 
 function ReportModal({
   target,
+  persist,
   onClose,
 }: {
   target: ReportTarget;
+  persist: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit() {
-    if (!selected) return;
-    setSubmitted(true);
-    window.setTimeout(() => onClose(), 1400);
+  async function handleSubmit() {
+    if (!selected || saving) return;
+    if (persist && !isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+    if (!persist) {
+      setSubmitted(true);
+      window.setTimeout(() => onClose(), 1400);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetType: target.type === "reply" ? "post" : "topic",
+          targetId: String(target.id),
+          reason: selected,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "通報の送信に失敗しました");
+      }
+      setSubmitted(true);
+      window.setTimeout(() => onClose(), 1400);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "通報の送信に失敗しました");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -198,6 +237,17 @@ function ReportModal({
         ) : (
           <>
             <div className="space-y-2 px-5 py-4">
+              {persist && !isLoggedIn ? (
+                <p className="mb-3 text-[12px] text-[#6b6b8a]">
+                  通報にはログインが必要です。
+                  <Link
+                    href="/login"
+                    className="ml-2 font-semibold text-[#5b4cf5]"
+                  >
+                    ログイン
+                  </Link>
+                </p>
+              ) : null}
               <p className="mb-3 text-[12px] text-[#6b6b8a]">
                 通報理由を選択してください
               </p>
@@ -221,6 +271,9 @@ function ReportModal({
                   ) : null}
                 </button>
               ))}
+              {error ? (
+                <p className="pt-1 text-[12px] text-[#e53e3e]">{error}</p>
+              ) : null}
             </div>
             <div className="flex gap-2 px-5 pt-2 pb-5">
               <button
@@ -232,11 +285,13 @@ function ReportModal({
               </button>
               <button
                 type="button"
-                onClick={handleSubmit}
-                disabled={!selected}
+                onClick={() => {
+                  void handleSubmit();
+                }}
+                disabled={!selected || saving}
                 className="flex-1 rounded-full bg-[#e53e3e] py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-[#c53030] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                通報する
+                {saving ? "送信中..." : "通報する"}
               </button>
             </div>
           </>
@@ -288,15 +343,17 @@ function ReplyCard({
             <span className="ml-auto text-[11px] text-[#6b6b8a]">
               {reply.timestamp}
             </span>
-            <MenuButton
-              onReport={() =>
-                onReport({
-                  type: "reply",
-                  id: reply.id,
-                  label: `${reply.userName} のレス`,
-                })
-              }
-            />
+            {isMine ? null : (
+              <MenuButton
+                onReport={() =>
+                  onReport({
+                    type: "reply",
+                    id: reply.id,
+                    label: `${reply.userName} のレス`,
+                  })
+                }
+              />
+            )}
           </div>
 
           {reply.isSpoiler ? (
@@ -510,17 +567,21 @@ export function BoardThread({
             <h1 className="flex-1 font-display text-[18px] leading-snug font-bold text-[#1a1a2e]">
               {post.title}
             </h1>
-            <MenuButton
-              onReport={() =>
-                setReportTarget({
-                  type: "thread",
-                  label:
-                    post.title.length > 24
-                      ? `${post.title.slice(0, 24)}…`
-                      : post.title,
-                })
-              }
-            />
+            {user &&
+            (post.accountId === user.id || post.username === user.username) ? null : (
+              <MenuButton
+                onReport={() =>
+                  setReportTarget({
+                    type: "thread",
+                    id: post.id,
+                    label:
+                      post.title.length > 24
+                        ? `${post.title.slice(0, 24)}…`
+                        : post.title,
+                  })
+                }
+              />
+            )}
           </div>
           <div className="mt-2 flex items-center gap-3">
             {post.tags.map((tag, i) => (
@@ -681,6 +742,7 @@ export function BoardThread({
       {reportTarget ? (
         <ReportModal
           target={reportTarget}
+          persist={persist}
           onClose={() => setReportTarget(null)}
         />
       ) : null}

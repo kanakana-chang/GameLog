@@ -2,6 +2,7 @@ import type { GameDetailData, Post } from "@/components/game-detail/data";
 import type { ThreadReply } from "@/components/board-thread/data";
 import { isUuid } from "@/lib/games";
 import { prisma } from "@/lib/prisma";
+import { getHiddenTargetSets } from "@/lib/reports";
 
 const AVATAR = {
   av: "ゲ",
@@ -209,6 +210,7 @@ export function attachGameTopics(
 export async function getGameTopics(gameId: string): Promise<Post[]> {
   if (!isUuid(gameId)) return [];
 
+  const hidden = await getHiddenTargetSets();
   const topics = await prisma.topics.findMany({
     where: { game_id: gameId },
     include: {
@@ -220,12 +222,20 @@ export async function getGameTopics(gameId: string): Promise<Post[]> {
     orderBy: { created_at: "desc" },
   });
 
-  return topics.map(toListPost);
+  return topics
+    .filter((topic) => {
+      const first = topic.posts[0];
+      if (hidden.topics.has(topic.id)) return false;
+      if (first && hidden.posts.has(first.id)) return false;
+      return true;
+    })
+    .map(toListPost);
 }
 
 export async function getBoardThread(gameId: string, topicId: string) {
   if (!isUuid(gameId) || !isUuid(topicId)) return null;
 
+  const hidden = await getHiddenTargetSets();
   const topic = await prisma.topics.findFirst({
     where: { id: topicId, game_id: gameId },
     include: {
@@ -238,11 +248,18 @@ export async function getBoardThread(gameId: string, topicId: string) {
   });
   if (!topic) return null;
 
+  const first = topic.posts[0];
+  if (hidden.topics.has(topic.id) || (first && hidden.posts.has(first.id))) {
+    return null;
+  }
+
+  const visiblePosts = topic.posts.filter((item) => !hidden.posts.has(item.id));
+
   return {
     gameId,
     gameTitle: topic.games.title,
-    post: toListPost(topic),
-    replies: topic.posts.map(toThreadReply),
+    post: toListPost({ ...topic, posts: visiblePosts }),
+    replies: visiblePosts.map(toThreadReply),
   };
 }
 

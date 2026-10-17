@@ -21,7 +21,9 @@ function createPrismaClient() {
 if (
   process.env.NODE_ENV !== "production" &&
   globalForPrisma.prisma &&
-  (!("reviews" in globalForPrisma.prisma) || !("topics" in globalForPrisma.prisma))
+  (!("reviews" in globalForPrisma.prisma) ||
+    !("topics" in globalForPrisma.prisma) ||
+    !("reports" in globalForPrisma.prisma))
 ) {
   globalForPrisma.prisma = undefined;
 }

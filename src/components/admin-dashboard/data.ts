@@ -18,12 +18,7 @@ export type Genre =
   | "Survival"
   | (string & {});
 export type ReportStatus = "open" | "hidden" | "dismissed";
-export type ReportReason =
-  | "inappropriate"
-  | "spam"
-  | "spoiler"
-  | "false_info"
-  | "other";
+export type ReportReason = "harassment" | "spam" | "spoiler" | "other";
 export type AdminNav = "games" | "reports";
 
 export type AdminGame = {
@@ -43,13 +38,14 @@ export type AdminGame = {
 
 export type AdminReport = {
   id: string;
-  targetType: "review" | "comment";
+  targetType: "review" | "topic" | "post";
   targetContent: string;
   gameTitle: string;
   reporter: string;
   reason: ReportReason;
   reportedAt: string;
   status: ReportStatus;
+  comment?: string;
 };
 
 export const ADMIN_PLATFORMS: Platform[] = [
@@ -216,67 +212,19 @@ export const INITIAL_GAMES: AdminGame[] = [
   },
 ];
 
-export const INITIAL_REPORTS: AdminReport[] = [
-  {
-    id: "rep001",
-    targetType: "review",
-    targetContent: "このゲームは最悪。開発者は犯罪者。絶対やるな！！！",
-    gameTitle: "原神",
-    reporter: "user_watcher01",
-    reason: "inappropriate",
-    reportedAt: "2024-06-10T14:23:00",
-    status: "open",
-  },
-  {
-    id: "rep002",
-    targetType: "comment",
-    targetContent: "第3章のボスはXXXXで、最後にYYYYが死ぬ。感動した。",
-    gameTitle: "ゼルダの伝説 ティアーズ オブ ザ キングダム",
-    reporter: "user_zelda_fan",
-    reason: "spoiler",
-    reportedAt: "2024-06-10T16:05:00",
-    status: "open",
-  },
-  {
-    id: "rep003",
-    targetType: "review",
-    targetContent:
-      "課金しないと絶対に勝てない。ガチャ確率も嘘。サービス終了間近。",
-    gameTitle: "モンスターストライク",
-    reporter: "user_gacha_hate",
-    reason: "false_info",
-    reportedAt: "2024-06-11T09:12:00",
-    status: "open",
-  },
-  {
-    id: "rep004",
-    targetType: "comment",
-    targetContent:
-      "フォロワー1000人突破記念！プレゼント企画やります→[リンク]",
-    gameTitle: "スプラトゥーン3",
-    reporter: "user_clean01",
-    reason: "spam",
-    reportedAt: "2024-06-11T11:44:00",
-    status: "hidden",
-  },
-  {
-    id: "rep005",
-    targetType: "review",
-    targetContent: "操作が難しすぎる。小学生には向かない。",
-    gameTitle: "Minecraft",
-    reporter: "user_parent99",
-    reason: "other",
-    reportedAt: "2024-06-12T08:30:00",
-    status: "dismissed",
-  },
-];
+export const INITIAL_REPORTS: AdminReport[] = [];
 
 export const REASON_LABELS: Record<ReportReason, string> = {
-  inappropriate: "不適切な内容",
+  harassment: "誹謗中傷",
   spam: "スパム",
   spoiler: "ネタバレ",
-  false_info: "虚偽情報",
   other: "その他",
+};
+
+export const TARGET_TYPE_LABELS: Record<AdminReport["targetType"], string> = {
+  review: "レビュー",
+  topic: "トピック",
+  post: "レス",
 };
 
 export const STATUS_COLORS: Record<string, string> = {
@@ -307,9 +255,8 @@ export const PLATFORM_COLORS: Record<string, string> = {
 };
 
 export const REASON_COLORS: Record<ReportReason, string> = {
-  inappropriate: "border-red-100 bg-red-50 text-red-600",
+  harassment: "border-red-100 bg-red-50 text-red-600",
   spam: "border-orange-100 bg-orange-50 text-orange-600",
   spoiler: "border-yellow-100 bg-yellow-50 text-yellow-700",
-  false_info: "border-purple-100 bg-purple-50 text-purple-600",
   other: "border-slate-100 bg-slate-50 text-slate-500",
 };
