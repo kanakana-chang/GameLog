@@ -43,7 +43,11 @@ export function FeaturedGames() {
     if (filter === "rising") return game.tag === "評価急上昇" || game.tag === "新着";
     if (filter === "f2p") return game.freeToPlay;
     if (filter === "sabage")
-      return game.genre.includes("サバゲー") || game.genre.includes("シューター");
+      return (
+        game.genre.includes("サバゲー") ||
+        game.genre.includes("シューター") ||
+        game.genre.includes("シューティング")
+      );
     return true;
   });
 

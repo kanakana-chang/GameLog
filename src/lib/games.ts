@@ -23,9 +23,21 @@ export function isUuid(id: string) {
 }
 
 const GENRE_ALIASES: Record<string, Genre> = {
-  シューティング: "シューター",
-  アクションRPG: "アドベンチャー",
-  RPG: "アドベンチャー",
+  シューター: "シューティング",
+  アクションRPG: "ロールプレイング",
+  RPG: "ロールプレイング",
+  ガチャRPG: "ロールプレイング",
+  ガチャ育成: "シミュレーション",
+  育成: "シミュレーション",
+  サバイバル: "アクション",
+  "リズム・ガチャ": "音楽ゲーム",
+  Action: "アクション",
+  Puzzle: "パズル",
+  Strategy: "シミュレーション",
+  Simulation: "シミュレーション",
+  Sports: "スポーツ",
+  Gacha: "ロールプレイング",
+  Survival: "アクション",
 };
 
 const gameWithPlatforms = {
@@ -262,7 +274,7 @@ function toAdminGame(game: GameWithPlatforms): AdminGame {
     id: game.id,
     title: game.title,
     platform: platforms,
-    genre: game.genre,
+    genre: mapGenre(game.genre),
     releaseYear: Number(game.release_year),
     developer: game.publisher,
     freeToPlay: isFree,

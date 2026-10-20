@@ -86,7 +86,7 @@ function GameForm({
   const empty: Partial<AdminGame> = {
     title: "",
     platform: [],
-    genre: "Action",
+    genre: "アクション",
     releaseYear: 2024,
     developer: "",
     freeToPlay: false,

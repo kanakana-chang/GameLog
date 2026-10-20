@@ -306,7 +306,7 @@ export function AccountSettings({
                     onChange={(value) =>
                       setProfile({ ...profile, favoriteGenre: value })
                     }
-                    placeholder="例: RPG / ガチャ"
+                    placeholder="例: ロールプレイング"
                   />
                   <div>
                     <label
