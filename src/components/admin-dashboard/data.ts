@@ -8,14 +8,22 @@ export type Platform =
   | "Xbox"
   | (string & {});
 export type Genre =
-  | "Action"
-  | "RPG"
-  | "Puzzle"
-  | "Strategy"
-  | "Simulation"
-  | "Sports"
-  | "Gacha"
-  | "Survival"
+  | "アクション"
+  | "アドベンチャー"
+  | "シューティング"
+  | "ロールプレイング"
+  | "シミュレーション"
+  | "スポーツ"
+  | "格闘"
+  | "レース"
+  | "音楽ゲーム"
+  | "パズル"
+  | "テーブルゲーム"
+  | "パーティー"
+  | "コミュニケーション"
+  | "学習・教育"
+  | "トレーニング"
+  | "ツール"
   | (string & {});
 export type ReportStatus = "open" | "hidden" | "dismissed";
 export type ReportReason = "harassment" | "spam" | "spoiler" | "other";
