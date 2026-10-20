@@ -10,6 +10,7 @@ import {
 import { SEARCH_GAMES } from "@/components/game-search/data";
 import { ensureGameDetails } from "@/lib/game-details";
 import { getSearchGameById } from "@/lib/games";
+import { getSessionUser } from "@/lib/auth";
 import { attachGameTopics, getGameTopics } from "@/lib/board";
 import { attachGameReviews, getGameReviews } from "@/lib/reviews";
 
@@ -45,9 +46,10 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
   const game = await getSearchGameById(id);
   if (!game) notFound();
 
+  const user = await getSessionUser();
   const [assembled, reviews, topics] = await Promise.all([
     ensureGameDetails(game),
-    getGameReviews(id),
+    getGameReviews(id, user?.id),
     getGameTopics(id),
   ]);
   const detail = attachGameTopics(

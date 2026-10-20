@@ -302,6 +302,7 @@ export type reviewsWhereInput = {
   created_at?: Prisma.DateTimeFilter<"reviews"> | Date | string
   games?: Prisma.XOR<Prisma.GamesScalarRelationFilter, Prisma.gamesWhereInput>
   profiles?: Prisma.XOR<Prisma.ProfilesNullableScalarRelationFilter, Prisma.profilesWhereInput> | null
+  review_likes?: Prisma.Review_likesListRelationFilter
 }
 
 export type reviewsOrderByWithRelationInput = {
@@ -320,6 +321,7 @@ export type reviewsOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   games?: Prisma.gamesOrderByWithRelationInput
   profiles?: Prisma.profilesOrderByWithRelationInput
+  review_likes?: Prisma.review_likesOrderByRelationAggregateInput
 }
 
 export type reviewsWhereUniqueInput = Prisma.AtLeast<{
@@ -341,6 +343,7 @@ export type reviewsWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"reviews"> | Date | string
   games?: Prisma.XOR<Prisma.GamesScalarRelationFilter, Prisma.gamesWhereInput>
   profiles?: Prisma.XOR<Prisma.ProfilesNullableScalarRelationFilter, Prisma.profilesWhereInput> | null
+  review_likes?: Prisma.Review_likesListRelationFilter
 }, "id">
 
 export type reviewsOrderByWithAggregationInput = {
@@ -397,6 +400,7 @@ export type reviewsCreateInput = {
   created_at?: Date | string
   games: Prisma.gamesCreateNestedOneWithoutReviewsInput
   profiles?: Prisma.profilesCreateNestedOneWithoutReviewsInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutReviewsInput
 }
 
 export type reviewsUncheckedCreateInput = {
@@ -413,6 +417,7 @@ export type reviewsUncheckedCreateInput = {
   image_url?: string | null
   is_spoiler?: boolean
   created_at?: Date | string
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutReviewsInput
 }
 
 export type reviewsUpdateInput = {
@@ -429,6 +434,7 @@ export type reviewsUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   games?: Prisma.gamesUpdateOneRequiredWithoutReviewsNestedInput
   profiles?: Prisma.profilesUpdateOneWithoutReviewsNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutReviewsNestedInput
 }
 
 export type reviewsUncheckedUpdateInput = {
@@ -445,6 +451,7 @@ export type reviewsUncheckedUpdateInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_spoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutReviewsNestedInput
 }
 
 export type reviewsCreateManyInput = {
@@ -569,6 +576,11 @@ export type reviewsSumOrderByAggregateInput = {
   param_5?: Prisma.SortOrder
 }
 
+export type ReviewsScalarRelationFilter = {
+  is?: Prisma.reviewsWhereInput
+  isNot?: Prisma.reviewsWhereInput
+}
+
 export type reviewsCreateNestedManyWithoutGamesInput = {
   create?: Prisma.XOR<Prisma.reviewsCreateWithoutGamesInput, Prisma.reviewsUncheckedCreateWithoutGamesInput> | Prisma.reviewsCreateWithoutGamesInput[] | Prisma.reviewsUncheckedCreateWithoutGamesInput[]
   connectOrCreate?: Prisma.reviewsCreateOrConnectWithoutGamesInput | Prisma.reviewsCreateOrConnectWithoutGamesInput[]
@@ -661,6 +673,20 @@ export type DecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
+export type reviewsCreateNestedOneWithoutReview_likesInput = {
+  create?: Prisma.XOR<Prisma.reviewsCreateWithoutReview_likesInput, Prisma.reviewsUncheckedCreateWithoutReview_likesInput>
+  connectOrCreate?: Prisma.reviewsCreateOrConnectWithoutReview_likesInput
+  connect?: Prisma.reviewsWhereUniqueInput
+}
+
+export type reviewsUpdateOneRequiredWithoutReview_likesNestedInput = {
+  create?: Prisma.XOR<Prisma.reviewsCreateWithoutReview_likesInput, Prisma.reviewsUncheckedCreateWithoutReview_likesInput>
+  connectOrCreate?: Prisma.reviewsCreateOrConnectWithoutReview_likesInput
+  upsert?: Prisma.reviewsUpsertWithoutReview_likesInput
+  connect?: Prisma.reviewsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.reviewsUpdateToOneWithWhereWithoutReview_likesInput, Prisma.reviewsUpdateWithoutReview_likesInput>, Prisma.reviewsUncheckedUpdateWithoutReview_likesInput>
+}
+
 export type reviewsCreateWithoutGamesInput = {
   id?: string
   rating_overall: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -674,6 +700,7 @@ export type reviewsCreateWithoutGamesInput = {
   is_spoiler?: boolean
   created_at?: Date | string
   profiles?: Prisma.profilesCreateNestedOneWithoutReviewsInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutReviewsInput
 }
 
 export type reviewsUncheckedCreateWithoutGamesInput = {
@@ -689,6 +716,7 @@ export type reviewsUncheckedCreateWithoutGamesInput = {
   image_url?: string | null
   is_spoiler?: boolean
   created_at?: Date | string
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutReviewsInput
 }
 
 export type reviewsCreateOrConnectWithoutGamesInput = {
@@ -749,6 +777,7 @@ export type reviewsCreateWithoutProfilesInput = {
   is_spoiler?: boolean
   created_at?: Date | string
   games: Prisma.gamesCreateNestedOneWithoutReviewsInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutReviewsInput
 }
 
 export type reviewsUncheckedCreateWithoutProfilesInput = {
@@ -764,6 +793,7 @@ export type reviewsUncheckedCreateWithoutProfilesInput = {
   image_url?: string | null
   is_spoiler?: boolean
   created_at?: Date | string
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutReviewsInput
 }
 
 export type reviewsCreateOrConnectWithoutProfilesInput = {
@@ -790,6 +820,86 @@ export type reviewsUpdateWithWhereUniqueWithoutProfilesInput = {
 export type reviewsUpdateManyWithWhereWithoutProfilesInput = {
   where: Prisma.reviewsScalarWhereInput
   data: Prisma.XOR<Prisma.reviewsUpdateManyMutationInput, Prisma.reviewsUncheckedUpdateManyWithoutProfilesInput>
+}
+
+export type reviewsCreateWithoutReview_likesInput = {
+  id?: string
+  rating_overall: runtime.Decimal | runtime.DecimalJsLike | number | string
+  param_1: number
+  param_2: number
+  param_3: number
+  param_4: number
+  param_5: number
+  comment?: string | null
+  image_url?: string | null
+  is_spoiler?: boolean
+  created_at?: Date | string
+  games: Prisma.gamesCreateNestedOneWithoutReviewsInput
+  profiles?: Prisma.profilesCreateNestedOneWithoutReviewsInput
+}
+
+export type reviewsUncheckedCreateWithoutReview_likesInput = {
+  id?: string
+  user_id?: string | null
+  game_id: string
+  rating_overall: runtime.Decimal | runtime.DecimalJsLike | number | string
+  param_1: number
+  param_2: number
+  param_3: number
+  param_4: number
+  param_5: number
+  comment?: string | null
+  image_url?: string | null
+  is_spoiler?: boolean
+  created_at?: Date | string
+}
+
+export type reviewsCreateOrConnectWithoutReview_likesInput = {
+  where: Prisma.reviewsWhereUniqueInput
+  create: Prisma.XOR<Prisma.reviewsCreateWithoutReview_likesInput, Prisma.reviewsUncheckedCreateWithoutReview_likesInput>
+}
+
+export type reviewsUpsertWithoutReview_likesInput = {
+  update: Prisma.XOR<Prisma.reviewsUpdateWithoutReview_likesInput, Prisma.reviewsUncheckedUpdateWithoutReview_likesInput>
+  create: Prisma.XOR<Prisma.reviewsCreateWithoutReview_likesInput, Prisma.reviewsUncheckedCreateWithoutReview_likesInput>
+  where?: Prisma.reviewsWhereInput
+}
+
+export type reviewsUpdateToOneWithWhereWithoutReview_likesInput = {
+  where?: Prisma.reviewsWhereInput
+  data: Prisma.XOR<Prisma.reviewsUpdateWithoutReview_likesInput, Prisma.reviewsUncheckedUpdateWithoutReview_likesInput>
+}
+
+export type reviewsUpdateWithoutReview_likesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  rating_overall?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  param_1?: Prisma.IntFieldUpdateOperationsInput | number
+  param_2?: Prisma.IntFieldUpdateOperationsInput | number
+  param_3?: Prisma.IntFieldUpdateOperationsInput | number
+  param_4?: Prisma.IntFieldUpdateOperationsInput | number
+  param_5?: Prisma.IntFieldUpdateOperationsInput | number
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_spoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  games?: Prisma.gamesUpdateOneRequiredWithoutReviewsNestedInput
+  profiles?: Prisma.profilesUpdateOneWithoutReviewsNestedInput
+}
+
+export type reviewsUncheckedUpdateWithoutReview_likesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  game_id?: Prisma.StringFieldUpdateOperationsInput | string
+  rating_overall?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  param_1?: Prisma.IntFieldUpdateOperationsInput | number
+  param_2?: Prisma.IntFieldUpdateOperationsInput | number
+  param_3?: Prisma.IntFieldUpdateOperationsInput | number
+  param_4?: Prisma.IntFieldUpdateOperationsInput | number
+  param_5?: Prisma.IntFieldUpdateOperationsInput | number
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_spoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type reviewsCreateManyGamesInput = {
@@ -820,6 +930,7 @@ export type reviewsUpdateWithoutGamesInput = {
   is_spoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profiles?: Prisma.profilesUpdateOneWithoutReviewsNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutReviewsNestedInput
 }
 
 export type reviewsUncheckedUpdateWithoutGamesInput = {
@@ -835,6 +946,7 @@ export type reviewsUncheckedUpdateWithoutGamesInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_spoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutReviewsNestedInput
 }
 
 export type reviewsUncheckedUpdateManyWithoutGamesInput = {
@@ -880,6 +992,7 @@ export type reviewsUpdateWithoutProfilesInput = {
   is_spoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   games?: Prisma.gamesUpdateOneRequiredWithoutReviewsNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutReviewsNestedInput
 }
 
 export type reviewsUncheckedUpdateWithoutProfilesInput = {
@@ -895,6 +1008,7 @@ export type reviewsUncheckedUpdateWithoutProfilesInput = {
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_spoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutReviewsNestedInput
 }
 
 export type reviewsUncheckedUpdateManyWithoutProfilesInput = {
@@ -913,6 +1027,35 @@ export type reviewsUncheckedUpdateManyWithoutProfilesInput = {
 }
 
 
+/**
+ * Count Type ReviewsCountOutputType
+ */
+
+export type ReviewsCountOutputType = {
+  review_likes: number
+}
+
+export type ReviewsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  review_likes?: boolean | ReviewsCountOutputTypeCountReview_likesArgs
+}
+
+/**
+ * ReviewsCountOutputType without action
+ */
+export type ReviewsCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ReviewsCountOutputType
+   */
+  select?: Prisma.ReviewsCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ReviewsCountOutputType without action
+ */
+export type ReviewsCountOutputTypeCountReview_likesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.review_likesWhereInput
+}
+
 
 export type reviewsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -930,6 +1073,8 @@ export type reviewsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   created_at?: boolean
   games?: boolean | Prisma.gamesDefaultArgs<ExtArgs>
   profiles?: boolean | Prisma.reviews$profilesArgs<ExtArgs>
+  review_likes?: boolean | Prisma.reviews$review_likesArgs<ExtArgs>
+  _count?: boolean | Prisma.ReviewsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["reviews"]>
 
 export type reviewsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -988,6 +1133,8 @@ export type reviewsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type reviewsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   games?: boolean | Prisma.gamesDefaultArgs<ExtArgs>
   profiles?: boolean | Prisma.reviews$profilesArgs<ExtArgs>
+  review_likes?: boolean | Prisma.reviews$review_likesArgs<ExtArgs>
+  _count?: boolean | Prisma.ReviewsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type reviewsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   games?: boolean | Prisma.gamesDefaultArgs<ExtArgs>
@@ -1003,6 +1150,7 @@ export type $reviewsPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     games: Prisma.$gamesPayload<ExtArgs>
     profiles: Prisma.$profilesPayload<ExtArgs> | null
+    review_likes: Prisma.$review_likesPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1414,6 +1562,7 @@ export interface Prisma__reviewsClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   games<T extends Prisma.gamesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.gamesDefaultArgs<ExtArgs>>): Prisma.Prisma__gamesClient<runtime.Types.Result.GetResult<Prisma.$gamesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   profiles<T extends Prisma.reviews$profilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.reviews$profilesArgs<ExtArgs>>): Prisma.Prisma__profilesClient<runtime.Types.Result.GetResult<Prisma.$profilesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  review_likes<T extends Prisma.reviews$review_likesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.reviews$review_likesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$review_likesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1873,6 +2022,30 @@ export type reviews$profilesArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   include?: Prisma.profilesInclude<ExtArgs> | null
   where?: Prisma.profilesWhereInput
+}
+
+/**
+ * reviews.review_likes
+ */
+export type reviews$review_likesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the review_likes
+   */
+  select?: Prisma.review_likesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the review_likes
+   */
+  omit?: Prisma.review_likesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.review_likesInclude<ExtArgs> | null
+  where?: Prisma.review_likesWhereInput
+  orderBy?: Prisma.review_likesOrderByWithRelationInput | Prisma.review_likesOrderByWithRelationInput[]
+  cursor?: Prisma.review_likesWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Review_likesScalarFieldEnum | Prisma.Review_likesScalarFieldEnum[]
 }
 
 /**

@@ -433,6 +433,7 @@ export const ModelName = {
   profiles: 'profiles',
   reports: 'reports',
   reviews: 'reviews',
+  review_likes: 'review_likes',
   topics: 'topics',
   user_game_statuses: 'user_game_statuses'
 } as const
@@ -450,7 +451,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "game_platform" | "games" | "game_details" | "platforms" | "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "mfa_recovery_code_sets" | "mfa_recovery_codes" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "scim_tokens" | "scim_users" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "post_likes" | "posts" | "profiles" | "reports" | "reviews" | "topics" | "user_game_statuses"
+    modelProps: "game_platform" | "games" | "game_details" | "platforms" | "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "mfa_recovery_code_sets" | "mfa_recovery_codes" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "scim_tokens" | "scim_users" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "post_likes" | "posts" | "profiles" | "reports" | "reviews" | "review_likes" | "topics" | "user_game_statuses"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3118,6 +3119,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    review_likes: {
+      payload: Prisma.$review_likesPayload<ExtArgs>
+      fields: Prisma.review_likesFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.review_likesFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.review_likesFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>
+        }
+        findFirst: {
+          args: Prisma.review_likesFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.review_likesFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>
+        }
+        findMany: {
+          args: Prisma.review_likesFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>[]
+        }
+        create: {
+          args: Prisma.review_likesCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>
+        }
+        createMany: {
+          args: Prisma.review_likesCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.review_likesCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>[]
+        }
+        delete: {
+          args: Prisma.review_likesDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>
+        }
+        update: {
+          args: Prisma.review_likesUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>
+        }
+        deleteMany: {
+          args: Prisma.review_likesDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.review_likesUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.review_likesUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>[]
+        }
+        upsert: {
+          args: Prisma.review_likesUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$review_likesPayload>
+        }
+        aggregate: {
+          args: Prisma.Review_likesAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReview_likes>
+        }
+        groupBy: {
+          args: Prisma.review_likesGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Review_likesGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.review_likesCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Review_likesCountAggregateOutputType> | number
+        }
+      }
+    }
     topics: {
       payload: Prisma.$topicsPayload<ExtArgs>
       fields: Prisma.topicsFieldRefs
@@ -3850,6 +3925,14 @@ export const ReviewsScalarFieldEnum = {
 export type ReviewsScalarFieldEnum = (typeof ReviewsScalarFieldEnum)[keyof typeof ReviewsScalarFieldEnum]
 
 
+export const Review_likesScalarFieldEnum = {
+  user_id: 'user_id',
+  review_id: 'review_id'
+} as const
+
+export type Review_likesScalarFieldEnum = (typeof Review_likesScalarFieldEnum)[keyof typeof Review_likesScalarFieldEnum]
+
+
 export const TopicsScalarFieldEnum = {
   id: 'id',
   game_id: 'game_id',
@@ -4358,6 +4441,7 @@ export type GlobalOmitConfig = {
   profiles?: Prisma.profilesOmit
   reports?: Prisma.reportsOmit
   reviews?: Prisma.reviewsOmit
+  review_likes?: Prisma.review_likesOmit
   topics?: Prisma.topicsOmit
   user_game_statuses?: Prisma.user_game_statusesOmit
 }

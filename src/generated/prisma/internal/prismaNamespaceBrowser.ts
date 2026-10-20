@@ -87,6 +87,7 @@ export const ModelName = {
   profiles: 'profiles',
   reports: 'reports',
   reviews: 'reviews',
+  review_likes: 'review_likes',
   topics: 'topics',
   user_game_statuses: 'user_game_statuses'
 } as const
@@ -650,6 +651,14 @@ export const ReviewsScalarFieldEnum = {
 } as const
 
 export type ReviewsScalarFieldEnum = (typeof ReviewsScalarFieldEnum)[keyof typeof ReviewsScalarFieldEnum]
+
+
+export const Review_likesScalarFieldEnum = {
+  user_id: 'user_id',
+  review_id: 'review_id'
+} as const
+
+export type Review_likesScalarFieldEnum = (typeof Review_likesScalarFieldEnum)[keyof typeof Review_likesScalarFieldEnum]
 
 
 export const TopicsScalarFieldEnum = {

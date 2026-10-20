@@ -235,16 +235,18 @@ function DotMenu({ onReport }: { onReport: () => void }) {
 function ReviewCard({
   r,
   isMine,
+  liking,
   onReport,
+  onLike,
 }: {
   r: Review;
   isMine: boolean;
+  liking?: boolean;
   onReport: () => void;
+  onLike: () => void;
 }) {
   const [exp, setExp] = useState(false);
   const [spoiler, setSpoiler] = useState(false);
-  const [vote, setVote] = useState<boolean | null>(null);
-  const [helpN, setHelpN] = useState(r.helpful);
   const LIMIT = 130;
   const long = r.body.length > LIMIT;
   const sc =
@@ -366,32 +368,15 @@ function ReviewCard({
           <span className="text-[11px] text-detail-dim">参考になった？</span>
           <button
             type="button"
-            onClick={() => {
-              if (vote === null) {
-                setVote(true);
-                setHelpN((n) => n + 1);
-              }
-            }}
+            disabled={liking}
+            onClick={onLike}
             className={`rounded-full border px-2.5 py-[3px] font-mono text-[11px] font-semibold ${
-              vote === true
+              r.likedByMe
                 ? "border-detail-green bg-detail-green-bg text-detail-green"
-                : "border-detail-border bg-[#f8f9fc] text-detail-muted"
-            } ${vote === null ? "cursor-pointer" : "cursor-default"}`}
+                : "cursor-pointer border-detail-border bg-[#f8f9fc] text-detail-muted"
+            } ${liking ? "cursor-wait opacity-70" : ""}`}
           >
-            👍 {helpN}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (vote === null) setVote(false);
-            }}
-            className={`rounded-full border px-2.5 py-[3px] font-mono text-[11px] font-semibold ${
-              vote === false
-                ? "border-detail-red bg-detail-red-bg text-detail-red"
-                : "border-detail-border bg-[#f8f9fc] text-detail-muted"
-            } ${vote === null ? "cursor-pointer" : "cursor-default"}`}
-          >
-            👎
+            👍 {r.helpful}
           </button>
         </div>
       </div>
@@ -833,12 +818,68 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
   const [platform, setPlatform] = useState("all");
   const [logTab, setLogTab] = useState<LogTab>("time");
   const [posts, setPosts] = useState<Post[]>(detail.posts);
+  const [reviews, setReviews] = useState<Review[]>(detail.reviews);
+  const [likingId, setLikingId] = useState<string | number | null>(null);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   const [showNewPost, setShowNewPost] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  useEffect(() => {
+    setReviews(detail.reviews);
+  }, [detail.reviews]);
+
+  async function handleReviewLike(review: Review) {
+    if (likingId != null) return;
+    if (persistBoard && !isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+    if (!persistBoard) {
+      setReviews((prev) =>
+        prev.map((item) =>
+          item.id === review.id
+            ? {
+                ...item,
+                likedByMe: !item.likedByMe,
+                helpful: item.likedByMe
+                  ? Math.max(0, item.helpful - 1)
+                  : item.helpful + 1,
+              }
+            : item,
+        ),
+      );
+      return;
+    }
+
+    setLikingId(review.id);
+    try {
+      const response = await fetch(`/api/reviews/${review.id}/likes`, {
+        method: "POST",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { liked?: boolean; count?: number; error?: string }
+        | null;
+      if (!response.ok || !payload || typeof payload.liked !== "boolean") {
+        throw new Error(payload?.error ?? "いいねに失敗しました");
+      }
+      const liked = payload.liked;
+      const count = payload.count ?? 0;
+      setReviews((prev) =>
+        prev.map((item) =>
+          item.id === review.id
+            ? { ...item, likedByMe: liked, helpful: count }
+            : item,
+        ),
+      );
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "いいねに失敗しました");
+    } finally {
+      setLikingId(null);
+    }
+  }
+
   const platforms = ["all", ...detail.platforms];
-  const filtR = detail.reviews.filter(
+  const filtR = reviews.filter(
     (r) =>
       (!f2pOnly || r.f2p) && (platform === "all" || r.platform === platform),
   );
@@ -850,10 +891,9 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
         : new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
   const maxDist = Math.max(1, ...detail.scoreDist.map((d) => d.count), 0);
-  const f2pShare = detail.reviews.length
+  const f2pShare = reviews.length
     ? Math.round(
-        (detail.reviews.filter((r) => r.f2p).length / detail.reviews.length) *
-          100,
+        (reviews.filter((r) => r.f2p).length / reviews.length) * 100,
       )
     : 0;
 
@@ -1087,9 +1127,13 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                       user &&
                         (r.accountId === user.id || r.username === user.username),
                     )}
+                    liking={likingId === r.id}
                     onReport={() =>
                       setReportTarget({ type: "review", id: r.id, title: r.title })
                     }
+                    onLike={() => {
+                      void handleReviewLike(r);
+                    }}
                   />
                 ))
               ) : (

@@ -210,6 +210,7 @@ export type profilesWhereInput = {
   posts?: Prisma.PostsListRelationFilter
   users?: Prisma.XOR<Prisma.UsersScalarRelationFilter, Prisma.usersWhereInput>
   reports?: Prisma.ReportsListRelationFilter
+  review_likes?: Prisma.Review_likesListRelationFilter
   reviews?: Prisma.ReviewsListRelationFilter
   user_game_statuses?: Prisma.User_game_statusesListRelationFilter
 }
@@ -227,6 +228,7 @@ export type profilesOrderByWithRelationInput = {
   posts?: Prisma.postsOrderByRelationAggregateInput
   users?: Prisma.usersOrderByWithRelationInput
   reports?: Prisma.reportsOrderByRelationAggregateInput
+  review_likes?: Prisma.review_likesOrderByRelationAggregateInput
   reviews?: Prisma.reviewsOrderByRelationAggregateInput
   user_game_statuses?: Prisma.user_game_statusesOrderByRelationAggregateInput
 }
@@ -247,6 +249,7 @@ export type profilesWhereUniqueInput = Prisma.AtLeast<{
   posts?: Prisma.PostsListRelationFilter
   users?: Prisma.XOR<Prisma.UsersScalarRelationFilter, Prisma.usersWhereInput>
   reports?: Prisma.ReportsListRelationFilter
+  review_likes?: Prisma.Review_likesListRelationFilter
   reviews?: Prisma.ReviewsListRelationFilter
   user_game_statuses?: Prisma.User_game_statusesListRelationFilter
 }, "id" | "username">
@@ -291,6 +294,7 @@ export type profilesCreateInput = {
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutProfilesInput
 }
@@ -307,6 +311,7 @@ export type profilesUncheckedCreateInput = {
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutProfilesInput
 }
@@ -323,6 +328,7 @@ export type profilesUpdateInput = {
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutProfilesNestedInput
 }
@@ -339,6 +345,7 @@ export type profilesUncheckedUpdateInput = {
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutProfilesNestedInput
 }
@@ -512,6 +519,20 @@ export type profilesUpdateOneWithoutReviewsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.profilesUpdateToOneWithWhereWithoutReviewsInput, Prisma.profilesUpdateWithoutReviewsInput>, Prisma.profilesUncheckedUpdateWithoutReviewsInput>
 }
 
+export type profilesCreateNestedOneWithoutReview_likesInput = {
+  create?: Prisma.XOR<Prisma.profilesCreateWithoutReview_likesInput, Prisma.profilesUncheckedCreateWithoutReview_likesInput>
+  connectOrCreate?: Prisma.profilesCreateOrConnectWithoutReview_likesInput
+  connect?: Prisma.profilesWhereUniqueInput
+}
+
+export type profilesUpdateOneRequiredWithoutReview_likesNestedInput = {
+  create?: Prisma.XOR<Prisma.profilesCreateWithoutReview_likesInput, Prisma.profilesUncheckedCreateWithoutReview_likesInput>
+  connectOrCreate?: Prisma.profilesCreateOrConnectWithoutReview_likesInput
+  upsert?: Prisma.profilesUpsertWithoutReview_likesInput
+  connect?: Prisma.profilesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.profilesUpdateToOneWithWhereWithoutReview_likesInput, Prisma.profilesUpdateWithoutReview_likesInput>, Prisma.profilesUncheckedUpdateWithoutReview_likesInput>
+}
+
 export type profilesCreateNestedOneWithoutUser_game_statusesInput = {
   create?: Prisma.XOR<Prisma.profilesCreateWithoutUser_game_statusesInput, Prisma.profilesUncheckedCreateWithoutUser_game_statusesInput>
   connectOrCreate?: Prisma.profilesCreateOrConnectWithoutUser_game_statusesInput
@@ -537,6 +558,7 @@ export type profilesCreateWithoutUsersInput = {
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutProfilesInput
 }
@@ -552,6 +574,7 @@ export type profilesUncheckedCreateWithoutUsersInput = {
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutProfilesInput
 }
@@ -583,6 +606,7 @@ export type profilesUpdateWithoutUsersInput = {
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutProfilesNestedInput
 }
@@ -598,6 +622,7 @@ export type profilesUncheckedUpdateWithoutUsersInput = {
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutProfilesNestedInput
 }
@@ -613,6 +638,7 @@ export type profilesCreateWithoutPost_likesInput = {
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutProfilesInput
 }
@@ -628,6 +654,7 @@ export type profilesUncheckedCreateWithoutPost_likesInput = {
   role?: string
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutProfilesInput
 }
@@ -659,6 +686,7 @@ export type profilesUpdateWithoutPost_likesInput = {
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutProfilesNestedInput
 }
@@ -674,6 +702,7 @@ export type profilesUncheckedUpdateWithoutPost_likesInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutProfilesNestedInput
 }
@@ -689,6 +718,7 @@ export type profilesCreateWithoutPostsInput = {
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutProfilesInput
 }
@@ -704,6 +734,7 @@ export type profilesUncheckedCreateWithoutPostsInput = {
   role?: string
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutProfilesInput
 }
@@ -735,6 +766,7 @@ export type profilesUpdateWithoutPostsInput = {
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutProfilesNestedInput
 }
@@ -750,6 +782,7 @@ export type profilesUncheckedUpdateWithoutPostsInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutProfilesNestedInput
 }
@@ -765,6 +798,7 @@ export type profilesCreateWithoutReportsInput = {
   post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutProfilesInput
 }
@@ -780,6 +814,7 @@ export type profilesUncheckedCreateWithoutReportsInput = {
   role?: string
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutProfilesInput
 }
@@ -811,6 +846,7 @@ export type profilesUpdateWithoutReportsInput = {
   post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutProfilesNestedInput
 }
@@ -826,6 +862,7 @@ export type profilesUncheckedUpdateWithoutReportsInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutProfilesNestedInput
 }
@@ -842,6 +879,7 @@ export type profilesCreateWithoutReviewsInput = {
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutProfilesInput
 }
 
@@ -857,6 +895,7 @@ export type profilesUncheckedCreateWithoutReviewsInput = {
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutProfilesInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutProfilesInput
 }
 
@@ -888,6 +927,7 @@ export type profilesUpdateWithoutReviewsInput = {
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutProfilesNestedInput
 }
 
@@ -903,6 +943,87 @@ export type profilesUncheckedUpdateWithoutReviewsInput = {
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutProfilesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutProfilesNestedInput
+}
+
+export type profilesCreateWithoutReview_likesInput = {
+  username: string
+  display_name: string
+  avatar_url?: string | null
+  about_text?: string | null
+  is_deleted?: boolean
+  created_at?: Date | string
+  role?: string
+  post_likes?: Prisma.post_likesCreateNestedManyWithoutProfilesInput
+  posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
+  users: Prisma.usersCreateNestedOneWithoutProfilesInput
+  reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
+  reviews?: Prisma.reviewsCreateNestedManyWithoutProfilesInput
+  user_game_statuses?: Prisma.user_game_statusesCreateNestedManyWithoutProfilesInput
+}
+
+export type profilesUncheckedCreateWithoutReview_likesInput = {
+  id: string
+  username: string
+  display_name: string
+  avatar_url?: string | null
+  about_text?: string | null
+  is_deleted?: boolean
+  created_at?: Date | string
+  role?: string
+  post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
+  posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
+  reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
+  reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
+  user_game_statuses?: Prisma.user_game_statusesUncheckedCreateNestedManyWithoutProfilesInput
+}
+
+export type profilesCreateOrConnectWithoutReview_likesInput = {
+  where: Prisma.profilesWhereUniqueInput
+  create: Prisma.XOR<Prisma.profilesCreateWithoutReview_likesInput, Prisma.profilesUncheckedCreateWithoutReview_likesInput>
+}
+
+export type profilesUpsertWithoutReview_likesInput = {
+  update: Prisma.XOR<Prisma.profilesUpdateWithoutReview_likesInput, Prisma.profilesUncheckedUpdateWithoutReview_likesInput>
+  create: Prisma.XOR<Prisma.profilesCreateWithoutReview_likesInput, Prisma.profilesUncheckedCreateWithoutReview_likesInput>
+  where?: Prisma.profilesWhereInput
+}
+
+export type profilesUpdateToOneWithWhereWithoutReview_likesInput = {
+  where?: Prisma.profilesWhereInput
+  data: Prisma.XOR<Prisma.profilesUpdateWithoutReview_likesInput, Prisma.profilesUncheckedUpdateWithoutReview_likesInput>
+}
+
+export type profilesUpdateWithoutReview_likesInput = {
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  display_name?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  post_likes?: Prisma.post_likesUpdateManyWithoutProfilesNestedInput
+  posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
+  users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
+  reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
+  reviews?: Prisma.reviewsUpdateManyWithoutProfilesNestedInput
+  user_game_statuses?: Prisma.user_game_statusesUpdateManyWithoutProfilesNestedInput
+}
+
+export type profilesUncheckedUpdateWithoutReview_likesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  display_name?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
+  posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
+  reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
+  reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
   user_game_statuses?: Prisma.user_game_statusesUncheckedUpdateManyWithoutProfilesNestedInput
 }
 
@@ -918,6 +1039,7 @@ export type profilesCreateWithoutUser_game_statusesInput = {
   posts?: Prisma.postsCreateNestedManyWithoutProfilesInput
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
   reports?: Prisma.reportsCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsCreateNestedManyWithoutProfilesInput
 }
 
@@ -933,6 +1055,7 @@ export type profilesUncheckedCreateWithoutUser_game_statusesInput = {
   post_likes?: Prisma.post_likesUncheckedCreateNestedManyWithoutProfilesInput
   posts?: Prisma.postsUncheckedCreateNestedManyWithoutProfilesInput
   reports?: Prisma.reportsUncheckedCreateNestedManyWithoutProfilesInput
+  review_likes?: Prisma.review_likesUncheckedCreateNestedManyWithoutProfilesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutProfilesInput
 }
 
@@ -964,6 +1087,7 @@ export type profilesUpdateWithoutUser_game_statusesInput = {
   posts?: Prisma.postsUpdateManyWithoutProfilesNestedInput
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
   reports?: Prisma.reportsUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUpdateManyWithoutProfilesNestedInput
 }
 
@@ -979,6 +1103,7 @@ export type profilesUncheckedUpdateWithoutUser_game_statusesInput = {
   post_likes?: Prisma.post_likesUncheckedUpdateManyWithoutProfilesNestedInput
   posts?: Prisma.postsUncheckedUpdateManyWithoutProfilesNestedInput
   reports?: Prisma.reportsUncheckedUpdateManyWithoutProfilesNestedInput
+  review_likes?: Prisma.review_likesUncheckedUpdateManyWithoutProfilesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutProfilesNestedInput
 }
 
@@ -991,6 +1116,7 @@ export type ProfilesCountOutputType = {
   post_likes: number
   posts: number
   reports: number
+  review_likes: number
   reviews: number
   user_game_statuses: number
 }
@@ -999,6 +1125,7 @@ export type ProfilesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   post_likes?: boolean | ProfilesCountOutputTypeCountPost_likesArgs
   posts?: boolean | ProfilesCountOutputTypeCountPostsArgs
   reports?: boolean | ProfilesCountOutputTypeCountReportsArgs
+  review_likes?: boolean | ProfilesCountOutputTypeCountReview_likesArgs
   reviews?: boolean | ProfilesCountOutputTypeCountReviewsArgs
   user_game_statuses?: boolean | ProfilesCountOutputTypeCountUser_game_statusesArgs
 }
@@ -1037,6 +1164,13 @@ export type ProfilesCountOutputTypeCountReportsArgs<ExtArgs extends runtime.Type
 /**
  * ProfilesCountOutputType without action
  */
+export type ProfilesCountOutputTypeCountReview_likesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.review_likesWhereInput
+}
+
+/**
+ * ProfilesCountOutputType without action
+ */
 export type ProfilesCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.reviewsWhereInput
 }
@@ -1062,6 +1196,7 @@ export type profilesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   posts?: boolean | Prisma.profiles$postsArgs<ExtArgs>
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
   reports?: boolean | Prisma.profiles$reportsArgs<ExtArgs>
+  review_likes?: boolean | Prisma.profiles$review_likesArgs<ExtArgs>
   reviews?: boolean | Prisma.profiles$reviewsArgs<ExtArgs>
   user_game_statuses?: boolean | Prisma.profiles$user_game_statusesArgs<ExtArgs>
   _count?: boolean | Prisma.ProfilesCountOutputTypeDefaultArgs<ExtArgs>
@@ -1108,6 +1243,7 @@ export type profilesInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   posts?: boolean | Prisma.profiles$postsArgs<ExtArgs>
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
   reports?: boolean | Prisma.profiles$reportsArgs<ExtArgs>
+  review_likes?: boolean | Prisma.profiles$review_likesArgs<ExtArgs>
   reviews?: boolean | Prisma.profiles$reviewsArgs<ExtArgs>
   user_game_statuses?: boolean | Prisma.profiles$user_game_statusesArgs<ExtArgs>
   _count?: boolean | Prisma.ProfilesCountOutputTypeDefaultArgs<ExtArgs>
@@ -1126,6 +1262,7 @@ export type $profilesPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     posts: Prisma.$postsPayload<ExtArgs>[]
     users: Prisma.$usersPayload<ExtArgs>
     reports: Prisma.$reportsPayload<ExtArgs>[]
+    review_likes: Prisma.$review_likesPayload<ExtArgs>[]
     reviews: Prisma.$reviewsPayload<ExtArgs>[]
     user_game_statuses: Prisma.$user_game_statusesPayload<ExtArgs>[]
   }
@@ -1536,6 +1673,7 @@ export interface Prisma__profilesClient<T, Null = never, ExtArgs extends runtime
   posts<T extends Prisma.profiles$postsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.profiles$postsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$postsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   users<T extends Prisma.usersDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.usersDefaultArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   reports<T extends Prisma.profiles$reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.profiles$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$reportsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  review_likes<T extends Prisma.profiles$review_likesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.profiles$review_likesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$review_likesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.profiles$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.profiles$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$reviewsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_game_statuses<T extends Prisma.profiles$user_game_statusesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.profiles$user_game_statusesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$user_game_statusesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -2045,6 +2183,30 @@ export type profiles$reportsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.ReportsScalarFieldEnum | Prisma.ReportsScalarFieldEnum[]
+}
+
+/**
+ * profiles.review_likes
+ */
+export type profiles$review_likesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the review_likes
+   */
+  select?: Prisma.review_likesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the review_likes
+   */
+  omit?: Prisma.review_likesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.review_likesInclude<ExtArgs> | null
+  where?: Prisma.review_likesWhereInput
+  orderBy?: Prisma.review_likesOrderByWithRelationInput | Prisma.review_likesOrderByWithRelationInput[]
+  cursor?: Prisma.review_likesWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Review_likesScalarFieldEnum | Prisma.Review_likesScalarFieldEnum[]
 }
 
 /**

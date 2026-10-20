@@ -1,5 +1,6 @@
 import type { GameDetailData, Kink, Review } from "@/components/game-detail/data";
 import { isUuid } from "@/lib/games";
+import { getLikedReviewIds } from "@/lib/likes";
 import { prisma } from "@/lib/prisma";
 import { getHiddenTargetSets } from "@/lib/reports";
 
@@ -183,10 +184,14 @@ function decodeMeta(comment: string | null): {
 }
 
 type ReviewRow = Awaited<ReturnType<typeof prisma.reviews.findMany<{
-  include: { profiles: true };
+  include: { profiles: true; _count: { select: { review_likes: true } } };
 }>>>[number];
 
-function toDetailReview(row: ReviewRow, fallbackPlatform: string): Review {
+function toDetailReview(
+  row: ReviewRow,
+  fallbackPlatform: string,
+  likedByMe = false,
+): Review {
   const meta = decodeMeta(row.comment);
   const score = Number(row.rating_overall);
   const f2pScore = meta.f2p ?? row.param_5;
@@ -212,7 +217,8 @@ function toDetailReview(row: ReviewRow, fallbackPlatform: string): Review {
     title: titleFromComment(text, Math.round(score / 2)),
     body: row.is_spoiler ? "このレビューにはネタバレが含まれています。" : text,
     spoilerBody: row.is_spoiler ? text : "",
-    helpful: 0,
+    helpful: row._count.review_likes,
+    likedByMe,
     tags: [
       STATUS_TAGS[meta.status],
       f2pScore >= 8 ? "無課金OK" : f2pScore <= 4 ? "課金推奨" : "",
@@ -255,7 +261,10 @@ export function attachGameReviews(
   };
 }
 
-export async function getGameReviews(gameId: string): Promise<Review[]> {
+export async function getGameReviews(
+  gameId: string,
+  userId?: string,
+): Promise<Review[]> {
   if (!isUuid(gameId)) return [];
 
   const game = await prisma.games.findUnique({
@@ -273,12 +282,21 @@ export async function getGameReviews(gameId: string): Promise<Review[]> {
       game_id: gameId,
       ...(hiddenIds.length ? { id: { notIn: hiddenIds } } : {}),
     },
-    include: { profiles: true },
+    include: {
+      profiles: true,
+      _count: { select: { review_likes: true } },
+    },
     orderBy: { created_at: "desc" },
   });
 
+  const likedIds = await getLikedReviewIds(
+    userId,
+    rows.map((row) => row.id),
+  );
   const fallbackPlatform = game.game_platform[0]?.platforms.name ?? "";
-  return rows.map((row) => toDetailReview(row, fallbackPlatform));
+  return rows.map((row) =>
+    toDetailReview(row, fallbackPlatform, likedIds.has(row.id)),
+  );
 }
 
 export async function createGameReview(
@@ -308,8 +326,11 @@ export async function createGameReview(
       image_url: imageUrlForStore(input.imageUrl),
       is_spoiler: input.spoiler,
     },
-    include: { profiles: true },
+    include: {
+      profiles: true,
+      _count: { select: { review_likes: true } },
+    },
   });
 
-  return toDetailReview(created, input.platform);
+  return toDetailReview(created, input.platform, false);
 }

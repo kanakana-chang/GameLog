@@ -247,6 +247,11 @@ export type reports = Prisma.reportsModel
  */
 export type reviews = Prisma.reviewsModel
 /**
+ * Model review_likes
+ * 
+ */
+export type review_likes = Prisma.review_likesModel
+/**
  * Model topics
  * This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
  */

@@ -1,6 +1,7 @@
 import type { GameDetailData, Post } from "@/components/game-detail/data";
 import type { ThreadReply } from "@/components/board-thread/data";
 import { isUuid } from "@/lib/games";
+import { getLikedPostIds } from "@/lib/likes";
 import { prisma } from "@/lib/prisma";
 import { getHiddenTargetSets } from "@/lib/reports";
 
@@ -178,6 +179,7 @@ function toListPost(topic: TopicWithPosts): Post {
 function toThreadReply(
   post: TopicWithPosts["posts"][number],
   index: number,
+  likedByMe = false,
 ): ThreadReply {
   const meta = index === 0 ? decodePostMeta(post.content) : { text: post.content, tags: [] };
   const author = authorFromProfile(post.profiles);
@@ -194,7 +196,7 @@ function toThreadReply(
     content: meta.text,
     isSpoiler: post.is_spoiler,
     likes: post.likes_count,
-    likedByMe: false,
+    likedByMe,
     timestamp: formatTimestamp(post.created_at),
     image: post.image_url ?? undefined,
   };
@@ -232,7 +234,11 @@ export async function getGameTopics(gameId: string): Promise<Post[]> {
     .map(toListPost);
 }
 
-export async function getBoardThread(gameId: string, topicId: string) {
+export async function getBoardThread(
+  gameId: string,
+  topicId: string,
+  userId?: string,
+) {
   if (!isUuid(gameId) || !isUuid(topicId)) return null;
 
   const hidden = await getHiddenTargetSets();
@@ -254,12 +260,18 @@ export async function getBoardThread(gameId: string, topicId: string) {
   }
 
   const visiblePosts = topic.posts.filter((item) => !hidden.posts.has(item.id));
+  const likedIds = await getLikedPostIds(
+    userId,
+    visiblePosts.map((item) => item.id),
+  );
 
   return {
     gameId,
     gameTitle: topic.games.title,
     post: toListPost({ ...topic, posts: visiblePosts }),
-    replies: visiblePosts.map(toThreadReply),
+    replies: visiblePosts.map((item, index) =>
+      toThreadReply(item, index, likedIds.has(item.id)),
+    ),
   };
 }
 

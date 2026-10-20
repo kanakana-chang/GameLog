@@ -63,6 +63,7 @@ export type Review = {
   body: string;
   spoilerBody: string;
   helpful: number;
+  likedByMe?: boolean;
   tags: string[];
 };
 

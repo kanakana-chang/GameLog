@@ -304,11 +304,13 @@ function ReportModal({
 function ReplyCard({
   reply,
   isMine,
+  liking,
   onLike,
   onReport,
 }: {
   reply: ThreadReply;
   isMine: boolean;
+  liking?: boolean;
   onLike: (id: string | number) => void;
   onReport: (target: ReportTarget) => void;
 }) {
@@ -378,12 +380,13 @@ function ReplyCard({
           <div className="mt-3 flex items-center gap-1">
             <button
               type="button"
+              disabled={liking}
               onClick={() => onLike(reply.id)}
               className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium transition-all active:scale-95 ${
                 reply.likedByMe
                   ? "bg-[#ff6b6b] text-white shadow-sm"
                   : "bg-[#f5f5f7] text-[#6b6b8a] hover:bg-[#ffe4e4] hover:text-[#ff6b6b]"
-              }`}
+              } ${liking ? "cursor-wait opacity-70" : ""}`}
             >
               <span>{reply.likedByMe ? "❤️" : "🤍"}</span>
               <span>{reply.likes}</span>
@@ -434,6 +437,7 @@ export function BoardThread({
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   const [saving, setSaving] = useState(false);
+  const [likingId, setLikingId] = useState<string | number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const composer = user
@@ -448,18 +452,51 @@ export function BoardThread({
       ? null
       : CURRENT_USER;
 
-  function handleLike(id: string | number) {
-    setReplies((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              likedByMe: !r.likedByMe,
-              likes: r.likedByMe ? r.likes - 1 : r.likes + 1,
-            }
-          : r,
-      ),
-    );
+  async function handleLike(id: string | number) {
+    if (likingId != null) return;
+    if (persist && !isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+    if (!persist) {
+      setReplies((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? {
+                ...r,
+                likedByMe: !r.likedByMe,
+                likes: r.likedByMe ? r.likes - 1 : r.likes + 1,
+              }
+            : r,
+        ),
+      );
+      return;
+    }
+
+    setLikingId(id);
+    setError(null);
+    try {
+      const response = await fetch(`/api/posts/${id}/likes`, {
+        method: "POST",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { liked?: boolean; count?: number; error?: string }
+        | null;
+      if (!response.ok || !payload || typeof payload.liked !== "boolean") {
+        throw new Error(payload?.error ?? "いいねに失敗しました");
+      }
+      const liked = payload.liked;
+      const count = payload.count ?? 0;
+      setReplies((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, likedByMe: liked, likes: count } : r,
+        ),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "いいねに失敗しました");
+    } finally {
+      setLikingId(null);
+    }
   }
 
   async function handlePost() {
@@ -608,7 +645,10 @@ export function BoardThread({
                 (reply.accountId === user.id ||
                   reply.username === user.username),
             )}
-            onLike={handleLike}
+            liking={likingId === reply.id}
+            onLike={(replyId) => {
+              void handleLike(replyId);
+            }}
             onReport={setReportTarget}
           />
         ))}

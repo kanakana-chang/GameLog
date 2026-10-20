@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BoardThread } from "@/components/board-thread/board-thread";
 import { getGameDetail, getThread } from "@/components/game-detail/data";
 import { SEARCH_GAMES } from "@/components/game-search/data";
+import { getSessionUser } from "@/lib/auth";
 import { getBoardThread } from "@/lib/board";
 
 type ThreadPageProps = {
@@ -48,7 +49,8 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
     );
   }
 
-  const thread = await getBoardThread(id, threadId);
+  const user = await getSessionUser();
+  const thread = await getBoardThread(id, threadId, user?.id);
   if (!thread) notFound();
 
   return (
