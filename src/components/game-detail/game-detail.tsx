@@ -312,7 +312,7 @@ function ReviewCard({
             </div>
             <div className="font-mono text-[9px] text-detail-dim">/10</div>
           </div>
-          {isMine ? null : <DotMenu onReport={onReport} />}
+          <DotMenu onReport={onReport} />
         </div>
       </div>
 
@@ -402,12 +402,10 @@ function ReviewCard({
 function PostCard({
   p,
   gameId,
-  isMine,
   onReport,
 }: {
   p: Post;
   gameId: string | number;
-  isMine: boolean;
   onReport: () => void;
 }) {
   return (
@@ -454,11 +452,9 @@ function PostCard({
           </div>
         </div>
       </Link>
-      {isMine ? null : (
-        <div className="absolute top-3.5 right-[18px]">
-          <DotMenu onReport={onReport} />
-        </div>
-      )}
+      <div className="absolute top-3.5 right-[18px]">
+        <DotMenu onReport={onReport} />
+      </div>
     </article>
   );
 }
@@ -1127,10 +1123,6 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                     key={p.id}
                     p={p}
                     gameId={detail.id}
-                    isMine={Boolean(
-                      user &&
-                        (p.accountId === user.id || p.username === user.username),
-                    )}
                     onReport={() =>
                       setReportTarget({ type: "post", id: p.id, title: p.title })
                     }

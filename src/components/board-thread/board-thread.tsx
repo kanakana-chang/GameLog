@@ -343,17 +343,15 @@ function ReplyCard({
             <span className="ml-auto text-[11px] text-[#6b6b8a]">
               {reply.timestamp}
             </span>
-            {isMine ? null : (
-              <MenuButton
-                onReport={() =>
-                  onReport({
-                    type: "reply",
-                    id: reply.id,
-                    label: `${reply.userName} のレス`,
-                  })
-                }
-              />
-            )}
+            <MenuButton
+              onReport={() =>
+                onReport({
+                  type: "reply",
+                  id: reply.id,
+                  label: `${reply.userName} のレス`,
+                })
+              }
+            />
           </div>
 
           {reply.isSpoiler ? (
@@ -567,21 +565,18 @@ export function BoardThread({
             <h1 className="flex-1 font-display text-[18px] leading-snug font-bold text-[#1a1a2e]">
               {post.title}
             </h1>
-            {user &&
-            (post.accountId === user.id || post.username === user.username) ? null : (
-              <MenuButton
-                onReport={() =>
-                  setReportTarget({
-                    type: "thread",
-                    id: post.id,
-                    label:
-                      post.title.length > 24
-                        ? `${post.title.slice(0, 24)}…`
-                        : post.title,
-                  })
-                }
-              />
-            )}
+            <MenuButton
+              onReport={() =>
+                setReportTarget({
+                  type: "thread",
+                  id: post.id,
+                  label:
+                    post.title.length > 24
+                      ? `${post.title.slice(0, 24)}…`
+                      : post.title,
+                })
+              }
+            />
           </div>
           <div className="mt-2 flex items-center gap-3">
             {post.tags.map((tag, i) => (
