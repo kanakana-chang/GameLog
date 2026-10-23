@@ -691,22 +691,22 @@ model reports {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model reviews {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id        String?   @db.Uuid
-  game_id        String    @db.Uuid
-  rating_overall Decimal   @db.Decimal(2, 1)
-  param_1        Int       @db.SmallInt
-  param_2        Int       @db.SmallInt
-  param_3        Int       @db.SmallInt
-  param_4        Int       @db.SmallInt
-  param_5        Int       @db.SmallInt
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String?        @db.Uuid
+  game_id        String         @db.Uuid
+  rating_overall Decimal        @db.Decimal(2, 1)
+  param_1        Int            @db.SmallInt
+  param_2        Int            @db.SmallInt
+  param_3        Int            @db.SmallInt
+  param_4        Int            @db.SmallInt
+  param_5        Int            @db.SmallInt
   comment        String?
   image_url      String?
-  is_spoiler     Boolean   @default(false)
+  is_spoiler     Boolean        @default(false)
   created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  review_likes   review_likes[]
   games          games          @relation(fields: [game_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   profiles       profiles?      @relation(fields: [user_id], references: [id], onUpdate: NoAction)
-  review_likes   review_likes[]
 
   @@schema("public")
 }
