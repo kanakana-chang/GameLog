@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
@@ -77,6 +78,7 @@ export function AccountSettings({
   const [profileError, setProfileError] = useState("");
   const [profileNotice, setProfileNotice] = useState("");
   const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [accountDeleted, setAccountDeleted] = useState(false);
 
@@ -140,20 +142,52 @@ export function AccountSettings({
     }
   };
 
-  const handlePasswordSave = (event: React.FormEvent) => {
+  const handlePasswordSave = async (event: React.FormEvent) => {
     event.preventDefault();
     setPasswordError("");
+    setPasswordSaved(false);
+    if (!passwords.current) {
+      setPasswordError("現在のパスワードを入力してください");
+      return;
+    }
     if (passwords.newPass !== passwords.confirm) {
-      setPasswordError("新しいパスワードが一致しません。");
+      setPasswordError("新しいパスワードが一致しません");
       return;
     }
     if (passwords.newPass.length < 8) {
-      setPasswordError("パスワードは8文字以上で設定してください。");
+      setPasswordError("パスワードは8文字以上で入力してください");
       return;
     }
-    setPasswordSaved(true);
-    setPasswords({ current: "", newPass: "", confirm: "" });
-    window.setTimeout(() => setPasswordSaved(false), 2500);
+    if (passwords.current === passwords.newPass) {
+      setPasswordError("現在のパスワードと異なるパスワードを入力してください");
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      const response = await fetch("/api/auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: passwords.current,
+          password: passwords.newPass,
+          confirm: passwords.confirm,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        setPasswordError(payload?.error ?? "パスワードの変更に失敗しました");
+        return;
+      }
+      setPasswords({ current: "", newPass: "", confirm: "" });
+      setPasswordSaved(true);
+      window.setTimeout(() => setPasswordSaved(false), 2500);
+    } catch {
+      setPasswordError("パスワードの変更に失敗しました");
+    } finally {
+      setPasswordSaving(false);
+    }
   };
 
   const closeDeleteDialog = () => {
@@ -407,12 +441,20 @@ export function AccountSettings({
                     <p className="text-xs font-medium text-danger">{passwordError}</p>
                   ) : null}
 
+                  <Link
+                    href="/login?reset=1"
+                    className="block text-xs font-medium text-muted transition-colors duration-150 hover:text-primary"
+                  >
+                    パスワードを忘れた場合
+                  </Link>
+
                   <div className="flex items-center gap-3 pt-1">
                     <button
                       type="submit"
-                      className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-fg transition-all duration-150 hover:bg-primary-hover"
+                      disabled={passwordSaving}
+                      className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-fg transition-all duration-150 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      パスワードを変更
+                      {passwordSaving ? "変更中..." : "パスワードを変更"}
                     </button>
                     {passwordSaved ? (
                       <span className="text-xs font-medium text-success">

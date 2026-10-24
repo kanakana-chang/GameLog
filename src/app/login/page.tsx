@@ -9,15 +9,18 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reset?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, reset } = await searchParams;
   return (
     <LoginForm
+      initialView={reset === "1" ? "reset" : "login"}
       initialError={
         error === "oauth"
           ? "ソーシャルログインに失敗しました。時間をおいて再度お試しください。"
-          : ""
+          : error === "reset"
+            ? "リセットリンクが無効か期限切れです。もう一度リセットを申請してください。"
+            : ""
       }
     />
   );

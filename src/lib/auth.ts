@@ -1,4 +1,5 @@
 import type { User } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 import { Prisma } from "@/generated/prisma/client";
 import type { AuthUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/prisma";
@@ -113,6 +114,129 @@ export function parseResetInput(body: unknown) {
     throw new Error("有効なメールアドレスを入力してください");
   }
   return { email };
+}
+
+export type PasswordChangeInput = {
+  currentPassword: string;
+  password: string;
+  confirm: string;
+};
+
+export type PasswordResetCompleteInput = {
+  password: string;
+  confirm: string;
+};
+
+export const PASSWORD_RECOVERY_COOKIE = "gl_pw_recovery";
+const PASSWORD_RECOVERY_MAX_AGE = 15 * 60;
+
+function assertNewPassword(password: string, confirm: string) {
+  if (password.length < 8 || password.length > 72) {
+    throw new Error("パスワードは8文字以上で入力してください");
+  }
+  if (password !== confirm) {
+    throw new Error("新しいパスワードが一致しません");
+  }
+}
+
+export function parsePasswordChangeInput(body: unknown): PasswordChangeInput {
+  const record = asRecord(body);
+  const currentPassword =
+    typeof record.currentPassword === "string" ? record.currentPassword : "";
+  const password = typeof record.password === "string" ? record.password : "";
+  const confirm = typeof record.confirm === "string" ? record.confirm : "";
+  if (!currentPassword) {
+    throw new Error("現在のパスワードを入力してください");
+  }
+  assertNewPassword(password, confirm);
+  if (currentPassword === password) {
+    throw new Error("現在のパスワードと異なるパスワードを入力してください");
+  }
+  return { currentPassword, password, confirm };
+}
+
+export function parsePasswordResetCompleteInput(
+  body: unknown,
+): PasswordResetCompleteInput {
+  const record = asRecord(body);
+  const password = typeof record.password === "string" ? record.password : "";
+  const confirm = typeof record.confirm === "string" ? record.confirm : "";
+  assertNewPassword(password, confirm);
+  return { password, confirm };
+}
+
+function recoveryCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: PASSWORD_RECOVERY_MAX_AGE,
+  };
+}
+
+export async function markPasswordRecovery() {
+  const cookieStore = await cookies();
+  cookieStore.set(PASSWORD_RECOVERY_COOKIE, "1", recoveryCookieOptions());
+}
+
+export async function hasPasswordRecovery() {
+  const cookieStore = await cookies();
+  return cookieStore.get(PASSWORD_RECOVERY_COOKIE)?.value === "1";
+}
+
+async function consumePasswordRecovery() {
+  const allowed = await hasPasswordRecovery();
+  if (allowed) {
+    const cookieStore = await cookies();
+    cookieStore.set(PASSWORD_RECOVERY_COOKIE, "", {
+      ...recoveryCookieOptions(),
+      maxAge: 0,
+    });
+  }
+  return allowed;
+}
+
+export async function changePassword(input: PasswordChangeInput) {
+  await requireSessionUser();
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const email = data.user?.email;
+  if (!email) {
+    throw new Error("ログインしてください");
+  }
+
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email,
+    password: input.currentPassword,
+  });
+  if (verifyError) {
+    throw new Error("現在のパスワードが正しくありません");
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: input.password,
+  });
+  if (error) {
+    mapAuthError(error.message, "パスワードの変更に失敗しました");
+  }
+}
+
+export async function completePasswordReset(input: PasswordResetCompleteInput) {
+  await requireSessionUser();
+  const allowed = await consumePasswordRecovery();
+  if (!allowed) {
+    throw new Error("リセットリンクの有効期限が切れています");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({
+    password: input.password,
+  });
+  if (error) {
+    await markPasswordRecovery();
+    mapAuthError(error.message, "パスワードの変更に失敗しました");
+  }
 }
 
 function formText(form: FormData, key: string) {
@@ -344,6 +468,13 @@ function mapAuthError(message: string, fallback: string) {
     lower.includes("invalid email or password")
   ) {
     throw new Error("メールアドレスまたはパスワードが正しくありません");
+  }
+  if (
+    lower.includes("should be different") ||
+    lower.includes("same password") ||
+    lower.includes("different from the old")
+  ) {
+    throw new Error("現在のパスワードと異なるパスワードを入力してください");
   }
   if (lower.includes("invalid") && lower.includes("email")) {
     throw new Error("有効なメールアドレスを入力してください");

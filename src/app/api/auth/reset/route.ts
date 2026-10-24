@@ -8,7 +8,10 @@ export async function POST(request: Request) {
   try {
     const { email } = parseResetInput(await request.json());
     const origin = new URL(request.url).origin;
-    await requestPasswordReset(email, `${origin}/auth/callback`);
+    await requestPasswordReset(
+      email,
+      `${origin}/auth/callback?next=${encodeURIComponent("/reset-password")}`,
+    );
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Failed to request password reset", error);

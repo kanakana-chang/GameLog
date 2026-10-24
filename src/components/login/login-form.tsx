@@ -10,10 +10,16 @@ type View = "login" | "reset";
 const fieldClassName =
   "w-full rounded-[10px] border-[1.5px] border-login-border bg-login-field px-3.5 py-2.5 font-body text-sm text-login-input outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-login-faint focus:border-login-violet focus:bg-white focus:shadow-login-focus";
 
-export function LoginForm({ initialError = "" }: { initialError?: string }) {
+export function LoginForm({
+  initialError = "",
+  initialView = "login",
+}: {
+  initialError?: string;
+  initialView?: View;
+}) {
   const router = useRouter();
   const { login } = useAuth();
-  const [view, setView] = useState<View>("login");
+  const [view, setView] = useState<View>(initialView);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
