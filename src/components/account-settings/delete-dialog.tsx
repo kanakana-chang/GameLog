@@ -3,6 +3,8 @@ type DeleteDialogProps = {
   onConfirmTextChange: (value: string) => void;
   onCancel: () => void;
   onConfirm: () => void;
+  deleting?: boolean;
+  error?: string;
 };
 
 export function DeleteDialog({
@@ -10,8 +12,10 @@ export function DeleteDialog({
   onConfirmTextChange,
   onCancel,
   onConfirm,
+  deleting = false,
+  error = "",
 }: DeleteDialogProps) {
-  const canDelete = confirmText === "退会する";
+  const canDelete = confirmText === "退会する" && !deleting;
 
   return (
     <div
@@ -50,15 +54,21 @@ export function DeleteDialog({
             value={confirmText}
             onChange={(event) => onConfirmTextChange(event.target.value)}
             placeholder="退会する"
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 font-body text-sm text-heading outline-none transition-all duration-150 placeholder:text-muted/70 focus:border-danger focus:shadow-focus-danger"
+            disabled={deleting}
+            className="w-full rounded-md border border-border bg-surface px-3 py-2 font-body text-sm text-heading outline-none transition-all duration-150 placeholder:text-muted/70 focus:border-danger focus:shadow-focus-danger disabled:opacity-60"
           />
         </div>
+
+        {error ? (
+          <p className="mb-4 text-xs font-medium text-danger">{error}</p>
+        ) : null}
 
         <div className="flex gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-lg border border-border bg-transparent px-4 py-2.5 text-sm font-medium text-label transition-colors duration-150 hover:bg-bg"
+            disabled={deleting}
+            className="flex-1 rounded-lg border border-border bg-transparent px-4 py-2.5 text-sm font-medium text-label transition-colors duration-150 hover:bg-bg disabled:cursor-not-allowed disabled:opacity-60"
           >
             キャンセル
           </button>
@@ -68,7 +78,7 @@ export function DeleteDialog({
             disabled={!canDelete}
             className="flex-1 rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white transition-all duration-150 enabled:hover:bg-danger-hover disabled:cursor-not-allowed disabled:bg-danger-disabled"
           >
-            退会する
+            {deleting ? "削除中..." : "退会する"}
           </button>
         </div>
       </div>

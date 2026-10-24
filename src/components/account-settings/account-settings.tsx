@@ -33,9 +33,12 @@ export function AccountSettings({
 }) {
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const router = useRouter();
-  const { user, ready, isLoggedIn, login } = useAuth();
+  const { user, ready, isLoggedIn, login, logout } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteSaving, setDeleteSaving] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [accountDeleted, setAccountDeleted] = useState(false);
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
@@ -52,8 +55,8 @@ export function AccountSettings({
   });
 
   useEffect(() => {
-    if (ready && !isLoggedIn) router.replace("/login");
-  }, [ready, isLoggedIn, router]);
+    if (ready && !isLoggedIn && !accountDeleted) router.replace("/login");
+  }, [ready, isLoggedIn, accountDeleted, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -80,7 +83,6 @@ export function AccountSettings({
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState("");
-  const [accountDeleted, setAccountDeleted] = useState(false);
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -191,14 +193,38 @@ export function AccountSettings({
   };
 
   const closeDeleteDialog = () => {
+    if (deleteSaving) return;
     setShowDeleteDialog(false);
     setDeleteConfirmText("");
+    setDeleteError("");
   };
 
-  const handleDeleteAccount = () => {
-    if (deleteConfirmText === "退会する") {
-      closeDeleteDialog();
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "退会する") return;
+    setDeleteError("");
+    setDeleteSaving(true);
+    try {
+      const response = await fetch("/api/auth/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: deleteConfirmText }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        setDeleteError(payload?.error ?? "アカウントの削除に失敗しました");
+        return;
+      }
       setAccountDeleted(true);
+      setShowDeleteDialog(false);
+      await logout();
+      router.replace("/login?deleted=1");
+      router.refresh();
+    } catch {
+      setDeleteError("アカウントの削除に失敗しました");
+    } finally {
+      setDeleteSaving(false);
     }
   };
 
@@ -508,6 +534,8 @@ export function AccountSettings({
           onConfirmTextChange={setDeleteConfirmText}
           onCancel={closeDeleteDialog}
           onConfirm={handleDeleteAccount}
+          deleting={deleteSaving}
+          error={deleteError}
         />
       ) : null}
     </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 
 type View = "login" | "reset";
@@ -13,9 +13,11 @@ const fieldClassName =
 export function LoginForm({
   initialError = "",
   initialView = "login",
+  initialNotice = "",
 }: {
   initialError?: string;
   initialView?: View;
+  initialNotice?: string;
 }) {
   const router = useRouter();
   const { login } = useAuth();
@@ -27,6 +29,47 @@ export function LoginForm({
   const [resetSent, setResetSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(initialError);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [resendError, setResendError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => {
+      setCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
+
+  const needsConfirmation = error.includes("確認が完了");
+
+  const handleResend = async () => {
+    if (resending || cooldown > 0) return;
+    setResendError("");
+    setResent(false);
+    setResending(true);
+    try {
+      const response = await fetch("/api/auth/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        setResendError(payload?.error || "確認メールの再送信に失敗しました");
+        return;
+      }
+      setResent(true);
+      setCooldown(60);
+    } catch {
+      setResendError("確認メールの再送信に失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -150,6 +193,11 @@ export function LoginForm({
               <p className="mb-7 font-body text-sm text-login-muted">
                 アカウントにサインインしてください
               </p>
+              {initialNotice ? (
+                <p className="mb-6 rounded-xl border border-[rgba(124,58,237,0.18)] bg-[rgba(124,58,237,0.06)] px-[18px] py-3 font-body text-sm leading-relaxed text-login-label">
+                  {initialNotice}
+                </p>
+              ) : null}
 
               <div className="mb-6 flex flex-col gap-3">
                 <SnsButton
@@ -237,6 +285,30 @@ export function LoginForm({
                   <p className="rounded-[10px] border border-[rgba(220,38,38,0.18)] bg-[rgba(220,38,38,0.06)] px-3 py-2 font-body text-xs text-[#b91c1c]">
                     {error}
                   </p>
+                ) : null}
+                {needsConfirmation ? (
+                  <div className="flex flex-col gap-2">
+                    {resendError ? (
+                      <p className="font-body text-xs text-[#b91c1c]">{resendError}</p>
+                    ) : null}
+                    {resent ? (
+                      <p className="font-body text-xs text-login-violet">
+                        確認メールを再送信しました。
+                      </p>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resending || cooldown > 0 || !email}
+                      className="w-full rounded-[10px] border border-login-border bg-white py-2.5 font-login text-sm font-semibold text-login-violet transition-all duration-150 hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {resending
+                        ? "送信中…"
+                        : cooldown > 0
+                          ? `再送信まで ${cooldown}秒`
+                          : "確認メールを再送信"}
+                    </button>
+                  </div>
                 ) : null}
 
                 <button

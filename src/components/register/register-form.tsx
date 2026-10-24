@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 
 type Step = "register" | "verify";
@@ -43,18 +43,65 @@ function fieldFromMessage(message: string): keyof FieldErrors | null {
   return null;
 }
 
-export function RegisterForm({ initialError = "" }: { initialError?: string }) {
+export function RegisterForm({
+  initialError = "",
+  initialStep = "register",
+  initialEmail = "",
+}: {
+  initialError?: string;
+  initialStep?: Step;
+  initialEmail?: string;
+}) {
   const router = useRouter();
   const { login } = useAuth();
-  const [step, setStep] = useState<Step>("register");
+  const [step, setStep] = useState<Step>(initialStep);
   const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState(initialError);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [resendError, setResendError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => {
+      setCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
+
+  const handleResend = async () => {
+    if (resending || cooldown > 0) return;
+    setResendError("");
+    setResent(false);
+    setResending(true);
+    try {
+      const response = await fetch("/api/auth/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        setResendError(payload?.error || "確認メールの再送信に失敗しました");
+        return;
+      }
+      setResent(true);
+      setCooldown(60);
+    } catch {
+      setResendError("確認メールの再送信に失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setResending(false);
+    }
+  };
 
   const strength =
     password.length === 0
@@ -115,6 +162,9 @@ export function RegisterForm({ initialError = "" }: { initialError?: string }) {
         return;
       }
       setStep("verify");
+      router.replace(
+        `/register?verify=1&email=${encodeURIComponent(email)}`,
+      );
     } catch {
       setFormError("アカウントの作成に失敗しました。時間をおいて再度お試しください。");
     } finally {
@@ -156,9 +206,32 @@ export function RegisterForm({ initialError = "" }: { initialError?: string }) {
                 </div>
               ))}
             </div>
+            {resendError ? (
+              <p className="mb-3 text-xs text-register-error">{resendError}</p>
+            ) : null}
+            {resent ? (
+              <p className="mb-3 text-xs font-medium text-register-primary">
+                確認メールを再送信しました。
+              </p>
+            ) : null}
             <button
               type="button"
-              onClick={() => setStep("register")}
+              onClick={handleResend}
+              disabled={resending || cooldown > 0}
+              className="mb-4 w-full rounded-xl bg-gradient-to-br from-[#5b3ef5] to-[#7c3aed] py-3 font-display text-sm font-bold text-white shadow-register-btn transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+            >
+              {resending
+                ? "送信中..."
+                : cooldown > 0
+                  ? `再送信まで ${cooldown}秒`
+                  : "確認メールを再送信"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("register");
+                router.replace("/register");
+              }}
               className="text-sm font-medium text-register-primary transition-opacity hover:opacity-70"
             >
               ← 登録画面に戻る

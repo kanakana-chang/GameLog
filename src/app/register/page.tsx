@@ -9,11 +9,13 @@ export const metadata: Metadata = {
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; verify?: string; email?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, verify, email } = await searchParams;
   return (
     <RegisterForm
+      initialStep={verify === "1" ? "verify" : "register"}
+      initialEmail={typeof email === "string" ? email : ""}
       initialError={
         error === "oauth"
           ? "ソーシャルログインに失敗しました。時間をおいて再度お試しください。"

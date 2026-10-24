@@ -9,7 +9,8 @@ export function jsonError(error: unknown, fallback: string) {
       : message.includes("上限")
         ? 429
         : message.includes("ログインしてください") ||
-            message.includes("確認が完了")
+            message.includes("確認が完了") ||
+            message.includes("削除されています")
           ? 401
           : message.includes("権限")
             ? 403

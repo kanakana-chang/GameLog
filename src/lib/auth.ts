@@ -359,11 +359,14 @@ async function ensureProfile(
 ) {
   const existing = await prisma.profiles.findUnique({ where: { id: userId } });
   if (existing) {
-    const data: { is_deleted?: boolean; avatar_url?: string } = {};
-    if (existing.is_deleted) data.is_deleted = false;
-    if (!existing.avatar_url && avatarUrl) data.avatar_url = avatarUrl;
-    if (Object.keys(data).length > 0) {
-      return prisma.profiles.update({ where: { id: userId }, data });
+    if (existing.is_deleted) {
+      throw new Error("このアカウントは削除されています");
+    }
+    if (!existing.avatar_url && avatarUrl) {
+      return prisma.profiles.update({
+        where: { id: userId },
+        data: { avatar_url: avatarUrl },
+      });
     }
     return existing;
   }
@@ -622,7 +625,26 @@ export async function getSessionUser(): Promise<AuthUser | null> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
-  return toAuthUser(data.user);
+  const profile = await prisma.profiles.findUnique({
+    where: { id: data.user.id },
+    select: { is_deleted: true },
+  });
+  if (profile?.is_deleted) {
+    await supabase.auth.signOut();
+    return null;
+  }
+  try {
+    return await toAuthUser(data.user);
+  } catch (sessionError) {
+    if (
+      sessionError instanceof Error &&
+      sessionError.message.includes("削除されています")
+    ) {
+      await supabase.auth.signOut();
+      return null;
+    }
+    throw sessionError;
+  }
 }
 
 export async function requireSessionUser(): Promise<AuthUser> {
@@ -647,7 +669,139 @@ export async function loginUser(input: LoginInput): Promise<AuthUser> {
   });
   if (error) mapAuthError(error.message, "ログインに失敗しました");
   if (!data.user) throw new Error("ログインに失敗しました");
+  const profile = await prisma.profiles.findUnique({
+    where: { id: data.user.id },
+    select: { is_deleted: true },
+  });
+  if (profile?.is_deleted) {
+    await supabase.auth.signOut();
+    throw new Error("このアカウントは削除されています");
+  }
   return toAuthUser(data.user);
+}
+
+export function parseAccountDeleteInput(body: unknown) {
+  const record = asRecord(body);
+  const confirm = typeof record.confirm === "string" ? record.confirm.trim() : "";
+  if (confirm !== "退会する") {
+    throw new Error("確認のため「退会する」と入力してください");
+  }
+  return { confirm };
+}
+
+async function purgeUserContent(userId: string) {
+  const reviews = await prisma.reviews.findMany({
+    where: { user_id: userId },
+    select: { id: true },
+  });
+  const posts = await prisma.posts.findMany({
+    where: { user_id: userId },
+    select: { id: true, topic_id: true },
+  });
+  const reviewIds = reviews.map((row) => row.id);
+  const postIds = posts.map((row) => row.id);
+  const topicIds = [...new Set(posts.map((row) => row.topic_id))];
+
+  if (reviewIds.length > 0) {
+    await prisma.reports.deleteMany({
+      where: { target_type: "review", target_id: { in: reviewIds } },
+    });
+    await prisma.review_likes.deleteMany({
+      where: { review_id: { in: reviewIds } },
+    });
+  }
+  if (postIds.length > 0) {
+    await prisma.reports.deleteMany({
+      where: { target_type: "post", target_id: { in: postIds } },
+    });
+    await prisma.post_likes.deleteMany({
+      where: { post_id: { in: postIds } },
+    });
+  }
+
+  await prisma.reports.deleteMany({ where: { reporter_id: userId } });
+  await prisma.review_likes.deleteMany({ where: { user_id: userId } });
+  await prisma.post_likes.deleteMany({ where: { user_id: userId } });
+  await prisma.reviews.deleteMany({ where: { user_id: userId } });
+  await prisma.posts.deleteMany({ where: { user_id: userId } });
+
+  if (topicIds.length > 0) {
+    const emptyTopics = await prisma.topics.findMany({
+      where: { id: { in: topicIds }, posts: { none: {} } },
+      select: { id: true },
+    });
+    const emptyIds = emptyTopics.map((row) => row.id);
+    if (emptyIds.length > 0) {
+      await prisma.reports.deleteMany({
+        where: { target_type: "topic", target_id: { in: emptyIds } },
+      });
+      await prisma.topics.deleteMany({ where: { id: { in: emptyIds } } });
+    }
+  }
+
+  await prisma.user_game_statuses.deleteMany({ where: { user_id: userId } });
+}
+
+async function neutralizeAuthUser(userId: string) {
+  try {
+    await prisma.sessions.deleteMany({ where: { user_id: userId } });
+    await prisma.identities.deleteMany({ where: { user_id: userId } });
+    await prisma.users.delete({ where: { id: userId } });
+    return;
+  } catch (error) {
+    console.error("Failed to delete auth user", error);
+  }
+
+  const retiredEmail = `deleted.${userId.replaceAll("-", "")}@invalid.local`;
+  try {
+    await prisma.users.update({
+      where: { id: userId },
+      data: {
+        email: retiredEmail,
+        deleted_at: new Date(),
+        banned_until: new Date("2099-12-31T00:00:00.000Z"),
+      },
+    });
+  } catch (error) {
+    console.error("Failed to neutralize auth user", error);
+  }
+}
+
+export async function deleteAccount() {
+  const user = await requireSessionUser();
+  await purgeUserContent(user.id);
+
+  await prisma.profiles.update({
+    where: { id: user.id },
+    data: {
+      is_deleted: true,
+      display_name: "退会済みユーザー",
+      username: `d_${user.id.replaceAll("-", "").slice(0, 12)}`,
+      avatar_url: null,
+      about_text: null,
+    },
+  });
+
+  try {
+    const supabase = await createClient();
+    await supabase.storage.from("avatars").remove([
+      `${user.id}/avatar.jpg`,
+      `${user.id}/avatar.jpeg`,
+      `${user.id}/avatar.png`,
+      `${user.id}/avatar.gif`,
+      `${user.id}/avatar.webp`,
+    ]);
+  } catch (error) {
+    console.error("Failed to remove avatar", error);
+  }
+
+  await neutralizeAuthUser(user.id);
+
+  try {
+    await logoutUser();
+  } catch {
+    // 認証ユーザー削除後はセッション切れでも退会は完了
+  }
 }
 
 export async function logoutUser() {
@@ -741,5 +895,39 @@ export async function requestPasswordReset(email: string, redirectTo: string) {
       );
     }
     console.error("Supabase resetPassword failed", error.message);
+  }
+}
+
+export async function resendConfirmationEmail(
+  email: string,
+  redirectTo: string,
+) {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: redirectTo },
+  });
+  if (error) {
+    const lower = error.message.toLowerCase();
+    if (
+      lower.includes("already confirmed") ||
+      lower.includes("already registered") ||
+      lower.includes("already been confirmed")
+    ) {
+      throw new Error(
+        "このメールアドレスはすでに確認済みです。ログインしてください。",
+      );
+    }
+    if (
+      lower.includes("rate limit") ||
+      lower.includes("only request this after") ||
+      lower.includes("security purposes")
+    ) {
+      throw new Error(
+        "確認メールの送信上限に達しました。しばらくしてから再度お試しください。",
+      );
+    }
+    console.error("Supabase resend confirmation failed", error.message);
   }
 }

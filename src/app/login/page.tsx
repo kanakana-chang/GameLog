@@ -9,12 +9,15 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; reset?: string }>;
+  searchParams: Promise<{ error?: string; reset?: string; deleted?: string }>;
 }) {
-  const { error, reset } = await searchParams;
+  const { error, reset, deleted } = await searchParams;
   return (
     <LoginForm
       initialView={reset === "1" ? "reset" : "login"}
+      initialNotice={
+        deleted === "1" ? "アカウントを削除しました。" : ""
+      }
       initialError={
         error === "oauth"
           ? "ソーシャルログインに失敗しました。時間をおいて再度お試しください。"
