@@ -6,13 +6,32 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient() {
+/*function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set");
   }
 
   const pool = new Pool({ connectionString });
+  return new PrismaClient({
+    adapter: new PrismaPg(pool),
+  });
+}*/
+
+function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set");
+  }
+
+  const pool = new Pool({
+    connectionString,
+    max: 3,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
+  });
+
   return new PrismaClient({
     adapter: new PrismaPg(pool),
   });
