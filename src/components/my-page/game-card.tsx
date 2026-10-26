@@ -1,12 +1,16 @@
-import Image from "next/image";
+import Link from "next/link";
+import { CoverImage } from "@/components/cover-image";
 import { STATUS_COLORS, PLATFORM_COLORS, type Game } from "./data";
 import { IconStar } from "./icons";
 
 export function GameCard({ game }: { game: Game }) {
+  const platformClass =
+    PLATFORM_COLORS[game.platform] ?? "bg-slate-50 text-slate-600";
+
   return (
-    <div className="group cursor-pointer">
+    <Link href={game.href} className="group block">
       <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-line shadow-sm transition-shadow hover:shadow-md">
-        <Image
+        <CoverImage
           src={game.cover}
           alt={game.title}
           fill
@@ -47,11 +51,11 @@ export function GameCard({ game }: { game: Game }) {
       </div>
       <div className="mt-1.5 px-0.5">
         <span
-          className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${PLATFORM_COLORS[game.platform]}`}
+          className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${platformClass}`}
         >
           {game.platform}
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

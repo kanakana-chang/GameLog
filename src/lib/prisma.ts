@@ -43,7 +43,8 @@ if (
   (!("reviews" in globalForPrisma.prisma) ||
     !("topics" in globalForPrisma.prisma) ||
     !("reports" in globalForPrisma.prisma) ||
-    !("review_likes" in globalForPrisma.prisma))
+    !("review_likes" in globalForPrisma.prisma) ||
+    !("user_game_statuses" in globalForPrisma.prisma))
 ) {
   globalForPrisma.prisma = undefined;
 }

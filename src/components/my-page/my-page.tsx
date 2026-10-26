@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { UserAvatar } from "@/components/user-avatar";
-import { GAMES, REVIEWS, TABS, type GameStatus } from "./data";
+import { TABS, type Game, type GameStatus, type Review } from "./data";
 import { GameCard } from "./game-card";
 import {
   IconClock,
@@ -19,7 +19,15 @@ import { ReviewCard } from "./review-card";
 const BANNER_PATTERN =
   "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")";
 
-export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
+export function MyPage({
+  games,
+  reviews,
+  isOwner = true,
+}: {
+  games: Game[];
+  reviews: Review[];
+  isOwner?: boolean;
+}) {
   const router = useRouter();
   const { user, ready, isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState<GameStatus>("全て");
@@ -31,20 +39,20 @@ export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
     if (ready && !isLoggedIn) router.replace("/login");
   }, [ready, isLoggedIn, router]);
 
-  const totalHours = GAMES.reduce((sum, game) => sum + game.hours, 0);
-  const clearedCount = GAMES.filter((game) => game.status === "クリア済み").length;
-  const playingCount = GAMES.filter((game) => game.status === "プレイ中").length;
+  const totalHours = games.reduce((sum, game) => sum + game.hours, 0);
+  const clearedCount = games.filter((game) => game.status === "クリア済み").length;
+  const playingCount = games.filter((game) => game.status === "プレイ中").length;
   const filteredGames =
     activeTab === "全て"
-      ? GAMES
-      : GAMES.filter((game) => game.status === activeTab);
+      ? games
+      : games.filter((game) => game.status === activeTab);
 
   const tabCounts: Record<GameStatus, number> = {
-    全て: GAMES.length,
-    プレイ中: GAMES.filter((game) => game.status === "プレイ中").length,
-    クリア済み: GAMES.filter((game) => game.status === "クリア済み").length,
-    積みゲー: GAMES.filter((game) => game.status === "積みゲー").length,
-    やめた: GAMES.filter((game) => game.status === "やめた").length,
+    全て: games.length,
+    プレイ中: games.filter((game) => game.status === "プレイ中").length,
+    クリア済み: games.filter((game) => game.status === "クリア済み").length,
+    積みゲー: games.filter((game) => game.status === "積みゲー").length,
+    やめた: games.filter((game) => game.status === "やめた").length,
   };
 
   if (!ready || !user) return null;
@@ -159,7 +167,7 @@ export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
                 : "border border-line bg-white text-subtle hover:border-brand/50"
             }`}
           >
-            ゲーム棚 ({GAMES.length})
+            ゲーム棚 ({games.length})
           </button>
           <button
             type="button"
@@ -170,7 +178,7 @@ export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
                 : "border border-line bg-white text-subtle hover:border-brand/50"
             }`}
           >
-            レビュー ({REVIEWS.length})
+            レビュー ({reviews.length})
           </button>
         </div>
 
@@ -198,17 +206,31 @@ export function MyPage({ isOwner = true }: { isOwner?: boolean }) {
               ))}
             </div>
 
-            <div className="mt-4 grid grid-cols-3 gap-3">
-              {filteredGames.map((game) => (
-                <GameCard key={game.id} game={game} />
-              ))}
-            </div>
+            {filteredGames.length > 0 ? (
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {filteredGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-dashed border-line bg-white px-4 py-12 text-center text-sm text-subtle">
+                {games.length === 0
+                  ? "まだゲーム棚に登録がありません。ゲーム詳細のステータスかレビューから追加できます。"
+                  : "このステータスのゲームはありません。"}
+              </div>
+            )}
           </div>
         ) : (
           <div className="mt-4 space-y-3">
-            {REVIEWS.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
+            {reviews.length > 0 ? (
+              reviews.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-line bg-white px-4 py-12 text-center text-sm text-subtle">
+                まだレビューがありません。ゲーム詳細からレビューを書くとここに表示されます。
+              </div>
+            )}
           </div>
         )}
       </div>

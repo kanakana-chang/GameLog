@@ -1,6 +1,7 @@
 import type { GameDetailData, Kink, Review } from "@/components/game-detail/data";
 import { isUuid } from "@/lib/games";
 import { getLikedReviewIds } from "@/lib/likes";
+import { upsertUserGameStatus, storedStatusFromReview } from "@/lib/game-status";
 import { generatePostTitle } from "@/lib/post-title";
 import { prisma } from "@/lib/prisma";
 import { getHiddenTargetSets } from "@/lib/reports";
@@ -11,7 +12,7 @@ const AVATAR = {
   avC: "#4F46E5",
 } as const;
 
-const STATUS_TAGS: Record<string, string> = {
+export const STATUS_TAGS: Record<string, string> = {
   playing: "プレイ中",
   cleared: "クリア済",
   dropped: "積みゲー",
@@ -152,7 +153,7 @@ function encodeMeta(input: ReviewInput, title?: string) {
   });
 }
 
-function decodeMeta(comment: string | null): {
+export function decodeMeta(comment: string | null): {
   text: string;
   playtimeHours: number;
   status: string;
@@ -363,6 +364,13 @@ export async function createGameReview(
       profiles: true,
       _count: { select: { review_likes: true } },
     },
+  });
+
+  await upsertUserGameStatus({
+    userId,
+    gameId,
+    status: storedStatusFromReview(input.status),
+    playTimeHours: input.playtimeHours,
   });
 
   return toDetailReview(created, input.platform, false);

@@ -1,12 +1,16 @@
-import Image from "next/image";
+import Link from "next/link";
+import { CoverImage } from "@/components/cover-image";
 import type { Review } from "./data";
 import { IconChevronRight, IconHeart, IconMessage, IconStar } from "./icons";
 
 export function ReviewCard({ review }: { review: Review }) {
   return (
-    <div className="cursor-pointer rounded-2xl border border-line bg-white p-4 transition-colors hover:border-brand/30">
+    <Link
+      href={review.href}
+      className="block cursor-pointer rounded-2xl border border-line bg-white p-4 transition-colors hover:border-brand/30"
+    >
       <div className="mb-3 flex gap-3">
-        <Image
+        <CoverImage
           src={review.cover}
           alt={review.gameTitle}
           width={48}
@@ -52,22 +56,18 @@ export function ReviewCard({ review }: { review: Review }) {
           ))}
         </div>
         <div className="flex items-center gap-3 text-subtle">
-          <button
-            type="button"
-            className="flex items-center gap-1 text-xs transition-colors hover:text-heart"
-          >
+          <span className="flex items-center gap-1 text-xs">
             <IconHeart size={13} />
             <span>{review.likes}</span>
-          </button>
-          <button
-            type="button"
-            className="flex items-center gap-1 text-xs transition-colors hover:text-brand"
-          >
-            <IconMessage size={13} />
-            <span>{review.comments}</span>
-          </button>
+          </span>
+          {review.comments > 0 ? (
+            <span className="flex items-center gap-1 text-xs">
+              <IconMessage size={13} />
+              <span>{review.comments}</span>
+            </span>
+          ) : null}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

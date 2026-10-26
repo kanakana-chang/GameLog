@@ -812,7 +812,8 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
   const persistBoard = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     String(detail.id),
   );
-  const [status, setStatus] = useState<string | null>("playing");
+  const [status, setStatus] = useState<string | null>(detail.userStatus ?? null);
+  const [statusBusy, setStatusBusy] = useState(false);
   const [tab, setTab] = useState<TabKey>("reviews");
   const [sort, setSort] = useState<SortKey>("helpful");
   const [f2pOnly, setF2pOnly] = useState(false);
@@ -828,6 +829,43 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
   useEffect(() => {
     setReviews(detail.reviews);
   }, [detail.reviews]);
+
+  useEffect(() => {
+    setStatus(detail.userStatus ?? null);
+  }, [detail.userStatus]);
+
+  async function handlePlayStatus(next: string | null) {
+    if (statusBusy) return;
+    if (persistBoard && !isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+    const previous = status;
+    setStatus(next);
+    if (!persistBoard) return;
+
+    setStatusBusy(true);
+    try {
+      const response = await fetch(`/api/games/${detail.id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: next }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { status?: string | null; error?: string }
+        | null;
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "ステータスの更新に失敗しました");
+      }
+    } catch (error) {
+      setStatus(previous);
+      setToast(
+        error instanceof Error ? error.message : "ステータスの更新に失敗しました",
+      );
+    } finally {
+      setStatusBusy(false);
+    }
+  }
 
   async function handleReviewLike(review: Review) {
     if (likingId != null) return;
@@ -985,7 +1023,10 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                   <button
                     key={s.key}
                     type="button"
-                    onClick={() => setStatus(on ? null : s.key)}
+                    disabled={statusBusy}
+                    onClick={() => {
+                      void handlePlayStatus(on ? null : s.key);
+                    }}
                     className="flex items-center gap-[5px] rounded-[10px] px-4 py-2 font-display text-[13px] font-bold"
                     style={{
                       border: `2px solid ${on ? s.color : "#e4e6f0"}`,

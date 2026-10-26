@@ -70,6 +70,10 @@ function mapPlatform(name: string, slug: string): Platform | string {
   return name;
 }
 
+export function gameCoverUrl(url: string | null | undefined) {
+  return coverImage(url ?? "");
+}
+
 function coverImage(url: string) {
   const value = url.trim();
   if (!value) return "/games/gaming-alt.jpg";

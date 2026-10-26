@@ -12,6 +12,7 @@ import { ensureGameDetails } from "@/lib/game-details";
 import { getSearchGameById } from "@/lib/games";
 import { getSessionUser } from "@/lib/auth";
 import { attachGameTopics, getGameTopics } from "@/lib/board";
+import { getUserGameStatus } from "@/lib/game-status";
 import { attachGameReviews, getGameReviews } from "@/lib/reviews";
 
 type GameDetailPageProps = {
@@ -47,10 +48,11 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
   if (!game) notFound();
 
   const user = await getSessionUser();
-  const [assembled, reviews, topics] = await Promise.all([
+  const [assembled, reviews, topics, userStatus] = await Promise.all([
     ensureGameDetails(game),
     getGameReviews(id, user?.id),
     getGameTopics(id),
+    user ? getUserGameStatus(user.id, id) : Promise.resolve(null),
   ]);
   const detail = attachGameTopics(
     attachGameReviews(
@@ -62,5 +64,5 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
     ),
     topics,
   );
-  return <GameDetail detail={detail} />;
+  return <GameDetail detail={{ ...detail, userStatus }} />;
 }

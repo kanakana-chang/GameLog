@@ -120,6 +120,7 @@ export type GameDetailData = {
     achievements: Achievement[];
   };
   scoreDist: { label: string; count: number }[];
+  userStatus?: string | null;
 };
 
 const C = {
