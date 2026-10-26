@@ -644,7 +644,7 @@ function NewPostModal({
   const [selTags, setSelTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const valid = title.trim().length > 0 && body.trim().length > 0;
+  const valid = body.trim().length > 0;
 
   function toggleTag(t: string) {
     setSelTags((prev) =>
@@ -704,13 +704,14 @@ function NewPostModal({
         </div>
         <div>
           <label className="mb-1.5 block text-xs text-detail-muted">
-            タイトル <span className="text-detail-red">*</span>
+            タイトル
+            <span className="ml-1 text-detail-dim">任意・空欄ならAIが生成</span>
           </label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={60}
-            placeholder="例：攻略法や感想など、話題のタイトルを入力"
+            placeholder="空欄なら本文からAIが太字タイトルを生成します"
             className="w-full rounded-lg border border-detail-border bg-[#fafbff] px-3 py-2.5 text-[13px] text-detail-text outline-none"
           />
           <div className="mt-[3px] text-right font-mono text-[10px] text-detail-dim">
@@ -1212,6 +1213,25 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
               return;
             }
             if (!persistBoard) {
+              let topicTitle = input.title.trim();
+              if (!topicTitle) {
+                const generated = await fetch("/api/titles", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    kind: "topic",
+                    body: input.body,
+                    gameTitle: detail.title,
+                    extra: input.tags.join(" / "),
+                  }),
+                });
+                const payload = (await generated.json().catch(() => null)) as {
+                  title?: string;
+                } | null;
+                topicTitle =
+                  payload?.title?.trim() ||
+                  input.body.replace(/\s+/g, " ").trim().slice(0, 40);
+              }
               setPosts((prev) => [
                 {
                   id: Date.now(),
@@ -1223,7 +1243,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                   avBg: "#fff3ee",
                   avC: "#ff6b35",
                   date: new Date().toISOString().slice(0, 10),
-                  title: input.title,
+                  title: topicTitle,
                   body: input.body,
                   replies: 0,
                   views: 1,

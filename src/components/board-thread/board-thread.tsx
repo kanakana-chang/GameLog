@@ -356,6 +356,12 @@ function ReplyCard({
             />
           </div>
 
+          {reply.title ? (
+            <div className="mb-1 font-display text-sm leading-snug font-bold text-[#1a1a2e]">
+              {reply.title}
+            </div>
+          ) : null}
+
           {reply.isSpoiler ? (
             <SpoilerBlock image={reply.image}>{reply.content}</SpoilerBlock>
           ) : (
@@ -508,6 +514,22 @@ export function BoardThread({
     }
 
     if (!persist) {
+      let replyTitle = "";
+      if (isLoggedIn) {
+        const generated = await fetch("/api/titles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: "reply",
+            body: text,
+            gameTitle,
+          }),
+        });
+        const payload = (await generated.json().catch(() => null)) as {
+          title?: string;
+        } | null;
+        replyTitle = payload?.title?.trim() ?? "";
+      }
       const now = new Date();
       const ts = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       setReplies((prev) => [
@@ -521,6 +543,7 @@ export function BoardThread({
           avatar: user?.displayName.slice(0, 1).toUpperCase() || CURRENT_USER.avatar,
           avatarSrc: user?.avatarSrc,
           color: CURRENT_USER.color,
+          title: replyTitle,
           content: text,
           isSpoiler,
           likes: 0,

@@ -2,6 +2,7 @@ import type { GameDetailData, Post } from "@/components/game-detail/data";
 import type { ThreadReply } from "@/components/board-thread/data";
 import { isUuid } from "@/lib/games";
 import { getLikedPostIds } from "@/lib/likes";
+import { generatePostTitle } from "@/lib/post-title";
 import { prisma } from "@/lib/prisma";
 import { getHiddenTargetSets } from "@/lib/reports";
 
@@ -45,23 +46,33 @@ function imageUrlForStore(url: string) {
   return null;
 }
 
-function decodePostMeta(content: string): { text: string; tags: string[] } {
+function decodePostMeta(content: string): {
+  text: string;
+  tags: string[];
+  title: string;
+} {
   const match = content.match(/^<!--gl:(.*?)-->\n?([\s\S]*)$/);
-  if (!match) return { text: content, tags: [] };
+  if (!match) return { text: content, tags: [], title: "" };
   try {
-    const meta = JSON.parse(match[1]) as { tags?: unknown };
+    const meta = JSON.parse(match[1]) as { tags?: unknown; title?: unknown };
     const tags = Array.isArray(meta.tags)
       ? meta.tags.filter((item): item is string => typeof item === "string")
       : [];
-    return { text: match[2] ?? "", tags };
+    const title = typeof meta.title === "string" ? meta.title.trim() : "";
+    return { text: match[2] ?? "", tags, title };
   } catch {
-    return { text: content, tags: [] };
+    return { text: content, tags: [], title: "" };
   }
 }
 
 function encodeFirstPost(body: string, tags: string[]) {
   if (!tags.length) return body;
   return `<!--gl:${JSON.stringify({ tags })}-->\n${body}`;
+}
+
+function encodeReply(content: string, title: string) {
+  if (!title) return content;
+  return `<!--gl:${JSON.stringify({ title })}-->\n${content}`;
 }
 
 function publicAvatarSrc(url: string | null | undefined) {
@@ -111,7 +122,6 @@ export function parseTopicInput(body: unknown): TopicInput {
         .slice(0, 3)
     : [];
 
-  if (!title) throw new Error("タイトルを入力してください");
   if (title.length > 100) throw new Error("タイトルは100文字以内で入力してください");
   if (!text) throw new Error("本文を入力してください");
   if (text.length > 4000) throw new Error("本文は4000文字以内で入力してください");
@@ -154,7 +164,9 @@ type TopicWithPosts = Awaited<
 
 function toListPost(topic: TopicWithPosts): Post {
   const first = topic.posts[0];
-  const meta = first ? decodePostMeta(first.content) : { text: "", tags: [] };
+  const meta = first
+    ? decodePostMeta(first.content)
+    : { text: "", tags: [], title: "" };
   const author = authorFromProfile(first?.profiles ?? null);
   const tags = meta.tags.length ? meta.tags : [topic.category].filter(Boolean);
 
@@ -181,7 +193,7 @@ function toThreadReply(
   index: number,
   likedByMe = false,
 ): ThreadReply {
-  const meta = index === 0 ? decodePostMeta(post.content) : { text: post.content, tags: [] };
+  const meta = decodePostMeta(post.content);
   const author = authorFromProfile(post.profiles);
 
   return {
@@ -193,6 +205,7 @@ function toThreadReply(
     avatar: author.av,
     avatarSrc: author.avatarSrc,
     color: author.avC,
+    title: index === 0 ? "" : meta.title,
     content: meta.text,
     isSpoiler: post.is_spoiler,
     likes: post.likes_count,
@@ -287,10 +300,18 @@ export async function createGameTopic(
   if (!game) throw new Error("ゲームが見つかりません");
 
   const category = (input.tags[0] ?? FALLBACK_CATEGORY).slice(0, 20);
+  const title =
+    input.title ||
+    (await generatePostTitle({
+      kind: "topic",
+      gameTitle: game.title,
+      body: input.body,
+      extra: input.tags.join(" / "),
+    }));
   const created = await prisma.topics.create({
     data: {
       game_id: gameId,
-      title: input.title,
+      title,
       category,
       posts: {
         create: {
@@ -324,15 +345,24 @@ export async function createTopicReply(
 
   const topic = await prisma.topics.findFirst({
     where: { id: topicId, game_id: gameId },
-    include: { _count: { select: { posts: true } } },
+    include: {
+      games: { select: { title: true } },
+      _count: { select: { posts: true } },
+    },
   });
   if (!topic) throw new Error("スレッドが見つかりません");
+
+  const title = await generatePostTitle({
+    kind: "reply",
+    gameTitle: topic.games.title,
+    body: input.content,
+  });
 
   const created = await prisma.posts.create({
     data: {
       topic_id: topicId,
       user_id: userId,
-      content: input.content,
+      content: encodeReply(input.content, title),
       is_spoiler: input.spoiler,
       image_url: imageUrlForStore(input.imageUrl),
     },

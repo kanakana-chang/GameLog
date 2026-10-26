@@ -622,6 +622,9 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
 
         <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <Section title="感想・レビュー">
+            <p className="mb-2 text-xs text-slate-400">
+              投稿すると、本文からAIが太字のタイトルを自動生成します
+            </p>
             <textarea
               value={review}
               onChange={(e) => setReview(e.target.value)}

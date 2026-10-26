@@ -1,6 +1,7 @@
 import type { GameDetailData, Kink, Review } from "@/components/game-detail/data";
 import { isUuid } from "@/lib/games";
 import { getLikedReviewIds } from "@/lib/likes";
+import { generatePostTitle } from "@/lib/post-title";
 import { prisma } from "@/lib/prisma";
 import { getHiddenTargetSets } from "@/lib/reports";
 
@@ -141,12 +142,13 @@ function imageUrlForStore(url: string) {
   return null;
 }
 
-function encodeMeta(input: ReviewInput) {
+function encodeMeta(input: ReviewInput, title?: string) {
   return JSON.stringify({
     h: input.playtimeHours,
     s: input.status,
     p: input.platform,
     f: input.params.f2p,
+    ...(title ? { t: title } : {}),
   });
 }
 
@@ -156,13 +158,28 @@ function decodeMeta(comment: string | null): {
   status: string;
   platform: string;
   f2p: number | null;
+  title: string;
 } {
   if (!comment) {
-    return { text: "", playtimeHours: 0, status: "", platform: "", f2p: null };
+    return {
+      text: "",
+      playtimeHours: 0,
+      status: "",
+      platform: "",
+      f2p: null,
+      title: "",
+    };
   }
   const match = comment.match(/^<!--gl:(.*?)-->\n?([\s\S]*)$/);
   if (!match) {
-    return { text: comment, playtimeHours: 0, status: "", platform: "", f2p: null };
+    return {
+      text: comment,
+      playtimeHours: 0,
+      status: "",
+      platform: "",
+      f2p: null,
+      title: "",
+    };
   }
   try {
     const meta = JSON.parse(match[1]) as {
@@ -170,6 +187,7 @@ function decodeMeta(comment: string | null): {
       s?: string;
       p?: string;
       f?: number;
+      t?: string;
     };
     return {
       text: match[2] ?? "",
@@ -177,9 +195,17 @@ function decodeMeta(comment: string | null): {
       status: typeof meta.s === "string" ? meta.s : "",
       platform: typeof meta.p === "string" ? meta.p : "",
       f2p: typeof meta.f === "number" ? meta.f : null,
+      title: typeof meta.t === "string" ? meta.t.trim() : "",
     };
   } catch {
-    return { text: comment, playtimeHours: 0, status: "", platform: "", f2p: null };
+    return {
+      text: comment,
+      playtimeHours: 0,
+      status: "",
+      platform: "",
+      f2p: null,
+      title: "",
+    };
   }
 }
 
@@ -214,7 +240,7 @@ function toDetailReview(
     date: row.created_at.toISOString().slice(0, 10),
     f2p: f2pScore >= 6,
     kink: kinkFromF2p(f2pScore),
-    title: titleFromComment(text, Math.round(score / 2)),
+    title: meta.title || titleFromComment(text, Math.round(score / 2)),
     body: row.is_spoiler ? "このレビューにはネタバレが含まれています。" : text,
     spoilerBody: row.is_spoiler ? text : "",
     helpful: row._count.review_likes,
@@ -312,6 +338,13 @@ export async function createGameReview(
   const game = await prisma.games.findUnique({ where: { id: gameId } });
   if (!game) throw new Error("ゲームが見つかりません");
 
+  const title = await generatePostTitle({
+    kind: "review",
+    gameTitle: game.title,
+    body: input.comment,
+    extra: `評価${input.rating}/5 ステータス:${STATUS_TAGS[input.status] ?? input.status}`,
+  });
+
   const created = await prisma.reviews.create({
     data: {
       game_id: gameId,
@@ -322,7 +355,7 @@ export async function createGameReview(
       param_3: input.params.gameplay,
       param_4: input.params.music,
       param_5: input.params.value,
-      comment: `<!--gl:${encodeMeta(input)}-->\n${input.comment}`,
+      comment: `<!--gl:${encodeMeta(input, title)}-->\n${input.comment}`,
       image_url: imageUrlForStore(input.imageUrl),
       is_spoiler: input.spoiler,
     },

@@ -13,6 +13,7 @@ export type ThreadReply = {
   likedByMe: boolean;
   timestamp: string;
   image?: string;
+  title?: string;
 };
 
 export const CURRENT_USER = {
