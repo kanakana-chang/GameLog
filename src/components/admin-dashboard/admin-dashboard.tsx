@@ -1013,16 +1013,28 @@ function ReportsPanel({
                     </>
                   ) : null}
                   {rep.status === "hidden" ? (
-                    <button
-                      type="button"
-                      disabled={busyId === rep.id}
-                      onClick={() => {
-                        void handleStatus(rep.id, "open");
-                      }}
-                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      表示に戻す
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        disabled={busyId === rep.id}
+                        onClick={() => {
+                          void handleStatus(rep.id, "open");
+                        }}
+                        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        表示に戻す
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busyId === rep.id}
+                        onClick={() => {
+                          void handleStatus(rep.id, "dismissed");
+                        }}
+                        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        却下
+                      </button>
+                    </>
                   ) : null}
                   {rep.status === "dismissed" ? (
                     <button
@@ -1311,7 +1323,18 @@ export function AdminDashboard({
                 }
                 setReportsError(null);
                 setReports((prev) =>
-                  prev.map((item) => (item.id === id ? payload : item)),
+                  prev.map((item) => {
+                    if (item.id === id) return payload;
+                    if (
+                      status === "dismissed" &&
+                      item.targetType === payload.targetType &&
+                      item.targetId === payload.targetId &&
+                      item.status === "hidden"
+                    ) {
+                      return { ...item, status: "dismissed" };
+                    }
+                    return item;
+                  }),
                 );
               }}
             />

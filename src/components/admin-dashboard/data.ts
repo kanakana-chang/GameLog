@@ -47,6 +47,7 @@ export type AdminGame = {
 export type AdminReport = {
   id: string;
   targetType: "review" | "topic" | "post";
+  targetId: string;
   targetContent: string;
   gameTitle: string;
   reporter: string;

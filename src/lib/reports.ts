@@ -285,6 +285,7 @@ function toAdminReport(
   return {
     id: row.id,
     targetType,
+    targetId: row.target_id,
     targetContent,
     gameTitle,
     reporter: row.profiles?.username || row.profiles?.display_name || "不明",
@@ -311,9 +312,20 @@ export async function updateReportStatus(id: string, status: ReportStatus) {
 
   const existing = await prisma.reports.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, target_type: true, target_id: true },
   });
   if (!existing) throw new Error("通報が見つかりません");
+
+  if (status === "dismissed") {
+    await prisma.reports.updateMany({
+      where: {
+        target_type: existing.target_type,
+        target_id: existing.target_id,
+        status: "hidden",
+      },
+      data: { status: "dismissed" },
+    });
+  }
 
   const updated = await prisma.reports.update({
     where: { id },
