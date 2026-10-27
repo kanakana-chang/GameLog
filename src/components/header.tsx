@@ -152,23 +152,23 @@ export function Header() {
   const { isLoggedIn } = useAuth();
 
   return (
-    <header className="relative z-50 w-full border-b border-gray-200 bg-white shadow-sm">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
+    <header className="relative z-50 w-full overflow-x-hidden border-b border-gray-200 bg-white shadow-sm">
+      <div className="mx-auto flex h-14 min-w-0 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-6 sm:px-6">
+        <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2">
           <LogoMark />
-          <span className="text-lg font-bold tracking-tight text-gray-900">
+          <span className="text-base font-bold tracking-tight text-gray-900 sm:text-lg">
             GameLog
           </span>
         </Link>
 
-        <form action="/games" className="relative max-w-sm flex-1">
+        <form action="/games" className="relative hidden min-w-0 max-w-sm flex-1 sm:block">
           <SearchIcon />
           <input
             type="search"
             name="q"
             placeholder="ゲームを検索..."
             aria-label="ゲームを検索"
-            className="w-full rounded-full border border-transparent bg-gray-100 py-2 pr-4 pl-9 text-sm transition-colors placeholder:text-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none"
+            className="w-full min-w-0 rounded-full border border-transparent bg-gray-100 py-2 pr-4 pl-9 text-sm transition-colors placeholder:text-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none"
           />
         </form>
 
@@ -185,18 +185,20 @@ export function Header() {
         </nav>
 
         {isLoggedIn ? (
-          <AccountMenu />
+          <div className="ml-auto sm:ml-0">
+            <AccountMenu />
+          </div>
         ) : (
-          <div className="flex shrink-0 items-center gap-4">
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0 sm:gap-4">
             <Link
               href="/login"
-              className="text-sm whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900"
+              className="text-xs whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900 sm:text-sm"
             >
               ログイン
             </Link>
             <Link
               href="/register"
-              className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-indigo-700 active:bg-indigo-800"
+              className="rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-white transition-colors hover:bg-indigo-700 active:bg-indigo-800 sm:px-4 sm:py-2 sm:text-sm"
             >
               無料登録
             </Link>

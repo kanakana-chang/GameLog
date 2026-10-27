@@ -18,7 +18,7 @@ export function HwQuickAccess() {
               style={{ color: hardware.color }}
             >
               <span className="text-2xl leading-none">{hardware.icon}</span>
-              <span className="text-center text-xs leading-tight font-medium text-[#1a1c22]">
+              <span className="w-full text-center text-[10px] leading-tight font-medium break-words text-[#1a1c22] sm:text-xs">
                 {hardware.label}
               </span>
             </Link>

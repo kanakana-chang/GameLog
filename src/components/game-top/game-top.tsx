@@ -12,7 +12,7 @@ export function GameTop({ latestGames }: { latestGames: SearchGame[] }) {
   const [, setSearchQuery] = useState("");
 
   return (
-    <div className="min-h-full bg-[#f5f6f8]">
+    <div className="min-h-full overflow-x-hidden bg-[#f5f6f8]">
       <HeroSection onSearch={setSearchQuery} />
       <HwQuickAccess />
 

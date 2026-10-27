@@ -42,14 +42,14 @@ export function FeaturedGames({ games }: { games: SearchGame[] }) {
       </div>
 
       {games.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
           {games.map((game) => (
             <Link
               key={String(game.id)}
               href={`/games/${game.id}`}
-              className="group overflow-hidden rounded-2xl border border-[#e3e4ea] bg-white transition-all hover:shadow-lg"
+              className="group min-w-0 overflow-hidden rounded-2xl border border-[#e3e4ea] bg-white transition-all hover:shadow-lg"
             >
-              <div className="relative h-36 overflow-hidden bg-[#f0f1f5]">
+              <div className="relative aspect-[4/3] overflow-hidden bg-[#f0f1f5] sm:h-36 sm:aspect-auto">
                 <CoverImage
                   src={game.img}
                   alt={game.title}
@@ -58,40 +58,40 @@ export function FeaturedGames({ games }: { games: SearchGame[] }) {
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                <span className="absolute top-2 left-2 rounded-full bg-[#ff4d84] px-2 py-0.5 text-[10px] font-extrabold text-white shadow">
+                <span className="absolute top-1.5 left-1.5 rounded-full bg-[#ff4d84] px-1.5 py-0.5 text-[10px] font-extrabold text-white shadow sm:top-2 sm:left-2 sm:px-2">
                   新着
                 </span>
-                <span className="absolute right-2 bottom-2 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+                <span className="absolute right-1.5 bottom-1.5 max-w-[70%] truncate rounded-full bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm sm:right-2 sm:bottom-2 sm:px-2">
                   {platformLabel(game.platforms)}
                 </span>
               </div>
 
-              <div className="p-3">
-                <p className="mb-0.5 truncate text-[11px] text-[#7a7d8a]">
+              <div className="min-w-0 p-2 sm:p-3">
+                <p className="mb-0.5 truncate text-[10px] text-[#7a7d8a] sm:text-[11px]">
                   {game.genre}
                 </p>
-                <h3 className="mb-2 line-clamp-2 min-h-9 text-sm leading-snug font-bold text-[#1a1c22]">
+                <h3 className="mb-1.5 line-clamp-2 min-h-8 text-xs leading-snug font-bold break-words text-[#1a1c22] sm:mb-2 sm:min-h-9 sm:text-sm">
                   {game.title}
                 </h3>
 
-                <div className="mb-2 flex flex-wrap items-center gap-1">
+                <div className="mb-1.5 flex min-w-0 items-center gap-1 overflow-hidden sm:mb-2">
                   <Stars rating={game.rating} size="xs" />
-                  <span className="text-xs font-bold text-[#1a1c22]">
+                  <span className="shrink-0 text-[11px] font-bold text-[#1a1c22] sm:text-xs">
                     {game.rating.toFixed(1)}
                   </span>
-                  <span className="text-[10px] text-[#7a7d8a]">
+                  <span className="hidden truncate text-[10px] text-[#7a7d8a] sm:inline">
                     ({game.ratingCount.toLocaleString()})
                   </span>
                 </div>
 
                 {game.isFree ? <F2PBar score={game.f2pScore} /> : null}
 
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[11px] text-[#7a7d8a]">
+                <div className="mt-1.5 flex min-w-0 items-center justify-between gap-1 sm:mt-2">
+                  <span className="truncate text-[10px] text-[#7a7d8a] sm:text-[11px]">
                     ⏱ {playtimeLabel(game.avgPlaytime)}
                   </span>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold sm:px-2 ${
                       game.isFree
                         ? "bg-emerald-50 text-emerald-600"
                         : "bg-[#f0f1f5] text-[#7a7d8a]"
