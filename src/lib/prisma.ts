@@ -15,7 +15,7 @@ throw new Error("DATABASE_URL is not set");
 
 const pool = new Pool({
 connectionString,
-max: 3,
+max: 1,
 idleTimeoutMillis: 10000,
 connectionTimeoutMillis: 10000,
 });
