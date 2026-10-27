@@ -1,12 +1,5 @@
 import Link from "next/link";
 
-/*const NAV_LINKS = [
-  { label: "レビュー", href: "#" },
-  { label: "掲示板", href: "#" },
-  { label: "ランキング", href: "#" },
-  { label: "記念カード", href: "#" },
-] as const;*/
-
 const CATEGORY_LINKS = [
   { label: "Nintendo Switch", href: "#" },
   { label: "iOS / iPhone", href: "#" },
@@ -61,21 +54,6 @@ export function Footer() {
             </p>
             <p className="text-xs text-slate-500">12,400以上のゲームを収録</p>
           </div>
-
-          {/*<div className="flex flex-col gap-3">
-            <h3 className="mb-1 text-xs font-semibold tracking-widest text-slate-500 uppercase">
-              メニュー
-            </h3>
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-sm text-slate-300 transition-colors duration-150 hover:text-indigo-400"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>*/}
 
           <div className="flex flex-col gap-3">
             <h3 className="mb-1 text-xs font-semibold tracking-widest text-slate-500 uppercase">
