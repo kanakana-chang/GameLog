@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import type { SearchGame } from "@/components/game-search/data";
 import { FeaturedGames } from "./featured-games";
 import { HeroSection } from "./hero-section";
 import { HwQuickAccess } from "./hw-quick-access";
 import { ReviewFeed } from "./review-feed";
 import { TrendSidebar } from "./trend-sidebar";
 
-export function GameTop() {
+export function GameTop({ latestGames }: { latestGames: SearchGame[] }) {
   const [, setSearchQuery] = useState("");
 
   return (
@@ -18,7 +19,7 @@ export function GameTop() {
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_260px]">
           <main className="min-w-0">
-            <FeaturedGames />
+            <FeaturedGames games={latestGames} />
             <ReviewFeed />
           </main>
           <div className="hidden lg:block">

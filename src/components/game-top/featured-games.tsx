@@ -1,12 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import {
-  FEATURED_GAMES,
-  type FeaturedFilter,
-} from "./data";
+import { CoverImage } from "@/components/cover-image";
+import type { SearchGame } from "@/components/game-search/data";
 import { Stars } from "./icons";
 
 function F2PBar({ score }: { score: number }) {
@@ -29,115 +25,90 @@ function F2PBar({ score }: { score: number }) {
   );
 }
 
-const FILTERS = [
-  ["all", "すべて"],
-  ["rising", "急上昇"],
-  ["f2p", "無課金OK"],
-  ["sabage", "サバゲー"],
-] as const;
+function playtimeLabel(hours: number) {
+  if (!Number.isFinite(hours) || hours <= 0) return "—";
+  return `${hours}h`;
+}
 
-export function FeaturedGames() {
-  const [filter, setFilter] = useState<FeaturedFilter>("all");
+function platformLabel(platforms: SearchGame["platforms"]) {
+  return platforms.slice(0, 2).join(" / ") || "—";
+}
 
-  const filtered = FEATURED_GAMES.filter((game) => {
-    if (filter === "rising") return game.tag === "評価急上昇" || game.tag === "新着";
-    if (filter === "f2p") return game.freeToPlay;
-    if (filter === "sabage")
-      return (
-        game.genre.includes("サバゲー") ||
-        game.genre.includes("シューター") ||
-        game.genre.includes("シューティング")
-      );
-    return true;
-  });
-
+export function FeaturedGames({ games }: { games: SearchGame[] }) {
   return (
     <section className="py-10">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-extrabold text-[#1a1c22]">
-          注目・評価急上昇ゲーム
-        </h2>
-        <div className="flex gap-1.5">
-          {FILTERS.map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setFilter(id)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                filter === id
-                  ? "border-[#5c4dff] bg-[#5c4dff] text-white"
-                  : "border-[#e3e4ea] bg-white text-[#7a7d8a] hover:border-[#5c4dff]"
-              }`}
+        <h2 className="text-lg font-extrabold text-[#1a1c22]">新着ゲーム</h2>
+      </div>
+
+      {games.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {games.map((game) => (
+            <Link
+              key={String(game.id)}
+              href={`/games/${game.id}`}
+              className="group flex overflow-hidden rounded-2xl border border-[#e3e4ea] bg-white transition-all hover:shadow-lg"
             >
-              {label}
-            </button>
+              <div className="relative h-28 w-24 shrink-0 overflow-hidden bg-[#f0f1f5] sm:h-32 sm:w-36">
+                <CoverImage
+                  src={game.img}
+                  alt={game.title}
+                  fill
+                  sizes="(max-width: 640px) 96px, 144px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <span className="absolute top-2 left-2 rounded-full bg-[#ff4d84] px-2 py-0.5 text-[10px] font-extrabold text-white shadow">
+                  新着
+                </span>
+              </div>
+
+              <div className="flex min-w-0 flex-1 flex-col justify-center p-3.5">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <p className="text-[11px] text-[#7a7d8a]">{game.genre}</p>
+                  <span className="rounded-full bg-black/5 px-2 py-0.5 text-[11px] font-medium text-[#5a6080]">
+                    {platformLabel(game.platforms)}
+                  </span>
+                </div>
+                <h3 className="mb-2 truncate text-sm leading-snug font-bold text-[#1a1c22] sm:text-base">
+                  {game.title}
+                </h3>
+
+                <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                  <Stars rating={game.rating} />
+                  <span className="text-xs font-bold text-[#1a1c22]">
+                    {game.rating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-[#7a7d8a]">
+                    ({game.ratingCount.toLocaleString()}件)
+                  </span>
+                </div>
+
+                {game.isFree ? <F2PBar score={game.f2pScore} /> : null}
+
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-xs text-[#7a7d8a]">
+                    ⏱ {playtimeLabel(game.avgPlaytime)}
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                      game.isFree
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "bg-[#f0f1f5] text-[#7a7d8a]"
+                    }`}
+                  >
+                    {game.isFree ? "無料" : "有料"}
+                  </span>
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {filtered.map((game) => (
-          <Link
-            key={game.id}
-            href={`/games/${game.detailId}`}
-            className="group overflow-hidden rounded-2xl border border-[#e3e4ea] bg-white transition-all hover:shadow-lg"
-          >
-            <div className="relative h-36 overflow-hidden bg-[#f0f1f5]">
-              <Image
-                src={game.img}
-                alt={game.title.replace("\n", " ")}
-                fill
-                sizes="(max-width: 640px) 50vw, 280px"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-              <span
-                className="absolute top-2.5 left-2.5 rounded-full px-2.5 py-0.5 text-xs font-extrabold text-white shadow"
-                style={{ backgroundColor: game.tagColor }}
-              >
-                {game.tag}
-              </span>
-              <span className="absolute right-2.5 bottom-2 rounded-full bg-black/40 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-                {game.platform}
-              </span>
-            </div>
-
-            <div className="p-3.5">
-              <p className="mb-0.5 text-[11px] text-[#7a7d8a]">{game.genre}</p>
-              <h3 className="mb-2 text-sm leading-snug font-bold whitespace-pre-line text-[#1a1c22]">
-                {game.title}
-              </h3>
-
-              <div className="mb-2 flex items-center gap-1.5">
-                <Stars rating={game.rating} />
-                <span className="text-xs font-bold text-[#1a1c22]">
-                  {game.rating}
-                </span>
-                <span className="text-xs text-[#7a7d8a]">
-                  ({game.reviewCount.toLocaleString()}件)
-                </span>
-              </div>
-
-              {game.freeToPlay && game.f2pScore !== null ? (
-                <F2PBar score={game.f2pScore} />
-              ) : null}
-
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs text-[#7a7d8a]">⏱ {game.playtime}</span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                    game.freeToPlay
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-[#f0f1f5] text-[#7a7d8a]"
-                  }`}
-                >
-                  {game.freeToPlay ? "無料" : "有料"}
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-[#e3e4ea] bg-white px-4 py-12 text-center text-sm text-[#7a7d8a]">
+          まだゲームが登録されていません
+        </div>
+      )}
 
       <div className="mt-6 text-center">
         <Link

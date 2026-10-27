@@ -130,6 +130,38 @@ function toSearchGame(game: GameWithPlatforms): SearchGame {
   return applyDetailsToSearchGame(base, detailsFromRow(game));
 }
 
+export async function getLatestGames(limit = 10): Promise<SearchGame[]> {
+  const rows = await prisma.games.findMany({
+    include: gameWithPlatforms,
+    orderBy: { created_at: "desc" },
+    take: limit,
+  });
+  const games = rows.map(toSearchGame);
+  const ids = rows.map((row) => row.id);
+  if (!ids.length) return games;
+
+  const aggregates = await prisma.reviews.groupBy({
+    by: ["game_id"],
+    where: { game_id: { in: ids } },
+    _avg: { rating_overall: true },
+    _count: { _all: true },
+  });
+  const statsByGame = new Map(
+    aggregates.map((row) => [row.game_id, row]),
+  );
+
+  return games.map((game) => {
+    const stats = statsByGame.get(String(game.id));
+    if (!stats) return game;
+    const average = Number(stats._avg.rating_overall ?? 0);
+    return {
+      ...game,
+      rating: average > 0 ? Math.round((average / 2) * 10) / 10 : game.rating,
+      ratingCount: stats._count._all,
+    };
+  });
+}
+
 export async function getSearchGamesFromDb(): Promise<SearchGame[]> {
   const games = await prisma.games.findMany({
     include: gameWithPlatforms,
