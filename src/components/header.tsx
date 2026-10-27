@@ -7,8 +7,6 @@ import { UserAvatar } from "@/components/user-avatar";
 import { useAuth } from "./auth-provider";
 import { LogoutModal } from "./logout-modal";
 
-const NAV_LINKS = ["レビュー", "掲示板", "ランキング", "記念カード"] as const;
-
 function LogoMark() {
   return (
     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600">
@@ -172,24 +170,12 @@ export function Header() {
           />
         </form>
 
-        <nav className="ml-auto hidden items-center gap-6 md:flex">
-          {NAV_LINKS.map((label) => (
-            <a
-              key={label}
-              href="#"
-              className="text-sm whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900"
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
-
         {isLoggedIn ? (
-          <div className="ml-auto sm:ml-0">
+          <div className="ml-auto">
             <AccountMenu />
           </div>
         ) : (
-          <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0 sm:gap-4">
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-4">
             <Link
               href="/login"
               className="text-xs whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900 sm:text-sm"
