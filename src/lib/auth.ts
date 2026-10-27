@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { Prisma } from "@/generated/prisma/client";
 import type { AuthUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/prisma";
@@ -621,18 +622,10 @@ export async function startOAuthLogin(
   return data.url;
 }
 
-export async function getSessionUser(): Promise<AuthUser | null> {
+export const getSessionUser = cache(async (): Promise<AuthUser | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
-  const profile = await prisma.profiles.findUnique({
-    where: { id: data.user.id },
-    select: { is_deleted: true },
-  });
-  if (profile?.is_deleted) {
-    await supabase.auth.signOut();
-    return null;
-  }
   try {
     return await toAuthUser(data.user);
   } catch (sessionError) {
@@ -645,7 +638,7 @@ export async function getSessionUser(): Promise<AuthUser | null> {
     }
     throw sessionError;
   }
-}
+});
 
 export async function requireSessionUser(): Promise<AuthUser> {
   const user = await getSessionUser();

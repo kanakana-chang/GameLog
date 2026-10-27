@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: "ハード・ジャンル・無課金の遊びやすさから、ぴったりのゲームを探せます",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type GamesPageProps = {
   searchParams: Promise<{

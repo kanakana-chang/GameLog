@@ -13,7 +13,15 @@ import {
   type Platform,
   type SearchGame,
 } from "@/components/game-search/data";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+
+const GAMES_CACHE_TAG = "games";
+const GAMES_CACHE_SECONDS = 60;
+
+function refreshGamesCache() {
+  revalidateTag(GAMES_CACHE_TAG, "max");
+}
 
 export const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -130,36 +138,21 @@ function toSearchGame(game: GameWithPlatforms): SearchGame {
   return applyDetailsToSearchGame(base, detailsFromRow(game));
 }
 
-export async function getLatestGames(limit = 10): Promise<SearchGame[]> {
+async function loadLatestGames(limit: number): Promise<SearchGame[]> {
   const rows = await prisma.games.findMany({
     include: gameWithPlatforms,
     orderBy: { created_at: "desc" },
     take: limit,
   });
-  const games = rows.map(toSearchGame);
-  const ids = rows.map((row) => row.id);
-  if (!ids.length) return games;
+  return rows.map(toSearchGame);
+}
 
-  const aggregates = await prisma.reviews.groupBy({
-    by: ["game_id"],
-    where: { game_id: { in: ids } },
-    _avg: { rating_overall: true },
-    _count: { _all: true },
-  });
-  const statsByGame = new Map(
-    aggregates.map((row) => [row.game_id, row]),
-  );
-
-  return games.map((game) => {
-    const stats = statsByGame.get(String(game.id));
-    if (!stats) return game;
-    const average = Number(stats._avg.rating_overall ?? 0);
-    return {
-      ...game,
-      rating: average > 0 ? Math.round((average / 2) * 10) / 10 : game.rating,
-      ratingCount: stats._count._all,
-    };
-  });
+export function getLatestGames(limit = 10): Promise<SearchGame[]> {
+  return unstable_cache(
+    () => loadLatestGames(limit),
+    ["latest-games", String(limit)],
+    { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
+  )();
 }
 
 /*export async function getSearchGamesFromDb(): Promise<SearchGame[]> {
@@ -179,33 +172,36 @@ export async function getLatestGames(limit = 10): Promise<SearchGame[]> {
   );
 }*/
 
-export async function getSearchGamesFromDb(): Promise<SearchGame[]> {
+async function loadSearchGamesFromDb(): Promise<SearchGame[]> {
   const games = await prisma.games.findMany({
-  include: gameWithPlatforms,
-  orderBy: { created_at: "desc" },
+    include: gameWithPlatforms,
+    orderBy: { created_at: "desc" },
   });
-  
-  return games.map((row) => {
-  const game = toSearchGame(row);
-  const stored = detailsFromRow(row);
-  
-  return applyDetailsToSearchGame(
-    game,
-    isGeneratedGameDetails(stored) ? stored : null,
-  );
-  
-  });
+  return games.map(toSearchGame);
 }
 
-export async function getSearchGameById(id: string): Promise<SearchGame | undefined> {
-  if (!UUID_RE.test(id)) return undefined;
+export function getSearchGamesFromDb(): Promise<SearchGame[]> {
+  return unstable_cache(loadSearchGamesFromDb, ["search-games"], {
+    revalidate: GAMES_CACHE_SECONDS,
+    tags: [GAMES_CACHE_TAG],
+  })();
+}
 
+async function loadSearchGameById(id: string): Promise<SearchGame | undefined> {
   const game = await prisma.games.findUnique({
     where: { id },
     include: gameWithPlatforms,
   });
-
   return game ? toSearchGame(game) : undefined;
+}
+
+export function getSearchGameById(id: string): Promise<SearchGame | undefined> {
+  if (!UUID_RE.test(id)) return Promise.resolve(undefined);
+  return unstable_cache(
+    () => loadSearchGameById(id),
+    ["search-game", id],
+    { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
+  )();
 }
 
 export type AdminGameInput = {
@@ -421,7 +417,7 @@ export async function createAdminGame(input: AdminGameInput): Promise<AdminGame>
     },
     include: gameWithPlatforms,
   });
-
+  refreshGamesCache();
   return toAdminGame(created);
 }
 
@@ -446,7 +442,7 @@ export async function updateAdminGame(
     },
     include: gameWithPlatforms,
   });
-
+  refreshGamesCache();
   return toAdminGame(updated);
 }
 
@@ -454,6 +450,7 @@ export async function deleteAdminGame(id: string): Promise<void> {
   assertGameId(id);
   try {
     await prisma.games.delete({ where: { id } });
+    refreshGamesCache();
   } catch (error) {
     if (isPrismaNotFound(error)) {
       throw new Error("ゲームが見つかりません");

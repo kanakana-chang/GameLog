@@ -1,6 +1,9 @@
 import type { AdminReport, ReportReason, ReportStatus } from "@/components/admin-dashboard/data";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { isUuid } from "@/lib/games";
 import { prisma } from "@/lib/prisma";
+
+const REPORTS_CACHE_TAG = "reports";
 
 export const REPORT_TARGET_TYPES = ["review", "topic", "post"] as const;
 export const REPORT_REASONS = ["harassment", "spoiler", "spam", "other"] as const;
@@ -97,23 +100,42 @@ export function parseReportStatus(body: unknown): ReportStatus {
   return status;
 }
 
-export async function getHiddenTargetSets(): Promise<HiddenTargetSets> {
+type HiddenTargetIds = {
+  reviews: string[];
+  topics: string[];
+  posts: string[];
+};
+
+async function loadHiddenTargetIds(): Promise<HiddenTargetIds> {
   const rows = await prisma.reports.findMany({
     where: { status: "hidden" },
     select: { target_type: true, target_id: true },
   });
 
-  const reviews = new Set<string>();
-  const topics = new Set<string>();
-  const posts = new Set<string>();
+  const reviews: string[] = [];
+  const topics: string[] = [];
+  const posts: string[] = [];
 
   for (const row of rows) {
-    if (row.target_type === "review") reviews.add(row.target_id);
-    else if (row.target_type === "topic") topics.add(row.target_id);
-    else if (row.target_type === "post") posts.add(row.target_id);
+    if (row.target_type === "review") reviews.push(row.target_id);
+    else if (row.target_type === "topic") topics.push(row.target_id);
+    else if (row.target_type === "post") posts.push(row.target_id);
   }
 
   return { reviews, topics, posts };
+}
+
+export async function getHiddenTargetSets(): Promise<HiddenTargetSets> {
+  const data = await unstable_cache(loadHiddenTargetIds, ["hidden-targets"], {
+    revalidate: 30,
+    tags: [REPORTS_CACHE_TAG],
+  })();
+
+  return {
+    reviews: new Set(data.reviews),
+    topics: new Set(data.topics),
+    posts: new Set(data.posts),
+  };
 }
 
 async function assertReportableTarget(
@@ -335,5 +357,6 @@ export async function updateReportStatus(id: string, status: ReportStatus) {
     },
   });
   const maps = await resolveTargets([updated]);
+  revalidateTag(REPORTS_CACHE_TAG, "max");
   return toAdminReport(updated, maps);
 }

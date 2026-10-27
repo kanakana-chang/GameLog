@@ -1,4 +1,5 @@
 import type { SearchGame } from "@/components/game-search/data";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import {
   cleanWikiExtract,
@@ -423,14 +424,14 @@ function normalizeStored(value: GeneratedGameDetails): GeneratedGameDetails {
   };
 }
 
-export async function getStoredGameDetails(gameId: string) {
+export const getStoredGameDetails = cache(async (gameId: string) => {
   if (!UUID_RE.test(gameId)) return null;
   const row = await prisma.game_details.findUnique({
     where: { game_id: gameId },
   });
   if (!row || !isGeneratedGameDetails(row.payload)) return null;
   return normalizeStored(row.payload);
-}
+});
 
 async function saveDetails(
   gameId: string,
@@ -457,14 +458,7 @@ export async function ensureGameDetails(
 ): Promise<GeneratedGameDetails> {
   const id = String(game.id);
   const stored = await getStoredGameDetails(id);
-  if (
-    stored &&
-    isAssembledPublicDetails(stored) &&
-    stored.summary.includes(game.title) &&
-    stored.assemblyVersion >= 2
-  ) {
-    return stored;
-  }
+  if (stored) return stored;
 
   const assembled = await assembleDetails(game);
   if (UUID_RE.test(id)) {
