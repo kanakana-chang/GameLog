@@ -162,7 +162,7 @@ export async function getLatestGames(limit = 10): Promise<SearchGame[]> {
   });
 }
 
-export async function getSearchGamesFromDb(): Promise<SearchGame[]> {
+/*export async function getSearchGamesFromDb(): Promise<SearchGame[]> {
   const games = await prisma.games.findMany({
     include: gameWithPlatforms,
     orderBy: { created_at: "desc" },
@@ -177,6 +177,24 @@ export async function getSearchGamesFromDb(): Promise<SearchGame[]> {
       return applyDetailsToSearchGame(game, generated);
     }),
   );
+}*/
+
+export async function getSearchGamesFromDb(): Promise<SearchGame[]> {
+  const games = await prisma.games.findMany({
+  include: gameWithPlatforms,
+  orderBy: { created_at: "desc" },
+  });
+  
+  return games.map((row) => {
+  const game = toSearchGame(row);
+  const stored = detailsFromRow(row);
+  
+  return applyDetailsToSearchGame(
+    game,
+    isGeneratedGameDetails(stored) ? stored : null,
+  );
+  
+  });
 }
 
 export async function getSearchGameById(id: string): Promise<SearchGame | undefined> {
