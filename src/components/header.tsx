@@ -152,7 +152,7 @@ export function Header() {
   const { isLoggedIn } = useAuth();
 
   return (
-    <header className="relative z-50 w-full overflow-x-hidden border-b border-gray-200 bg-white shadow-sm">
+    <header className="relative z-50 w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto flex h-14 min-w-0 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-6 sm:px-6">
         <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2">
           <LogoMark />
