@@ -27,6 +27,7 @@ model games {
   genre              String               @db.VarChar
   cover_image_url    String
   game_type          String               @db.VarChar
+  is_published       Boolean              @default(true)
   created_at         DateTime             @default(now()) @db.Timestamptz(6)
   game_details       game_details?
   game_platform      game_platform[]

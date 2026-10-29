@@ -1,5 +1,5 @@
 import type { GameDetailData, Kink, Review } from "@/components/game-detail/data";
-import { isUuid } from "@/lib/games";
+import { isUuid, requirePublishedGame } from "@/lib/games";
 import { getLikedReviewIds } from "@/lib/likes";
 import { upsertUserGameStatus, storedStatusFromReview } from "@/lib/game-status";
 import { generatePostTitle } from "@/lib/post-title";
@@ -332,12 +332,7 @@ export async function createGameReview(
   userId: string,
 ): Promise<Review> {
   if (!userId) throw new Error("ログインしてください");
-  if (!isUuid(gameId)) {
-    throw new Error("ゲームが見つかりません");
-  }
-
-  const game = await prisma.games.findUnique({ where: { id: gameId } });
-  if (!game) throw new Error("ゲームが見つかりません");
+  const game = await requirePublishedGame(gameId);
 
   const title = await generatePostTitle({
     kind: "review",

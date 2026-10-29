@@ -374,6 +374,8 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
   const [pendingDelete, setPendingDelete] = useState<AdminGame | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [visibilityBusy, setVisibilityBusy] = useState(false);
+  const [visibilityError, setVisibilityError] = useState<string | null>(null);
 
   const filtered = games.filter((g) => {
     const matchSearch =
@@ -396,6 +398,7 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
       freeToPlay: g.freeToPlay,
       hasCurrency: g.hasCurrency,
       coverUrl: g.coverUrl,
+      status: g.status,
     };
     const response = await fetch(
       exists ? `/api/admin/games/${g.id}` : "/api/admin/games",
@@ -466,13 +469,38 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
     });
   }
 
-  function bulkArchive() {
-    setGames((prev) =>
-      prev.map((g) =>
-        selectedIds.has(g.id) ? { ...g, status: "archived" as const } : g,
-      ),
-    );
-    setSelectedIds(new Set());
+  async function setGamesStatus(ids: string[], status: AdminGame["status"]) {
+    if (ids.length === 0 || visibilityBusy) return;
+    setVisibilityBusy(true);
+    setVisibilityError(null);
+    try {
+      const response = await fetch("/api/admin/games", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, status }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "公開状態の更新に失敗しました");
+      }
+      const idSet = new Set(ids);
+      setGames((prev) =>
+        prev.map((g) => (idSet.has(g.id) ? { ...g, status } : g)),
+      );
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        for (const id of ids) next.delete(id);
+        return next;
+      });
+    } catch (err) {
+      setVisibilityError(
+        err instanceof Error ? err.message : "公開状態の更新に失敗しました",
+      );
+    } finally {
+      setVisibilityBusy(false);
+    }
   }
 
   const platformFilters = uniqueOptions([
@@ -614,10 +642,15 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
         {selectedIds.size > 0 ? (
           <button
             type="button"
-            onClick={bulkArchive}
-            className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 transition-colors hover:bg-amber-100"
+            onClick={() => {
+              void setGamesStatus([...selectedIds], "archived");
+            }}
+            disabled={visibilityBusy}
+            className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 transition-colors hover:bg-amber-100 disabled:opacity-60"
           >
-            {selectedIds.size}件を非公開にする
+            {visibilityBusy
+              ? "更新中..."
+              : `${selectedIds.size}件を非公開にする`}
           </button>
         ) : null}
         <button
@@ -643,6 +676,12 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
           新規追加
         </button>
       </div>
+
+      {visibilityError ? (
+        <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">
+          {visibilityError}
+        </p>
+      ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
         <div className="max-h-[calc(100dvh-16rem)] min-h-0 flex-1 overflow-auto overscroll-contain">
@@ -751,6 +790,61 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void setGamesStatus(
+                            [g.id],
+                            g.status === "archived" ? "active" : "archived",
+                          );
+                        }}
+                        disabled={visibilityBusy}
+                        title={g.status === "archived" ? "公開する" : "非公開にする"}
+                        aria-label={
+                          g.status === "archived"
+                            ? `${g.title}を公開する`
+                            : `${g.title}を非公開にする`
+                        }
+                        className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600 disabled:opacity-60"
+                      >
+                        {g.status === "archived" ? (
+                          <svg
+                            width={16}
+                            height={16}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            width={16}
+                            height={16}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                            />
+                          </svg>
+                        )}
+                      </button>
                       <button
                         type="button"
                         onClick={() => setEditing(g)}

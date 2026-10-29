@@ -739,10 +739,6 @@ export type custom_oauth_providersUpdatescopesInput = {
   push?: string | string[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type custom_oauth_providersUpdatecustom_claims_allowlistInput = {
   set?: string[]
   push?: string | string[]

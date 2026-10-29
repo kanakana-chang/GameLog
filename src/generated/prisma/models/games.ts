@@ -42,6 +42,7 @@ export type GamesMinAggregateOutputType = {
   genre: string | null
   cover_image_url: string | null
   game_type: string | null
+  is_published: boolean | null
   created_at: Date | null
 }
 
@@ -53,6 +54,7 @@ export type GamesMaxAggregateOutputType = {
   genre: string | null
   cover_image_url: string | null
   game_type: string | null
+  is_published: boolean | null
   created_at: Date | null
 }
 
@@ -64,6 +66,7 @@ export type GamesCountAggregateOutputType = {
   genre: number
   cover_image_url: number
   game_type: number
+  is_published: number
   created_at: number
   _all: number
 }
@@ -85,6 +88,7 @@ export type GamesMinAggregateInputType = {
   genre?: true
   cover_image_url?: true
   game_type?: true
+  is_published?: true
   created_at?: true
 }
 
@@ -96,6 +100,7 @@ export type GamesMaxAggregateInputType = {
   genre?: true
   cover_image_url?: true
   game_type?: true
+  is_published?: true
   created_at?: true
 }
 
@@ -107,6 +112,7 @@ export type GamesCountAggregateInputType = {
   genre?: true
   cover_image_url?: true
   game_type?: true
+  is_published?: true
   created_at?: true
   _all?: true
 }
@@ -205,6 +211,7 @@ export type GamesGroupByOutputType = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published: boolean
   created_at: Date
   _count: GamesCountAggregateOutputType | null
   _avg: GamesAvgAggregateOutputType | null
@@ -239,6 +246,7 @@ export type gamesWhereInput = {
   genre?: Prisma.StringFilter<"games"> | string
   cover_image_url?: Prisma.StringFilter<"games"> | string
   game_type?: Prisma.StringFilter<"games"> | string
+  is_published?: Prisma.BoolFilter<"games"> | boolean
   created_at?: Prisma.DateTimeFilter<"games"> | Date | string
   game_details?: Prisma.XOR<Prisma.Game_detailsNullableScalarRelationFilter, Prisma.game_detailsWhereInput> | null
   game_platform?: Prisma.Game_platformListRelationFilter
@@ -255,6 +263,7 @@ export type gamesOrderByWithRelationInput = {
   genre?: Prisma.SortOrder
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   game_details?: Prisma.game_detailsOrderByWithRelationInput
   game_platform?: Prisma.game_platformOrderByRelationAggregateInput
@@ -274,6 +283,7 @@ export type gamesWhereUniqueInput = Prisma.AtLeast<{
   genre?: Prisma.StringFilter<"games"> | string
   cover_image_url?: Prisma.StringFilter<"games"> | string
   game_type?: Prisma.StringFilter<"games"> | string
+  is_published?: Prisma.BoolFilter<"games"> | boolean
   created_at?: Prisma.DateTimeFilter<"games"> | Date | string
   game_details?: Prisma.XOR<Prisma.Game_detailsNullableScalarRelationFilter, Prisma.game_detailsWhereInput> | null
   game_platform?: Prisma.Game_platformListRelationFilter
@@ -290,6 +300,7 @@ export type gamesOrderByWithAggregationInput = {
   genre?: Prisma.SortOrder
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   _count?: Prisma.gamesCountOrderByAggregateInput
   _avg?: Prisma.gamesAvgOrderByAggregateInput
@@ -309,6 +320,7 @@ export type gamesScalarWhereWithAggregatesInput = {
   genre?: Prisma.StringWithAggregatesFilter<"games"> | string
   cover_image_url?: Prisma.StringWithAggregatesFilter<"games"> | string
   game_type?: Prisma.StringWithAggregatesFilter<"games"> | string
+  is_published?: Prisma.BoolWithAggregatesFilter<"games"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"games"> | Date | string
 }
 
@@ -320,6 +332,7 @@ export type gamesCreateInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
   game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
@@ -336,6 +349,7 @@ export type gamesUncheckedCreateInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
   game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
@@ -352,6 +366,7 @@ export type gamesUpdateInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
   game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
@@ -368,6 +383,7 @@ export type gamesUncheckedUpdateInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
   game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
@@ -384,6 +400,7 @@ export type gamesCreateManyInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
 }
 
@@ -395,6 +412,7 @@ export type gamesUpdateManyMutationInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -406,6 +424,7 @@ export type gamesUncheckedUpdateManyInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -422,6 +441,7 @@ export type gamesCountOrderByAggregateInput = {
   genre?: Prisma.SortOrder
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -437,6 +457,7 @@ export type gamesMaxOrderByAggregateInput = {
   genre?: Prisma.SortOrder
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -448,6 +469,7 @@ export type gamesMinOrderByAggregateInput = {
   genre?: Prisma.SortOrder
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
+  is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -475,6 +497,10 @@ export type BigIntFieldUpdateOperationsInput = {
   decrement?: bigint | number
   multiply?: bigint | number
   divide?: bigint | number
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -545,6 +571,7 @@ export type gamesCreateWithoutGame_platformInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
   reviews?: Prisma.reviewsCreateNestedManyWithoutGamesInput
@@ -560,6 +587,7 @@ export type gamesUncheckedCreateWithoutGame_platformInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutGamesInput
@@ -591,6 +619,7 @@ export type gamesUpdateWithoutGame_platformInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
   reviews?: Prisma.reviewsUpdateManyWithoutGamesNestedInput
@@ -606,6 +635,7 @@ export type gamesUncheckedUpdateWithoutGame_platformInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutGamesNestedInput
@@ -621,6 +651,7 @@ export type gamesCreateWithoutGame_detailsInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
   reviews?: Prisma.reviewsCreateNestedManyWithoutGamesInput
@@ -636,6 +667,7 @@ export type gamesUncheckedCreateWithoutGame_detailsInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
   reviews?: Prisma.reviewsUncheckedCreateNestedManyWithoutGamesInput
@@ -667,6 +699,7 @@ export type gamesUpdateWithoutGame_detailsInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
   reviews?: Prisma.reviewsUpdateManyWithoutGamesNestedInput
@@ -682,6 +715,7 @@ export type gamesUncheckedUpdateWithoutGame_detailsInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
   reviews?: Prisma.reviewsUncheckedUpdateManyWithoutGamesNestedInput
@@ -697,6 +731,7 @@ export type gamesCreateWithoutReviewsInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
   game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
@@ -712,6 +747,7 @@ export type gamesUncheckedCreateWithoutReviewsInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
   game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
@@ -743,6 +779,7 @@ export type gamesUpdateWithoutReviewsInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
   game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
@@ -758,6 +795,7 @@ export type gamesUncheckedUpdateWithoutReviewsInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
   game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
@@ -773,6 +811,7 @@ export type gamesCreateWithoutTopicsInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
   game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
@@ -788,6 +827,7 @@ export type gamesUncheckedCreateWithoutTopicsInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
   game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
@@ -819,6 +859,7 @@ export type gamesUpdateWithoutTopicsInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
   game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
@@ -834,6 +875,7 @@ export type gamesUncheckedUpdateWithoutTopicsInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
   game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
@@ -849,6 +891,7 @@ export type gamesCreateWithoutUser_game_statusesInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
   game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
@@ -864,6 +907,7 @@ export type gamesUncheckedCreateWithoutUser_game_statusesInput = {
   genre: string
   cover_image_url: string
   game_type: string
+  is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
   game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
@@ -895,6 +939,7 @@ export type gamesUpdateWithoutUser_game_statusesInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
   game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
@@ -910,6 +955,7 @@ export type gamesUncheckedUpdateWithoutUser_game_statusesInput = {
   genre?: Prisma.StringFieldUpdateOperationsInput | string
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
+  is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
   game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
@@ -983,6 +1029,7 @@ export type gamesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   genre?: boolean
   cover_image_url?: boolean
   game_type?: boolean
+  is_published?: boolean
   created_at?: boolean
   game_details?: boolean | Prisma.games$game_detailsArgs<ExtArgs>
   game_platform?: boolean | Prisma.games$game_platformArgs<ExtArgs>
@@ -1000,6 +1047,7 @@ export type gamesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   genre?: boolean
   cover_image_url?: boolean
   game_type?: boolean
+  is_published?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["games"]>
 
@@ -1011,6 +1059,7 @@ export type gamesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   genre?: boolean
   cover_image_url?: boolean
   game_type?: boolean
+  is_published?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["games"]>
 
@@ -1022,10 +1071,11 @@ export type gamesSelectScalar = {
   genre?: boolean
   cover_image_url?: boolean
   game_type?: boolean
+  is_published?: boolean
   created_at?: boolean
 }
 
-export type gamesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "publisher" | "release_year" | "genre" | "cover_image_url" | "game_type" | "created_at", ExtArgs["result"]["games"]>
+export type gamesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "publisher" | "release_year" | "genre" | "cover_image_url" | "game_type" | "is_published" | "created_at", ExtArgs["result"]["games"]>
 export type gamesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   game_details?: boolean | Prisma.games$game_detailsArgs<ExtArgs>
   game_platform?: boolean | Prisma.games$game_platformArgs<ExtArgs>
@@ -1054,6 +1104,7 @@ export type $gamesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     genre: string
     cover_image_url: string
     game_type: string
+    is_published: boolean
     created_at: Date
   }, ExtArgs["result"]["games"]>
   composites: {}
@@ -1490,6 +1541,7 @@ export interface gamesFieldRefs {
   readonly genre: Prisma.FieldRef<"games", 'String'>
   readonly cover_image_url: Prisma.FieldRef<"games", 'String'>
   readonly game_type: Prisma.FieldRef<"games", 'String'>
+  readonly is_published: Prisma.FieldRef<"games", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"games", 'DateTime'>
 }
     

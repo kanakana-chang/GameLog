@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api-error";
 import { requireSessionUser } from "@/lib/auth";
-import { isUuid } from "@/lib/games";
+import { requirePublishedGame } from "@/lib/games";
 import {
   parseGameStatusInput,
   upsertUserGameStatus,
 } from "@/lib/game-status";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +16,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const user = await requireSessionUser();
-    if (!isUuid(id)) throw new Error("ゲームが見つかりません");
-
-    const game = await prisma.games.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-    if (!game) throw new Error("ゲームが見つかりません");
+    await requirePublishedGame(id);
 
     const status = parseGameStatusInput(await request.json());
     await upsertUserGameStatus({

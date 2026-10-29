@@ -1,6 +1,6 @@
 import type { GameDetailData, Post } from "@/components/game-detail/data";
 import type { ThreadReply } from "@/components/board-thread/data";
-import { isUuid } from "@/lib/games";
+import { isUuid, requirePublishedGame } from "@/lib/games";
 import { getLikedPostIds } from "@/lib/likes";
 import { generatePostTitle } from "@/lib/post-title";
 import { prisma } from "@/lib/prisma";
@@ -258,14 +258,14 @@ export async function getBoardThread(
   const topic = await prisma.topics.findFirst({
     where: { id: topicId, game_id: gameId },
     include: {
-      games: { select: { title: true } },
+      games: { select: { title: true, is_published: true } },
       posts: {
         include: { profiles: true },
         orderBy: { created_at: "asc" },
       },
     },
   });
-  if (!topic) return null;
+  if (!topic || !topic.games.is_published) return null;
 
   const first = topic.posts[0];
   if (hidden.topics.has(topic.id) || (first && hidden.posts.has(first.id))) {
@@ -296,8 +296,7 @@ export async function createGameTopic(
   if (!userId) throw new Error("ログインしてください");
   if (!isUuid(gameId)) throw new Error("ゲームが見つかりません");
 
-  const game = await prisma.games.findUnique({ where: { id: gameId } });
-  if (!game) throw new Error("ゲームが見つかりません");
+  const game = await requirePublishedGame(gameId);
 
   const category = (input.tags[0] ?? FALLBACK_CATEGORY).slice(0, 20);
   const title =
@@ -346,11 +345,13 @@ export async function createTopicReply(
   const topic = await prisma.topics.findFirst({
     where: { id: topicId, game_id: gameId },
     include: {
-      games: { select: { title: true } },
+      games: { select: { title: true, is_published: true } },
       _count: { select: { posts: true } },
     },
   });
-  if (!topic) throw new Error("スレッドが見つかりません");
+  if (!topic || !topic.games.is_published) {
+    throw new Error("スレッドが見つかりません");
+  }
 
   const title = await generatePostTitle({
     kind: "reply",

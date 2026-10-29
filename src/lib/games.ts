@@ -138,8 +138,21 @@ function toSearchGame(game: GameWithPlatforms): SearchGame {
   return applyDetailsToSearchGame(base, detailsFromRow(game));
 }
 
+const PUBLIC_GAME_WHERE = { is_published: true } as const;
+
+export async function requirePublishedGame(id: string) {
+  if (!UUID_RE.test(id)) throw new Error("ゲームが見つかりません");
+  const game = await prisma.games.findFirst({
+    where: { id, ...PUBLIC_GAME_WHERE },
+    select: { id: true, title: true },
+  });
+  if (!game) throw new Error("ゲームが見つかりません");
+  return game;
+}
+
 async function loadLatestGames(limit: number): Promise<SearchGame[]> {
   const rows = await prisma.games.findMany({
+    where: PUBLIC_GAME_WHERE,
     include: gameWithPlatforms,
     orderBy: { created_at: "desc" },
     take: limit,
@@ -174,6 +187,7 @@ export function getLatestGames(limit = 10): Promise<SearchGame[]> {
 
 async function loadSearchGamesFromDb(): Promise<SearchGame[]> {
   const games = await prisma.games.findMany({
+    where: PUBLIC_GAME_WHERE,
     include: gameWithPlatforms,
     orderBy: { created_at: "desc" },
   });
@@ -188,8 +202,8 @@ export function getSearchGamesFromDb(): Promise<SearchGame[]> {
 }
 
 async function loadSearchGameById(id: string): Promise<SearchGame | undefined> {
-  const game = await prisma.games.findUnique({
-    where: { id },
+  const game = await prisma.games.findFirst({
+    where: { id, ...PUBLIC_GAME_WHERE },
     include: gameWithPlatforms,
   });
   return game ? toSearchGame(game) : undefined;
@@ -204,6 +218,8 @@ export function getSearchGameById(id: string): Promise<SearchGame | undefined> {
   )();
 }
 
+export type AdminGameStatus = AdminGame["status"];
+
 export type AdminGameInput = {
   title: string;
   developer: string;
@@ -213,7 +229,12 @@ export type AdminGameInput = {
   freeToPlay: boolean;
   hasCurrency: boolean;
   coverUrl: string;
+  status: AdminGameStatus;
 };
+
+function parseGameStatus(value: unknown): AdminGameStatus {
+  return value === "archived" ? "archived" : "active";
+}
 
 export function parseAdminGameInput(body: unknown): AdminGameInput {
   if (!body || typeof body !== "object") {
@@ -231,7 +252,27 @@ export function parseAdminGameInput(body: unknown): AdminGameInput {
     freeToPlay: record.freeToPlay === true,
     hasCurrency: record.hasCurrency === true,
     coverUrl: typeof record.coverUrl === "string" ? record.coverUrl : "",
+    status: parseGameStatus(record.status),
   };
+}
+
+export function parseAdminGamesStatusInput(body: unknown): {
+  ids: string[];
+  status: AdminGameStatus;
+} {
+  if (!body || typeof body !== "object") {
+    throw new Error("送信内容が正しくありません");
+  }
+  const record = body as Record<string, unknown>;
+  const ids = Array.isArray(record.ids)
+    ? record.ids.filter(
+        (item): item is string => typeof item === "string" && UUID_RE.test(item),
+      )
+    : [];
+  if (ids.length === 0) {
+    throw new Error("ゲームを選択してください");
+  }
+  return { ids: [...new Set(ids)], status: parseGameStatus(record.status) };
 }
 
 function assertGameId(id: string) {
@@ -331,7 +372,7 @@ function toAdminGame(game: GameWithPlatforms): AdminGame {
     hasCurrency: hasGacha || isFree,
     avgPlaytime: details?.avgPlayTime ?? 0,
     coverUrl: coverImage(game.cover_image_url),
-    status: "active",
+    status: game.is_published ? "active" : "archived",
     addedAt: game.created_at.toISOString().slice(0, 10),
   };
 }
@@ -402,6 +443,7 @@ function gameWriteData(input: AdminGameInput, normalized: NormalizedAdminGame) {
     genre: normalized.genre,
     cover_image_url: normalized.coverUrl,
     game_type: gameTypeFromInput({ ...input, platform: normalized.platforms }),
+    is_published: input.status !== "archived",
   };
 }
 
@@ -444,6 +486,18 @@ export async function updateAdminGame(
   });
   refreshGamesCache();
   return toAdminGame(updated);
+}
+
+export async function updateAdminGamesStatus(
+  ids: string[],
+  status: AdminGameStatus,
+): Promise<number> {
+  const result = await prisma.games.updateMany({
+    where: { id: { in: ids } },
+    data: { is_published: status !== "archived" },
+  });
+  if (result.count > 0) refreshGamesCache();
+  return result.count;
 }
 
 export async function deleteAdminGame(id: string): Promise<void> {
