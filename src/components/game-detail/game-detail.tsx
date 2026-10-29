@@ -1439,14 +1439,14 @@ function PlayTimeCard({
       </div>
       <div className="flex items-end gap-1.5">
         <div className="font-display text-5xl leading-none font-black text-detail-green">
-          {detail.avgPlayTime}
+          {detail.avgPlayTime > 0 ? detail.avgPlayTime : "—"}
         </div>
         <div className="mb-1 font-mono text-base text-detail-dim">時間</div>
       </div>
       <div className="text-[11px] text-detail-muted">
-        {detail.detailsGenerated
-          ? "公開情報からの推定プレイ時間"
-          : `${detail.totalReviews.toLocaleString()} 件より`}
+        {detail.avgPlayTime > 0
+          ? "ユーザーが記録したプレイ時間の平均"
+          : "まだプレイ時間の記録がありません"}
       </div>
       <div className="flex flex-col gap-2 rounded-[10px] bg-[#f8f9fc] px-3.5 py-3">
         <div className="mb-0.5 font-display text-xs font-bold text-detail-text">
@@ -1518,21 +1518,34 @@ function MyLog({
             {
               icon: "⏱",
               label: "総プレイ時間",
-              val: `${detail.myRecord.playTime}h`,
-              sub: "本作の累計",
+              val:
+                detail.myRecord.playTime > 0
+                  ? `${detail.myRecord.playTime}h`
+                  : "—",
+              sub: "あなたの累計",
               color: "#ff6b35",
             },
             {
               icon: "📅",
               label: "プレイ回数",
-              val: `${detail.myRecord.sessions}回`,
+              val:
+                detail.myRecord.sessions > 0
+                  ? `${detail.myRecord.sessions}回`
+                  : "—",
               sub: "セッション数",
               color: "#10b981",
             },
             {
               icon: "📊",
               label: "平均との差",
-              val: `+${detail.myRecord.playTime - detail.avgPlayTime}h`,
+              val:
+                detail.myRecord.playTime > 0 && detail.avgPlayTime > 0
+                  ? `${detail.myRecord.playTime - detail.avgPlayTime > 0 ? "+" : ""}${
+                      Math.round(
+                        (detail.myRecord.playTime - detail.avgPlayTime) * 10,
+                      ) / 10
+                    }h`
+                  : "—",
               sub: "全ユーザー比",
               color: "#8b5cf6",
             },

@@ -187,14 +187,76 @@ async function reviewRatingsByGameIds(ids: string[]) {
   );
 }
 
+function playHoursFromComment(comment: string | null) {
+  const match = comment?.match(/^<!--gl:(.*?)-->/);
+  if (!match) return 0;
+  try {
+    const meta = JSON.parse(match[1]) as { h?: unknown };
+    const hours = Number(meta.h);
+    return Number.isFinite(hours) && hours > 0 ? hours : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function roundPlayHours(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.round(value * 10) / 10;
+}
+
+async function userPlaytimesByGameIds(ids: string[]) {
+  const gameIds = ids.filter((id) => UUID_RE.test(id));
+  if (!gameIds.length) return new Map<string, number>();
+
+  const [statusRows, reviewRows] = await Promise.all([
+    prisma.user_game_statuses.findMany({
+      where: { game_id: { in: gameIds } },
+      select: { game_id: true, user_id: true, play_time_hours: true },
+    }),
+    prisma.reviews.findMany({
+      where: { game_id: { in: gameIds } },
+      select: { game_id: true, user_id: true, comment: true },
+    }),
+  ]);
+
+  const hoursByGameUser = new Map<string, Map<string, number>>();
+  const setHours = (gameId: string, userId: string | null, hours: number) => {
+    if (!userId || hours <= 0) return;
+    const users = hoursByGameUser.get(gameId) ?? new Map<string, number>();
+    const current = users.get(userId) ?? 0;
+    if (hours > current) users.set(userId, hours);
+    hoursByGameUser.set(gameId, users);
+  };
+
+  for (const row of statusRows) {
+    setHours(row.game_id, row.user_id, Number(row.play_time_hours));
+  }
+  for (const row of reviewRows) {
+    setHours(row.game_id, row.user_id, playHoursFromComment(row.comment));
+  }
+
+  return new Map(
+    [...hoursByGameUser.entries()].map(([gameId, users]) => {
+      const hours = [...users.values()];
+      const avg = hours.reduce((sum, value) => sum + value, 0) / hours.length;
+      return [gameId, roundPlayHours(avg)] as const;
+    }),
+  );
+}
+
 async function withReviewRatings(games: SearchGame[]): Promise<SearchGame[]> {
-  const stats = await reviewRatingsByGameIds(games.map((game) => String(game.id)));
+  const ids = games.map((game) => String(game.id));
+  const [stats, playtimes] = await Promise.all([
+    reviewRatingsByGameIds(ids),
+    userPlaytimesByGameIds(ids),
+  ]);
   return games.map((game) => {
     const row = stats.get(String(game.id));
     return {
       ...game,
       rating: row?.rating ?? 0,
       ratingCount: row?.count ?? 0,
+      avgPlaytime: playtimes.get(String(game.id)) ?? 0,
     };
   });
 }
@@ -212,7 +274,7 @@ async function loadLatestGames(limit: number): Promise<SearchGame[]> {
 export function getLatestGames(limit = 10): Promise<SearchGame[]> {
   return unstable_cache(
     () => loadLatestGames(limit),
-    ["latest-games-v5", String(limit)],
+    ["latest-games-v6", String(limit)],
     { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
   )();
 }
@@ -244,7 +306,7 @@ async function loadSearchGamesFromDb(): Promise<SearchGame[]> {
 }
 
 export function getSearchGamesFromDb(): Promise<SearchGame[]> {
-  return unstable_cache(loadSearchGamesFromDb, ["search-games-v5"], {
+  return unstable_cache(loadSearchGamesFromDb, ["search-games-v6"], {
     revalidate: GAMES_CACHE_SECONDS,
     tags: [GAMES_CACHE_TAG],
   })();
@@ -264,7 +326,7 @@ export function getSearchGameById(id: string): Promise<SearchGame | undefined> {
   if (!UUID_RE.test(id)) return Promise.resolve(undefined);
   return unstable_cache(
     () => loadSearchGameById(id),
-    ["search-game-v5", id],
+    ["search-game-v6", id],
     { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
   )();
 }

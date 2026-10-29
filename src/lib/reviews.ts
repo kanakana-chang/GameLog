@@ -277,11 +277,19 @@ export function attachGameReviews(
   if (!reviews.length) return detail;
   const scores = reviews.map((item) => item.score);
   const avg = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const hours = reviews
+    .map((item) => item.playTime)
+    .filter((value) => Number.isFinite(value) && value > 0);
+  const avgPlayTime = hours.length
+    ? Math.round((hours.reduce((sum, value) => sum + value, 0) / hours.length) * 10) /
+      10
+    : 0;
   return {
     ...detail,
     reviews,
     totalReviews: reviews.length,
     avgScore: Math.round(avg * 10) / 10,
+    avgPlayTime,
     scoreDist: scoreDist(scores),
   };
 }

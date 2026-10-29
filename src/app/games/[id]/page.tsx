@@ -48,7 +48,7 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
   if (!game) notFound();
 
   const user = await getSessionUser();
-  const [assembled, reviews, topics, userStatus] = await Promise.all([
+  const [assembled, reviews, topics, userRecord] = await Promise.all([
     ensureGameDetails(game),
     getGameReviews(id, user?.id),
     getGameTopics(id),
@@ -64,5 +64,20 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
     ),
     topics,
   );
-  return <GameDetail detail={{ ...detail, userStatus }} />;
+  const reviewHours =
+    reviews.find((item) => item.accountId === user?.id)?.playTime ?? 0;
+  const playTime = Math.max(userRecord?.playTimeHours ?? 0, reviewHours);
+  return (
+    <GameDetail
+      detail={{
+        ...detail,
+        userStatus: userRecord?.status ?? null,
+        myRecord: {
+          ...detail.myRecord,
+          playTime,
+          sessions: playTime > 0 ? Math.max(1, Math.round(playTime / 4)) : 0,
+        },
+      }}
+    />
+  );
 }

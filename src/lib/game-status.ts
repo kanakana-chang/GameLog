@@ -31,13 +31,26 @@ export function shelfLabel(stored: string) {
   return "積みゲー" as const;
 }
 
-export async function getUserGameStatus(userId: string, gameId: string) {
+export type UserGameRecord = {
+  status: DetailStatusKey | null;
+  playTimeHours: number;
+};
+
+export async function getUserGameStatus(
+  userId: string,
+  gameId: string,
+): Promise<UserGameRecord | null> {
   if (!isUuid(userId) || !isUuid(gameId)) return null;
   const row = await prisma.user_game_statuses.findFirst({
     where: { user_id: userId, game_id: gameId },
-    select: { status: true },
+    select: { status: true, play_time_hours: true },
   });
-  return row ? toDetailStatusKey(row.status) : null;
+  if (!row) return null;
+  const hours = Number(row.play_time_hours);
+  return {
+    status: toDetailStatusKey(row.status),
+    playTimeHours: Number.isFinite(hours) && hours > 0 ? hours : 0,
+  };
 }
 
 export async function upsertUserGameStatus(options: {

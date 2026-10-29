@@ -509,6 +509,13 @@ export function getGameDetailFromSearch(
       posts: [],
       totalReviews: 0,
       scoreDist: [],
+      myRecord: {
+        ...base.myRecord,
+        playTime: 0,
+        sessions: 0,
+        screenshotCount: 0,
+        achievements: [],
+      },
     };
   }
   return base;
@@ -535,7 +542,6 @@ export function applyGeneratedDetails(
       monthly: generated.monthly,
       ceiling: generated.ceiling,
     },
-    avgPlayTime: generated.avgPlayTime,
     f2pScore: generated.f2pScore,
     axes: [
       { key: "graphic", label: "グラフィック", value: generated.graphicScore },

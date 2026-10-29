@@ -93,7 +93,7 @@ export function GameCardGrid({ game }: { game: SearchGame }) {
           <div className="flex items-center gap-1">
             <ClockIcon size={11} />
             <span className="text-[11px] text-search-dim">
-              {game.avgPlaytime}h~
+              {game.avgPlaytime > 0 ? `${game.avgPlaytime}h~` : "—"}
             </span>
           </div>
         </div>
@@ -193,7 +193,7 @@ export function GameCardList({ game }: { game: SearchGame }) {
           <div className="mt-1 flex items-center gap-1">
             <ClockIcon size={12} />
             <span className="text-[11px] text-search-muted">
-              {game.avgPlaytime}時間~
+              {game.avgPlaytime > 0 ? `${game.avgPlaytime}時間~` : "—"}
             </span>
           </div>
           <span
