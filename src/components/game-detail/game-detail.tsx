@@ -111,7 +111,7 @@ function KinkBadge({ kink }: { kink: Kink }) {
 }
 
 function StarRow({ score }: { score: number }) {
-  const filled = Math.round(score / 2);
+  const filled = Math.round(score);
   return (
     <div className="flex gap-px">
       {[1, 2, 3, 4, 5].map((i) => (
@@ -250,11 +250,11 @@ function ReviewCard({
   const LIMIT = 130;
   const long = r.body.length > LIMIT;
   const sc =
-    r.score >= 8.5
+    r.score >= 4.3
       ? "#ff6b35"
-      : r.score >= 7
+      : r.score >= 3.5
         ? "#10b981"
-        : r.score >= 5
+        : r.score >= 2.5
           ? "#f59e0b"
           : "#ef4444";
 
@@ -312,7 +312,7 @@ function ReviewCard({
             >
               {r.score.toFixed(1)}
             </div>
-            <div className="font-mono text-[9px] text-detail-dim">/10</div>
+            <div className="font-mono text-[9px] text-detail-dim">/5</div>
           </div>
           <DotMenu onReport={onReport} />
         </div>
@@ -989,7 +989,10 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
             <div className="mb-3 text-xs text-detail-muted">{detail.developer}</div>
             <div className="mb-4 grid grid-cols-[repeat(auto-fill,minmax(118px,1fr))] gap-[7px]">
               {[
-                { l: "対応OS", v: detail.platforms.join(" / ") },
+                {
+                  l: "対応OS",
+                  v: detail.platforms.length ? detail.platforms.join(" / ") : "—",
+                },
                 { l: "価格", v: detail.priceLabel },
                 { l: "発売日", v: detail.releaseDate },
                 { l: "年齢", v: detail.ageRating },
@@ -1338,14 +1341,12 @@ function ScoreCard({
       </div>
       <div className="flex items-end gap-1.5">
         <div className="font-display text-[56px] leading-none font-black text-detail-accent">
-          {detail.avgScore}
+          {detail.avgScore.toFixed(1)}
         </div>
-        <div className="mb-[5px] font-mono text-sm text-detail-dim">/10</div>
+        <div className="mb-[5px] font-mono text-sm text-detail-dim">/5</div>
       </div>
       <div className="text-[11px] text-detail-muted">
-        {detail.detailsGenerated
-          ? "公開情報からの推定"
-          : `${detail.totalReviews.toLocaleString()} 件のレビュー`}
+        {detail.totalReviews.toLocaleString()} 件のレビュー
       </div>
       {detail.scoreDist.length ? (
         <div className="flex flex-col gap-1">

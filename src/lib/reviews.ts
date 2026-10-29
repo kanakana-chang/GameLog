@@ -1,5 +1,6 @@
 import type { GameDetailData, Kink, Review } from "@/components/game-detail/data";
-import { isUuid, requirePublishedGame } from "@/lib/games";
+import { isUuid, refreshGamesCache, requirePublishedGame } from "@/lib/games";
+import { toFivePointScore } from "@/lib/score";
 import { getLikedReviewIds } from "@/lib/likes";
 import { upsertUserGameStatus, storedStatusFromReview } from "@/lib/game-status";
 import { generatePostTitle } from "@/lib/post-title";
@@ -220,7 +221,7 @@ function toDetailReview(
   likedByMe = false,
 ): Review {
   const meta = decodeMeta(row.comment);
-  const score = Number(row.rating_overall);
+  const score = toFivePointScore(Number(row.rating_overall));
   const f2pScore = meta.f2p ?? row.param_5;
   const text = meta.text.trim();
   const author =
@@ -241,7 +242,7 @@ function toDetailReview(
     date: row.created_at.toISOString().slice(0, 10),
     f2p: f2pScore >= 6,
     kink: kinkFromF2p(f2pScore),
-    title: meta.title || titleFromComment(text, Math.round(score / 2)),
+    title: meta.title || titleFromComment(text, Math.round(score)),
     body: row.is_spoiler ? "このレビューにはネタバレが含まれています。" : text,
     spoilerBody: row.is_spoiler ? text : "",
     helpful: row._count.review_likes,
@@ -256,18 +257,15 @@ function toDetailReview(
 
 function scoreDist(scores: number[]) {
   const buckets = [
-    { label: "10", count: 0 },
-    { label: "8-9", count: 0 },
-    { label: "6-7", count: 0 },
-    { label: "4-5", count: 0 },
-    { label: "1-3", count: 0 },
+    { label: "5", count: 0 },
+    { label: "4", count: 0 },
+    { label: "3", count: 0 },
+    { label: "2", count: 0 },
+    { label: "1", count: 0 },
   ];
   for (const score of scores) {
-    if (score >= 9.5) buckets[0].count += 1;
-    else if (score >= 8) buckets[1].count += 1;
-    else if (score >= 6) buckets[2].count += 1;
-    else if (score >= 4) buckets[3].count += 1;
-    else buckets[4].count += 1;
+    const star = Math.min(5, Math.max(1, Math.round(score)));
+    buckets[5 - star].count += 1;
   }
   return buckets;
 }
@@ -367,6 +365,7 @@ export async function createGameReview(
     status: storedStatusFromReview(input.status),
     playTimeHours: input.playtimeHours,
   });
+  refreshGamesCache();
 
   return toDetailReview(created, input.platform, false);
 }

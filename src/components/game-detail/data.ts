@@ -9,11 +9,11 @@ export const STATUSES = [
 ] as const;
 
 export const SCORE_DIST = [
-  { label: "10", count: 432 },
-  { label: "8-9", count: 1240 },
-  { label: "6-7", count: 890 },
-  { label: "4-5", count: 502 },
-  { label: "1-3", count: 177 },
+  { label: "5", count: 432 },
+  { label: "4", count: 1240 },
+  { label: "3", count: 890 },
+  { label: "2", count: 502 },
+  { label: "1", count: 177 },
 ];
 
 export const REPORT_REASONS = [
@@ -144,7 +144,7 @@ const MH_NOW_REVIEWS: Review[] = [
     avBg: C.accentBg,
     avC: C.accent,
     platform: "iOS",
-    score: 9.0,
+    score: 4.5,
     playTime: 420,
     date: "2024-11-10",
     f2p: true,
@@ -163,7 +163,7 @@ const MH_NOW_REVIEWS: Review[] = [
     avBg: C.greenBg,
     avC: C.green,
     platform: "Android",
-    score: 7.5,
+    score: 3.8,
     playTime: 200,
     date: "2024-10-22",
     f2p: true,
@@ -181,7 +181,7 @@ const MH_NOW_REVIEWS: Review[] = [
     avBg: C.purpleBg,
     avC: C.purple,
     platform: "iOS",
-    score: 8.5,
+    score: 4.3,
     playTime: 550,
     date: "2024-09-30",
     f2p: false,
@@ -200,7 +200,7 @@ const MH_NOW_REVIEWS: Review[] = [
     avBg: C.blueBg,
     avC: C.blue,
     platform: "Android",
-    score: 6.5,
+    score: 3.3,
     playTime: 80,
     date: "2024-09-05",
     f2p: true,
@@ -298,7 +298,7 @@ function genericReviews(game: SearchGame): Review[] {
       avBg: C.accentBg,
       avC: C.accent,
       platform,
-      score: clamp(game.rating * 2 + 0.2, 5, 10),
+      score: clamp(game.rating + 0.1, 1, 5),
       playTime: Math.round(game.avgPlaytime * 0.9),
       date: "2024-11-10",
       f2p: true,
@@ -316,7 +316,7 @@ function genericReviews(game: SearchGame): Review[] {
       avBg: C.greenBg,
       avC: C.green,
       platform: alt,
-      score: clamp(game.rating * 2 - 0.5, 5, 9.5),
+      score: clamp(game.rating - 0.2, 1, 5),
       playTime: Math.round(game.avgPlaytime * 0.45),
       date: "2024-10-22",
       f2p: true,
@@ -338,7 +338,7 @@ function genericReviews(game: SearchGame): Review[] {
       avBg: C.purpleBg,
       avC: C.purple,
       platform,
-      score: clamp(game.rating * 2 + 0.1, 6, 10),
+      score: clamp(game.rating + 0.05, 1, 5),
       playTime: Math.round(game.avgPlaytime * 1.2),
       date: "2024-09-30",
       f2p: false,
@@ -356,7 +356,7 @@ function genericReviews(game: SearchGame): Review[] {
       avBg: C.blueBg,
       avC: C.blue,
       platform: alt,
-      score: clamp(game.rating * 2 - 1.5, 5, 8),
+      score: clamp(game.rating - 0.7, 1, 5),
       playTime: Math.round(game.avgPlaytime * 0.2),
       date: "2024-09-05",
       f2p: true,
@@ -446,7 +446,7 @@ function buildFromSearch(game: SearchGame): GameDetailData {
   const kinka = game.hasGacha
     ? clamp(40 + game.f2pScore * 8, 30, 90)
     : clamp(62 + game.f2pScore * 7, 50, 98);
-  const avgScore = Math.round(game.rating * 20) / 10;
+  const avgScore = game.rating;
   const playTime = Math.round(game.avgPlaytime * 0.7);
 
   return {
@@ -455,7 +455,10 @@ function buildFromSearch(game: SearchGame): GameDetailData {
     developer: game.developer,
     genre: [game.genre, ...game.tags.filter((tag) => tag !== game.genre)].slice(0, 3),
     platforms: game.platforms,
-    releaseDate: `${game.releaseYear}年`,
+    releaseDate:
+      Number.isInteger(game.releaseYear) && game.releaseYear > 0
+        ? `${game.releaseYear}年`
+        : "—",
     priceLabel: game.isFree ? "基本無料" : `¥${game.price.toLocaleString()}`,
     ageRating: "CERO A（全年齢対象）",
     monetization: {
@@ -515,7 +518,6 @@ export function applyGeneratedDetails(
   detail: GameDetailData,
   generated: GeneratedGameDetails,
 ): GameDetailData {
-  const platforms = detail.platforms.length ? detail.platforms : generated.platforms;
   const tags = generated.tags.filter((tag) => !detail.genre.includes(tag));
 
   return {
@@ -523,9 +525,9 @@ export function applyGeneratedDetails(
     summary: generated.summary,
     detailsGenerated: true,
     sources: generated.sources,
-    platforms,
+    platforms: detail.platforms,
     genre: [...detail.genre, ...tags].slice(0, 4),
-    releaseDate: generated.releaseDate,
+    releaseDate: detail.releaseDate,
     priceLabel: generated.priceLabel,
     ageRating: generated.ageRating,
     monetization: {
@@ -534,7 +536,6 @@ export function applyGeneratedDetails(
       ceiling: generated.ceiling,
     },
     avgPlayTime: generated.avgPlayTime,
-    avgScore: Math.round(generated.avgScore * 10) / 10,
     f2pScore: generated.f2pScore,
     axes: [
       { key: "graphic", label: "グラフィック", value: generated.graphicScore },
@@ -569,7 +570,7 @@ export function getGameDetail(id: string): GameDetailData | null {
     },
     avgPlayTime: 148,
     totalReviews: 3241,
-    avgScore: 8.3,
+    avgScore: 4.2,
     f2pScore: 82,
     axes: [
       { key: "graphic", label: "グラフィック", value: 88 },

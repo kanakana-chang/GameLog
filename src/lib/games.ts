@@ -15,11 +15,12 @@ import {
 } from "@/components/game-search/data";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { toFivePointScore } from "@/lib/score";
 
 const GAMES_CACHE_TAG = "games";
 const GAMES_CACHE_SECONDS = 60;
 
-function refreshGamesCache() {
+export function refreshGamesCache() {
   revalidateTag(GAMES_CACHE_TAG, "max");
 }
 
@@ -108,9 +109,13 @@ function detailsFromRow(
 }
 
 function toSearchGame(game: GameWithPlatforms): SearchGame {
-  const platforms = game.game_platform.map((row) =>
-    mapPlatform(row.platforms.name, row.platforms.slug),
-  );
+  const platforms = [
+    ...new Set(
+      game.game_platform.map((row) =>
+        mapPlatform(row.platforms.name, row.platforms.slug),
+      ),
+    ),
+  ];
   const genre = mapGenre(game.genre);
   const isFree = game.game_type === "f2p" || game.game_type === "free";
   const hasGacha = game.game_type === "gacha" || game.genre.includes("ガチャ");
@@ -150,6 +155,50 @@ export async function requirePublishedGame(id: string) {
   return game;
 }
 
+async function reviewRatingsByGameIds(ids: string[]) {
+  const gameIds = ids.filter((id) => UUID_RE.test(id));
+  if (!gameIds.length) {
+    return new Map<string, { rating: number; count: number }>();
+  }
+
+  const hidden = await prisma.reports.findMany({
+    where: { status: "hidden", target_type: "review" },
+    select: { target_id: true },
+  });
+  const hiddenIds = hidden.map((row) => row.target_id);
+  const aggregates = await prisma.reviews.groupBy({
+    by: ["game_id"],
+    where: {
+      game_id: { in: gameIds },
+      ...(hiddenIds.length ? { id: { notIn: hiddenIds } } : {}),
+    },
+    _avg: { rating_overall: true },
+    _count: { _all: true },
+  });
+
+  return new Map(
+    aggregates.map((row) => [
+      row.game_id,
+      {
+        rating: toFivePointScore(Number(row._avg.rating_overall ?? 0)),
+        count: row._count._all,
+      },
+    ]),
+  );
+}
+
+async function withReviewRatings(games: SearchGame[]): Promise<SearchGame[]> {
+  const stats = await reviewRatingsByGameIds(games.map((game) => String(game.id)));
+  return games.map((game) => {
+    const row = stats.get(String(game.id));
+    return {
+      ...game,
+      rating: row?.rating ?? 0,
+      ratingCount: row?.count ?? 0,
+    };
+  });
+}
+
 async function loadLatestGames(limit: number): Promise<SearchGame[]> {
   const rows = await prisma.games.findMany({
     where: PUBLIC_GAME_WHERE,
@@ -157,13 +206,13 @@ async function loadLatestGames(limit: number): Promise<SearchGame[]> {
     orderBy: { created_at: "desc" },
     take: limit,
   });
-  return rows.map(toSearchGame);
+  return withReviewRatings(rows.map(toSearchGame));
 }
 
 export function getLatestGames(limit = 10): Promise<SearchGame[]> {
   return unstable_cache(
     () => loadLatestGames(limit),
-    ["latest-games", String(limit)],
+    ["latest-games-v5", String(limit)],
     { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
   )();
 }
@@ -191,11 +240,11 @@ async function loadSearchGamesFromDb(): Promise<SearchGame[]> {
     include: gameWithPlatforms,
     orderBy: { created_at: "desc" },
   });
-  return games.map(toSearchGame);
+  return withReviewRatings(games.map(toSearchGame));
 }
 
 export function getSearchGamesFromDb(): Promise<SearchGame[]> {
-  return unstable_cache(loadSearchGamesFromDb, ["search-games"], {
+  return unstable_cache(loadSearchGamesFromDb, ["search-games-v5"], {
     revalidate: GAMES_CACHE_SECONDS,
     tags: [GAMES_CACHE_TAG],
   })();
@@ -206,14 +255,16 @@ async function loadSearchGameById(id: string): Promise<SearchGame | undefined> {
     where: { id, ...PUBLIC_GAME_WHERE },
     include: gameWithPlatforms,
   });
-  return game ? toSearchGame(game) : undefined;
+  if (!game) return undefined;
+  const [withRating] = await withReviewRatings([toSearchGame(game)]);
+  return withRating;
 }
 
 export function getSearchGameById(id: string): Promise<SearchGame | undefined> {
   if (!UUID_RE.test(id)) return Promise.resolve(undefined);
   return unstable_cache(
     () => loadSearchGameById(id),
-    ["search-game", id],
+    ["search-game-v5", id],
     { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
   )();
 }

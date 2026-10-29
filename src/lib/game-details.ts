@@ -474,11 +474,10 @@ export function applyDetailsToSearchGame(
   if (!details) return game;
   return {
     ...game,
-    rating: Math.round((details.avgScore / 2) * 10) / 10,
     avgPlaytime: details.avgPlayTime,
     f2pScore: Math.max(1, Math.round(details.f2pScore / 20)),
     volumeScore: Math.max(1, Math.round(details.volumeScore / 20)),
-    platforms: game.platforms.length ? game.platforms : details.platforms,
+    platforms: game.platforms,
     tags: details.tags.length ? details.tags : game.tags,
     isFree: details.priceLabel.includes("無料") || game.isFree,
     hasGacha:
