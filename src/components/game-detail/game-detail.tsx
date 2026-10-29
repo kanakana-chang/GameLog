@@ -10,13 +10,11 @@ import {
   POST_TAGS,
   REPORT_REASONS,
   STATUSES,
-  type GameAxis,
   type GameDetailData,
   type Kink,
   type Post,
   type Review,
 } from "./data";
-import { EvalRadar } from "./radar-chart";
 
 type TabKey = "reviews" | "board" | "mylog";
 type SortKey = "helpful" | "new" | "score";
@@ -28,68 +26,6 @@ function Tag({ label }: { label: string }) {
     <span className="rounded-full bg-[#f0f2fa] px-[9px] py-0.5 text-[10px] font-semibold text-detail-muted">
       {label}
     </span>
-  );
-}
-
-function F2pBadge({ score }: { score: number }) {
-  const color =
-    score >= 80 ? "#10b981" : score >= 60 ? "#f59e0b" : "#ef4444";
-  const bg = score >= 80 ? "#d1fae5" : score >= 60 ? "#fef3c7" : "#fee2e2";
-  const label =
-    score >= 80 ? "無課金フレンドリー" : score >= 60 ? "一部課金推奨" : "課金圧高め";
-
-  return (
-    <div
-      className="inline-flex items-center gap-2 rounded-lg px-3.5 py-2"
-      style={{ background: bg, border: `1.5px solid ${color}44` }}
-    >
-      <span className="text-lg">{score >= 80 ? "🆓" : score >= 60 ? "💰" : "💸"}</span>
-      <div>
-        <div className="font-display text-xl font-extrabold leading-none" style={{ color }}>
-          {score}
-        </div>
-        <div className="text-[10px] font-semibold" style={{ color }}>
-          {label}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AxisBar({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: number;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span className="flex w-[110px] shrink-0 items-center gap-1 whitespace-nowrap text-[11px] text-detail-muted">
-        {highlight ? <span className="text-[9px] text-detail-green">●</span> : null}
-        {label}
-      </span>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-[3px] bg-[#eef0f8]">
-        <div
-          className="h-full rounded-[3px]"
-          style={{
-            width: `${value}%`,
-            background: highlight
-              ? "linear-gradient(90deg,#10b981,#34d399)"
-              : "linear-gradient(90deg,#ff6b35,#ff9f7a)",
-          }}
-        />
-      </div>
-      <span
-        className={`min-w-[26px] font-mono text-[11px] font-semibold ${
-          highlight ? "text-detail-green" : "text-detail-accent"
-        }`}
-      >
-        {value}
-      </span>
-    </div>
   );
 }
 
@@ -929,13 +865,6 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
         ? b.score - a.score
         : new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
-  const maxDist = Math.max(1, ...detail.scoreDist.map((d) => d.count), 0);
-  const f2pShare = reviews.length
-    ? Math.round(
-        (reviews.filter((r) => r.f2p).length / reviews.length) * 100,
-      )
-    : 0;
-
   return (
     <div className="min-h-full bg-detail-bg font-body">
       <div className="relative h-60 overflow-hidden">
@@ -993,9 +922,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                   l: "対応OS",
                   v: detail.platforms.length ? detail.platforms.join(" / ") : "—",
                 },
-                { l: "価格", v: detail.priceLabel },
                 { l: "発売日", v: detail.releaseDate },
-                { l: "年齢", v: detail.ageRating },
               ].map(({ l, v }) => (
                 <div
                   key={l}
@@ -1007,17 +934,6 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                   <div className="text-[11px] font-semibold text-detail-text">{v}</div>
                 </div>
               ))}
-            </div>
-            <div className="mb-3.5 flex flex-wrap items-center gap-2.5">
-              <F2pBadge score={detail.f2pScore} />
-              <div className="flex flex-col gap-[3px]">
-                <div className="text-[11px] text-detail-muted">
-                  💳 {detail.monetization.monthly}
-                </div>
-                <div className="text-[11px] text-detail-muted">
-                  🎰 {detail.monetization.ceiling}
-                </div>
-              </div>
             </div>
             <div className="flex flex-wrap gap-[7px]">
               {STATUSES.map((s) => {
@@ -1082,10 +998,9 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
           </div>
         ) : null}
 
-        <div className="mt-6 grid grid-cols-1 gap-3 min-[860px]:grid-cols-3">
-          <ScoreCard detail={detail} maxDist={maxDist} />
-          <RadarCard axes={detail.axes} />
-          <PlayTimeCard detail={detail} f2pShare={f2pShare} />
+        <div className="mt-6 grid grid-cols-1 gap-3 min-[860px]:grid-cols-2">
+          <ScoreCard detail={detail} />
+          <PlayTimeCard detail={detail} />
         </div>
 
         <div className="mt-7 flex border-b-2 border-detail-border">
@@ -1327,13 +1242,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
   );
 }
 
-function ScoreCard({
-  detail,
-  maxDist,
-}: {
-  detail: GameDetailData;
-  maxDist: number;
-}) {
+function ScoreCard({ detail }: { detail: GameDetailData }) {
   return (
     <div className="flex flex-col gap-3.5 rounded-[14px] border border-detail-border bg-white px-5 py-[18px] shadow-[0_2px_8px_rgba(30,40,100,0.05)]">
       <div className="font-mono text-[9px] tracking-[0.1em] text-detail-dim uppercase">
@@ -1348,90 +1257,11 @@ function ScoreCard({
       <div className="text-[11px] text-detail-muted">
         {detail.totalReviews.toLocaleString()} 件のレビュー
       </div>
-      {detail.scoreDist.length ? (
-        <div className="flex flex-col gap-1">
-          {detail.scoreDist.map((d) => (
-            <div key={d.label} className="flex items-center gap-[7px]">
-              <span className="w-[26px] shrink-0 text-right font-mono text-[10px] text-detail-muted">
-                {d.label}
-              </span>
-              <div className="h-1.5 flex-1 overflow-hidden rounded-[3px] bg-[#f0f2fa]">
-                <div
-                  className="h-full rounded-[3px] bg-detail-accent opacity-55"
-                  style={{ width: `${(d.count / maxDist) * 100}%` }}
-                />
-              </div>
-              <span className="min-w-7 text-right font-mono text-[10px] text-detail-dim">
-                {d.count}
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      <div className="flex flex-col gap-[7px] border-t border-[#f0f2fa] pt-3">
-        {detail.axes.map((a) => (
-          <AxisBar
-            key={a.key}
-            label={a.label}
-            value={a.value}
-            highlight={a.key === "f2p" || a.key === "kinka"}
-          />
-        ))}
-      </div>
     </div>
   );
 }
 
-function RadarCard({ axes }: { axes: GameAxis[] }) {
-  return (
-    <div className="flex flex-col rounded-[14px] border border-detail-border bg-white px-5 py-[18px] shadow-[0_2px_8px_rgba(30,40,100,0.05)]">
-      <div className="mb-1.5 font-mono text-[9px] tracking-[0.1em] text-detail-dim uppercase">
-        多角評価レーダー
-      </div>
-      <div className="mb-1.5 text-[10px] font-semibold text-detail-green">
-        🟢 緑軸 = 無課金関連
-      </div>
-      <EvalRadar axes={axes} />
-      <div className="mt-1.5 flex flex-col gap-1">
-        {axes.map((a) => (
-          <div
-            key={a.key}
-            className={`flex items-center justify-between rounded-md px-2 py-1 ${
-              a.key === "f2p" || a.key === "kinka" ? "bg-[#f0fdf4]" : "bg-[#f8f9fc]"
-            }`}
-          >
-            <span
-              className={`text-[11px] ${
-                a.key === "f2p" || a.key === "kinka"
-                  ? "text-detail-green"
-                  : "text-detail-muted"
-              }`}
-            >
-              {a.label}
-            </span>
-            <span
-              className={`font-mono text-[11px] font-bold ${
-                a.key === "f2p" || a.key === "kinka"
-                  ? "text-detail-green"
-                  : "text-detail-accent"
-              }`}
-            >
-              {a.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PlayTimeCard({
-  detail,
-  f2pShare,
-}: {
-  detail: GameDetailData;
-  f2pShare: number;
-}) {
+function PlayTimeCard({ detail }: { detail: GameDetailData }) {
   return (
     <div className="flex flex-col gap-3.5 rounded-[14px] border border-detail-border bg-white px-5 py-[18px] shadow-[0_2px_8px_rgba(30,40,100,0.05)]">
       <div className="font-mono text-[9px] tracking-[0.1em] text-detail-dim uppercase">
@@ -1448,31 +1278,6 @@ function PlayTimeCard({
           ? "ユーザーが記録したプレイ時間の平均"
           : "まだプレイ時間の記録がありません"}
       </div>
-      <div className="flex flex-col gap-2 rounded-[10px] bg-[#f8f9fc] px-3.5 py-3">
-        <div className="mb-0.5 font-display text-xs font-bold text-detail-text">
-          💰 課金情報
-        </div>
-        {[
-          { l: "課金モデル", v: detail.monetization.type },
-          { l: "月額パス", v: detail.monetization.monthly },
-          { l: "天井・ガチャ", v: detail.monetization.ceiling },
-        ].map(({ l, v }) => (
-          <div key={l} className="flex justify-between gap-2">
-            <span className="shrink-0 text-[11px] text-detail-dim">{l}</span>
-            <span className="text-right text-[11px] font-medium text-detail-text">
-              {v}
-            </span>
-          </div>
-        ))}
-      </div>
-      {detail.reviews.length ? (
-        <div className="rounded-lg border-l-[3px] border-detail-green bg-detail-green-bg px-3 py-2.5">
-          <div className="text-[11px] font-semibold text-[#065f46]">無課金ユーザーの声</div>
-          <div className="mt-0.5 text-[11px] text-[#047857]">
-            レビューの {f2pShare}% が「無課金でプレイ」と回答
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

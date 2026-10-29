@@ -63,23 +63,6 @@ function asSources(value: unknown): PublicSource[] {
   });
 }
 
-function parseJsonObject(text: string): Record<string, unknown> | null {
-  const trimmed = text
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/\s*```$/, "")
-    .trim();
-  try {
-    const parsed: unknown = JSON.parse(trimmed);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
 function detectGacha(game: SearchGame, extract: string) {
   if (/ガチャあり/.test(extract)) return true;
   if (/ガチャ非搭載|ガチャなし|ガチャは搭載されていない/.test(extract)) {
@@ -243,124 +226,6 @@ function assembleFromPublic(
   };
 }
 
-function buildPrompt(game: SearchGame, publicInfo: PublicGameInfo | null) {
-  const sourceText = publicInfo
-    ? publicInfo.extract.slice(0, 1600)
-    : "公開百科の本文は取得できませんでした。登録データのみを使い、不明な項目は推測しすぎないでください。";
-
-  return `あなたは日本語のゲーム事典編集者です。次の公開情報と登録データだけを根拠に、ゲーム詳細をJSONで返してください。公開情報に無い事実は作らず、不明ならその旨が分かる表現にしてください。架空のユーザーレビューは書かないでください。
-
-公開情報:
-${sourceText}
-
-登録データ:
-- タイトル: ${game.title}
-- パブリッシャー: ${game.developer}
-- 発売年: ${game.releaseYear}
-- ジャンル: ${game.genre}
-- ゲーム種別: ${game.tags.join(", ") || "不明"}
-- 登録プラットフォーム: ${game.platforms.join(", ") || "未登録"}
-
-出力JSONのキー:
-{
-  "summary": "公開情報を3〜5文で整理。遊び方、課金の有無、対象ハードを含める",
-  "priceLabel": "例: 基本無料 / ¥6,480 / 買い切り",
-  "ageRating": "CERO表記。不明なら情報なし",
-  "releaseDate": "できるだけ具体的な発売日。不明なら年のみ",
-  "monetizationType": "課金モデル",
-  "monthly": "月額パス。なければなし",
-  "ceiling": "ガチャ天井の有無",
-  "f2pScore": 0から100の整数。無課金の遊びやすさ,
-  "volumeScore": 0から100の整数,
-  "graphicScore": 0から100の整数,
-  "controlScore": 0から100の整数,
-  "storyScore": 0から100の整数,
-  "kinkaScore": 0から100の整数。高いほど課金圧が低い,
-  "avgPlayTime": 平均プレイ時間の推定（時間、整数）,
-  "avgScore": 0から10の小数1桁,
-  "tags": ["短い日本語タグ"],
-  "platforms": ["Switch2", "iOS", "Android"]
-}`;
-}
-
-async function generateWithGemini(prompt: string) {
-  const key = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!key) return null;
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.1,
-          responseMimeType: "application/json",
-        },
-      }),
-      cache: "no-store",
-    },
-  );
-
-  /*if (!response.ok) {
-    throw new Error(`Gemini request failed: ${response.status}`);
-  }*/
-  if (!response.ok) {
-    const errorText = await response.text();
-    
-    console.error("Gemini request failed", {
-      status: response.status,
-      error: errorText,
-    });
-    
-    throw new Error(`Gemini request failed: ${response.status}`);
-  }
-
-  const data = (await response.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  return text ? parseJsonObject(text) : null;
-}
-
-async function generateWithOpenAI(prompt: string) {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return null;
-
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      temperature: 0.1,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "公開情報だけを根拠に、指定キーのJSONだけを返すゲーム事典編集者。",
-        },
-        { role: "user", content: prompt },
-      ],
-    }),
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(`OpenAI request failed: ${response.status}`);
-  }
-
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const text = data.choices?.[0]?.message?.content;
-  return text ? parseJsonObject(text) : null;
-}
-
 export function isGeneratedGameDetails(
   value: unknown,
 ): value is GeneratedGameDetails {
@@ -383,32 +248,6 @@ async function assembleDetails(
   game: SearchGame,
 ): Promise<{ details: GeneratedGameDetails; model: string }> {
   const publicInfo = await fetchPublicGameInfo(game);
-  const prompt = buildPrompt(game, publicInfo);
-
-  try {
-    const gemini = await generateWithGemini(prompt);
-    if (gemini) {
-      return {
-        details: assembleFromPublic(game, publicInfo, gemini),
-        model: "gemini-3.8-flash",
-      };
-    }
-  } catch (error) {
-    console.error("Gemini game-detail generation failed", error);
-  }
-
-  try {
-    const openai = await generateWithOpenAI(prompt);
-    if (openai) {
-      return {
-        details: assembleFromPublic(game, publicInfo, openai),
-        model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      };
-    }
-  } catch (error) {
-    console.error("OpenAI game-detail generation failed", error);
-  }
-
   return {
     details: assembleFromPublic(game, publicInfo),
     model: publicInfo ? "wikipedia-public-sources" : "registered-public-facts",
