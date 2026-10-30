@@ -1189,7 +1189,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                 } | null;
                 topicTitle =
                   payload?.title?.trim() ||
-                  input.body.replace(/\s+/g, " ").trim().slice(0, 40);
+                  input.body.replace(/\s+/g, " ").trim().slice(0, 20);
               }
               setPosts((prev) => [
                 {

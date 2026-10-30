@@ -2,11 +2,11 @@ import { generateGeminiText } from "@/lib/gemini";
 
 export type PostTitleKind = "review" | "topic" | "reply";
 
-const MAX_TITLE_LENGTH = 60;
+const MAX_TITLE_LENGTH = 20;
 
 export function fallbackPostTitle(body: string, kind: PostTitleKind) {
   const compact = body.replace(/\s+/g, " ").trim();
-  if (compact) return compact.slice(0, 40);
+  if (compact) return compact.slice(0, MAX_TITLE_LENGTH);
   if (kind === "review") return "レビュー";
   if (kind === "reply") return "レス";
   return "新しいトピック";
@@ -43,7 +43,7 @@ ${input.extra ? `補足: ${input.extra}\n` : ""}本文:
 ${input.body.slice(0, 1200)}
 
 条件:
-- 18〜36文字程度
+- 必ず20字以内（全角20文字まで）
 - 投稿の要点が分かる日本語
 - 鉤括弧・番号・「タイトル:」などの接頭辞は付けない
 - タイトル本文だけを返す`,
