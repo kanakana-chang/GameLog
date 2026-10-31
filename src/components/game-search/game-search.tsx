@@ -10,7 +10,6 @@ import {
   type SortKey,
   type ViewMode,
 } from "./data";
-import { RequestModal } from "./request-modal";
 import { SearchSidebar } from "./sidebar";
 import { CloseIcon, FilterIcon, GridIcon, ListIcon } from "./ui";
 
@@ -190,14 +189,6 @@ export function GameSearch({
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowModal(true)}
-              className="text-xs font-medium text-search-label hover:text-search-primary"
-            >
-              掲載リクエスト
-            </button>
-
             <select
               value={sort}
               onChange={(event) => setSort(event.target.value as SortKey)}
@@ -252,8 +243,6 @@ export function GameSearch({
           )}
         </main>
       </div>
-
-      {showModal ? <RequestModal onClose={() => setShowModal(false)} /> : null}
-    </div>
+   </div>
   );
 }
