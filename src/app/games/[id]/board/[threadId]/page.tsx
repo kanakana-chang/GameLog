@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BoardThread } from "@/components/board-thread/board-thread";
-import { getGameDetail, getThread } from "@/components/game-detail/data";
-import { SEARCH_GAMES } from "@/components/game-search/data";
 import { getSessionUser } from "@/lib/auth";
 import { getBoardThread } from "@/lib/board";
 
@@ -14,20 +12,14 @@ export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 export function generateStaticParams() {
-  return SEARCH_GAMES.flatMap((game) => {
-    const detail = getGameDetail(String(game.id));
-    return (detail?.posts ?? []).map((post) => ({
-      id: String(game.id),
-      threadId: String(post.id),
-    }));
-  });
+  return [];
 }
 
 export async function generateMetadata({
   params,
 }: ThreadPageProps): Promise<Metadata> {
   const { id, threadId } = await params;
-  const thread = getThread(id, threadId) ?? (await getBoardThread(id, threadId));
+  const thread = await getBoardThread(id, threadId);
   return {
     title: thread
       ? `${thread.post.title} | ${thread.gameTitle}`
@@ -38,17 +30,6 @@ export async function generateMetadata({
 
 export default async function ThreadPage({ params }: ThreadPageProps) {
   const { id, threadId } = await params;
-  const mock = getThread(id, threadId);
-  if (mock) {
-    return (
-      <BoardThread
-        gameId={mock.gameId}
-        gameTitle={mock.gameTitle}
-        post={mock.post}
-      />
-    );
-  }
-
   const user = await getSessionUser();
   const thread = await getBoardThread(id, threadId, user?.id);
   if (!thread) notFound();
@@ -59,7 +40,6 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
       gameTitle={thread.gameTitle}
       post={thread.post}
       initialReplies={thread.replies}
-      persist
     />
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AdminDashboard } from "@/components/admin-dashboard/admin-dashboard";
-import { INITIAL_GAMES, type AdminReport } from "@/components/admin-dashboard/data";
+import type { AdminGame, AdminReport } from "@/components/admin-dashboard/data";
 import { getSessionUser } from "@/lib/auth";
 import { getAdminGamesFromDb } from "@/lib/games";
 import { listAdminReports } from "@/lib/reports";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  let games = INITIAL_GAMES;
+  let games: AdminGame[] = [];
   let reports: AdminReport[] = [];
   try {
     games = await getAdminGamesFromDb();

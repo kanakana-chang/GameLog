@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { GameSearch } from "@/components/game-search/game-search";
 import {
   DEFAULT_FILTERS,
-  SEARCH_GAMES,
   parseGacha,
   parsePlatforms,
 } from "@/components/game-search/data";
@@ -25,10 +24,9 @@ type GamesPageProps = {
 
 export default async function GamesPage({ searchParams }: GamesPageProps) {
   const params = await searchParams;
-  let games = SEARCH_GAMES;
+  let games = [] as Awaited<ReturnType<typeof getSearchGamesFromDb>>;
   try {
-    const dbGames = await getSearchGamesFromDb();
-    if (dbGames.length > 0) games = dbGames;
+    games = await getSearchGamesFromDb();
   } catch (error) {
     console.error("Failed to load games from database", error);
   }

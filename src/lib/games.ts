@@ -1,12 +1,5 @@
 import type { AdminGame } from "@/components/admin-dashboard/data";
 import {
-  applyDetailsToSearchGame,
-  ensureGameDetails,
-  isAssembledPublicDetails,
-  isGeneratedGameDetails,
-  type GeneratedGameDetails,
-} from "@/lib/game-details";
-import {
   GENRES,
   PLATFORMS,
   type Genre,
@@ -53,7 +46,6 @@ const gameWithPlatforms = {
   game_platform: {
     include: { platforms: true },
   },
-  game_details: true,
 } as const;
 
 type GameWithPlatforms = Awaited<
@@ -100,14 +92,6 @@ function coverImage(url: string) {
   }
 }
 
-function detailsFromRow(
-  game: GameWithPlatforms,
-): GeneratedGameDetails | null {
-  return isGeneratedGameDetails(game.game_details?.payload)
-    ? game.game_details.payload
-    : null;
-}
-
 function toSearchGame(game: GameWithPlatforms): SearchGame {
   const platforms = [
     ...new Set(
@@ -140,7 +124,7 @@ function toSearchGame(game: GameWithPlatforms): SearchGame {
     popular: false,
   };
 
-  return applyDetailsToSearchGame(base, detailsFromRow(game));
+  return base;
 }
 
 const PUBLIC_GAME_WHERE = { is_published: true } as const;
@@ -274,27 +258,10 @@ async function loadLatestGames(limit: number): Promise<SearchGame[]> {
 export function getLatestGames(limit = 10): Promise<SearchGame[]> {
   return unstable_cache(
     () => loadLatestGames(limit),
-    ["latest-games-v6", String(limit)],
+    ["latest-games-v7", String(limit)],
     { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
   )();
 }
-
-/*export async function getSearchGamesFromDb(): Promise<SearchGame[]> {
-  const games = await prisma.games.findMany({
-    include: gameWithPlatforms,
-    orderBy: { created_at: "desc" },
-  });
-
-  return Promise.all(
-    games.map(async (row) => {
-      const game = toSearchGame(row);
-      const stored = detailsFromRow(row);
-      if (isAssembledPublicDetails(stored)) return game;
-      const generated = await ensureGameDetails(game);
-      return applyDetailsToSearchGame(game, generated);
-    }),
-  );
-}*/
 
 async function loadSearchGamesFromDb(): Promise<SearchGame[]> {
   const games = await prisma.games.findMany({
@@ -306,7 +273,7 @@ async function loadSearchGamesFromDb(): Promise<SearchGame[]> {
 }
 
 export function getSearchGamesFromDb(): Promise<SearchGame[]> {
-  return unstable_cache(loadSearchGamesFromDb, ["search-games-v6"], {
+  return unstable_cache(loadSearchGamesFromDb, ["search-games-v7"], {
     revalidate: GAMES_CACHE_SECONDS,
     tags: [GAMES_CACHE_TAG],
   })();
@@ -326,7 +293,7 @@ export function getSearchGameById(id: string): Promise<SearchGame | undefined> {
   if (!UUID_RE.test(id)) return Promise.resolve(undefined);
   return unstable_cache(
     () => loadSearchGameById(id),
-    ["search-game-v6", id],
+    ["search-game-v7", id],
     { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
   )();
 }
@@ -462,17 +429,13 @@ function toAdminGame(game: GameWithPlatforms): AdminGame {
   const platforms = game.game_platform.map((row) =>
     mapPlatform(row.platforms.name, row.platforms.slug),
   );
-  const details = detailsFromRow(game);
-  const isFree = details
-    ? details.priceLabel.includes("無料")
-    : game.game_type === "f2p" ||
-      game.game_type === "free" ||
-      game.game_type === "gacha" ||
-      game.game_type === "mobile";
-  const hasGacha = details
-    ? /ガチャあり/.test(`${details.ceiling}${details.monetizationType}`) ||
-      details.tags.includes("ガチャ")
-    : game.game_type === "gacha" || game.genre.includes("ガチャ");
+  const isFree =
+    game.game_type === "f2p" ||
+    game.game_type === "free" ||
+    game.game_type === "gacha" ||
+    game.game_type === "mobile";
+  const hasGacha =
+    game.game_type === "gacha" || game.genre.includes("ガチャ");
 
   return {
     id: game.id,
@@ -483,7 +446,7 @@ function toAdminGame(game: GameWithPlatforms): AdminGame {
     developer: game.publisher,
     freeToPlay: isFree,
     hasCurrency: hasGacha || isFree,
-    avgPlaytime: details?.avgPlayTime ?? 0,
+    avgPlaytime: 0,
     coverUrl: coverImage(game.cover_image_url),
     status: game.is_published ? "active" : "archived",
     addedAt: game.created_at.toISOString().slice(0, 10),

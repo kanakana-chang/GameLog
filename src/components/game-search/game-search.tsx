@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { GameCardGrid, GameCardList } from "./cards";
 import {
-  SEARCH_GAMES,
   SORT_OPTIONS,
   type SearchFilters,
   type SearchGame,
@@ -16,13 +15,13 @@ import { CloseIcon, FilterIcon, GridIcon, ListIcon } from "./ui";
 type GameSearchProps = {
   initialFilters: SearchFilters;
   initialQuery: string;
-  games?: SearchGame[];
+  games: SearchGame[];
 };
 
 export function GameSearch({
   initialFilters,
   initialQuery,
-  games = SEARCH_GAMES,
+  games,
 }: GameSearchProps) {
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
   const [sort, setSort] = useState<SortKey>("popular");

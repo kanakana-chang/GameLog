@@ -8,7 +8,6 @@ import { UserAvatar } from "@/components/user-avatar";
 import {
   ADMIN_GENRES,
   ADMIN_PLATFORMS,
-  INITIAL_REPORTS,
   PLATFORM_COLORS,
   REASON_COLORS,
   REASON_LABELS,
@@ -1197,7 +1196,7 @@ const NAV_ITEMS: {
 
 export function AdminDashboard({
   initialGames,
-  initialReports = INITIAL_REPORTS,
+  initialReports = [],
 }: {
   initialGames: AdminGame[];
   initialReports?: AdminReport[];

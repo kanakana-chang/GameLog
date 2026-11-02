@@ -18,7 +18,6 @@ import {
 
 type TabKey = "reviews" | "board" | "mylog";
 type SortKey = "helpful" | "new" | "score";
-type LogTab = "time" | "achv" | "shots";
 type ReportTarget = { type: "review" | "post"; id: string | number; title: string };
 
 function Tag({ label }: { label: string }) {
@@ -745,16 +744,12 @@ function Toast({ msg, onEnd }: { msg: string; onEnd: () => void }) {
 export function GameDetail({ detail }: { detail: GameDetailData }) {
   const router = useRouter();
   const { isLoggedIn, user } = useAuth();
-  const persistBoard = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    String(detail.id),
-  );
   const [status, setStatus] = useState<string | null>(detail.userStatus ?? null);
   const [statusBusy, setStatusBusy] = useState(false);
   const [tab, setTab] = useState<TabKey>("reviews");
   const [sort, setSort] = useState<SortKey>("helpful");
   const [f2pOnly, setF2pOnly] = useState(false);
   const [platform, setPlatform] = useState("all");
-  const [logTab, setLogTab] = useState<LogTab>("time");
   const [posts, setPosts] = useState<Post[]>(detail.posts);
   const [reviews, setReviews] = useState<Review[]>(detail.reviews);
   const [likingId, setLikingId] = useState<string | number | null>(null);
@@ -772,13 +767,12 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
 
   async function handlePlayStatus(next: string | null) {
     if (statusBusy) return;
-    if (persistBoard && !isLoggedIn) {
+    if (!isLoggedIn) {
       router.push("/login");
       return;
     }
     const previous = status;
     setStatus(next);
-    if (!persistBoard) return;
 
     setStatusBusy(true);
     try {
@@ -805,24 +799,8 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
 
   async function handleReviewLike(review: Review) {
     if (likingId != null) return;
-    if (persistBoard && !isLoggedIn) {
+    if (!isLoggedIn) {
       router.push("/login");
-      return;
-    }
-    if (!persistBoard) {
-      setReviews((prev) =>
-        prev.map((item) =>
-          item.id === review.id
-            ? {
-                ...item,
-                likedByMe: !item.likedByMe,
-                helpful: item.likedByMe
-                  ? Math.max(0, item.helpful - 1)
-                  : item.helpful + 1,
-              }
-            : item,
-        ),
-      );
       return;
     }
 
@@ -1141,20 +1119,13 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
           </div>
         ) : null}
 
-        {tab === "mylog" ? (
-          <MyLog
-            detail={detail}
-            logTab={logTab}
-            setLogTab={setLogTab}
-            onToast={setToast}
-          />
-        ) : null}
+        {tab === "mylog" ? <MyLog detail={detail} /> : null}
       </div>
 
       {reportTarget ? (
         <ReportModal
           target={reportTarget}
-          persist={persistBoard}
+          persist
           onClose={() => setReportTarget(null)}
         />
       ) : null}
@@ -1171,49 +1142,6 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
               router.push("/login");
               return;
             }
-            if (!persistBoard) {
-              let topicTitle = input.title.trim();
-              if (!topicTitle) {
-                const generated = await fetch("/api/titles", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    kind: "topic",
-                    body: input.body,
-                    gameTitle: detail.title,
-                    extra: input.tags.join(" / "),
-                  }),
-                });
-                const payload = (await generated.json().catch(() => null)) as {
-                  title?: string;
-                } | null;
-                topicTitle =
-                  payload?.title?.trim() ||
-                  input.body.replace(/\s+/g, " ").trim().slice(0, 20);
-              }
-              setPosts((prev) => [
-                {
-                  id: Date.now(),
-                  user: user.displayName,
-                  username: user.username,
-                  accountId: user.id,
-                  avatarSrc: user.avatarSrc,
-                  av: user.displayName.slice(0, 1).toUpperCase() || "あ",
-                  avBg: "#fff3ee",
-                  avC: "#ff6b35",
-                  date: new Date().toISOString().slice(0, 10),
-                  title: topicTitle,
-                  body: input.body,
-                  replies: 0,
-                  views: 1,
-                  tags: input.tags,
-                },
-                ...prev,
-              ]);
-              setToast("トピックを投稿しました！");
-              return;
-            }
-
             const response = await fetch(`/api/games/${detail.id}/topics`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -1282,163 +1210,50 @@ function PlayTimeCard({ detail }: { detail: GameDetailData }) {
   );
 }
 
-function MyLog({
-  detail,
-  logTab,
-  setLogTab,
-  onToast,
-}: {
-  detail: GameDetailData;
-  logTab: LogTab;
-  setLogTab: (t: LogTab) => void;
-  onToast: (msg: string) => void;
-}) {
+function MyLog({ detail }: { detail: GameDetailData }) {
   return (
-    <div className="mt-[18px]">
-      <div className="mb-4 flex gap-1.5">
-        {(
-          [
-            { k: "time", label: "⏱ プレイ時間" },
-            { k: "achv", label: "🏆 クリア実績" },
-            { k: "shots", label: "📸 スクショ" },
-          ] as const
-        ).map((lt) => (
-          <button
-            key={lt.k}
-            type="button"
-            onClick={() => setLogTab(lt.k)}
-            className={`rounded-full border-[1.5px] px-4 py-[7px] font-display text-xs font-bold ${
-              logTab === lt.k
-                ? "border-detail-accent bg-detail-accent-bg text-detail-accent"
-                : "border-detail-border bg-white text-detail-muted"
-            }`}
+    <div className="mt-[18px] grid grid-cols-1 gap-3 min-[860px]:grid-cols-2">
+      {[
+        {
+          icon: "⏱",
+          label: "総プレイ時間",
+          val:
+            detail.myRecord.playTime > 0
+              ? `${detail.myRecord.playTime}h`
+              : "—",
+          sub: "あなたの累計",
+          color: "#ff6b35",
+        },
+        {
+          icon: "📊",
+          label: "平均との差",
+          val:
+            detail.myRecord.playTime > 0 && detail.avgPlayTime > 0
+              ? `${detail.myRecord.playTime - detail.avgPlayTime > 0 ? "+" : ""}${
+                  Math.round(
+                    (detail.myRecord.playTime - detail.avgPlayTime) * 10,
+                  ) / 10
+                }h`
+              : "—",
+          sub: "全ユーザー比",
+          color: "#8b5cf6",
+        },
+      ].map((item) => (
+        <div
+          key={item.label}
+          className="rounded-[14px] border border-detail-border bg-white px-[22px] py-5 shadow-[0_2px_8px_rgba(30,40,100,0.05)]"
+        >
+          <div className="mb-2 text-[28px]">{item.icon}</div>
+          <div
+            className="font-display text-4xl leading-none font-black"
+            style={{ color: item.color }}
           >
-            {lt.label}
-          </button>
-        ))}
-      </div>
-      {logTab === "time" ? (
-        <div className="grid grid-cols-1 gap-3 min-[860px]:grid-cols-3">
-          {[
-            {
-              icon: "⏱",
-              label: "総プレイ時間",
-              val:
-                detail.myRecord.playTime > 0
-                  ? `${detail.myRecord.playTime}h`
-                  : "—",
-              sub: "あなたの累計",
-              color: "#ff6b35",
-            },
-            {
-              icon: "📅",
-              label: "プレイ回数",
-              val:
-                detail.myRecord.sessions > 0
-                  ? `${detail.myRecord.sessions}回`
-                  : "—",
-              sub: "セッション数",
-              color: "#10b981",
-            },
-            {
-              icon: "📊",
-              label: "平均との差",
-              val:
-                detail.myRecord.playTime > 0 && detail.avgPlayTime > 0
-                  ? `${detail.myRecord.playTime - detail.avgPlayTime > 0 ? "+" : ""}${
-                      Math.round(
-                        (detail.myRecord.playTime - detail.avgPlayTime) * 10,
-                      ) / 10
-                    }h`
-                  : "—",
-              sub: "全ユーザー比",
-              color: "#8b5cf6",
-            },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="rounded-[14px] border border-detail-border bg-white px-[22px] py-5 shadow-[0_2px_8px_rgba(30,40,100,0.05)]"
-            >
-              <div className="mb-2 text-[28px]">{item.icon}</div>
-              <div
-                className="font-display text-4xl leading-none font-black"
-                style={{ color: item.color }}
-              >
-                {item.val}
-              </div>
-              <div className="mt-1 text-xs text-detail-muted">{item.label}</div>
-              <div className="mt-0.5 text-[11px] text-detail-dim">{item.sub}</div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      {logTab === "achv" ? (
-        <div className="flex flex-col gap-2.5">
-          {detail.myRecord.achievements.map((a) => (
-            <div
-              key={a.label}
-              className="flex items-center gap-3.5 rounded-xl border border-detail-border bg-white px-[18px] py-3.5 shadow-[0_1px_4px_rgba(30,40,100,0.04)]"
-            >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-detail-yellow-bg text-[22px]">
-                {a.icon}
-              </div>
-              <div className="flex-1">
-                <div className="font-display text-sm font-bold text-detail-text">
-                  {a.label}
-                </div>
-                <div className="mt-0.5 font-mono text-[11px] text-detail-dim">
-                  達成日: {a.date}
-                </div>
-              </div>
-              <div className="rounded-full border border-[#fcd34d] bg-detail-yellow-bg px-2.5 py-1 text-[10px] font-bold text-detail-yellow">
-                達成済み ✓
-              </div>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => onToast("実績の記録は準備中です")}
-            className="rounded-xl border-2 border-dashed border-detail-border py-3 font-display text-[13px] font-semibold text-detail-dim"
-          >
-            + 実績を記録する
-          </button>
-        </div>
-      ) : null}
-      {logTab === "shots" ? (
-        <div>
-          <div className="mb-3.5 flex items-center justify-between">
-            <div className="font-display text-sm font-bold text-detail-text">
-              保存済みスクショ {detail.myRecord.screenshotCount}枚
-            </div>
-            <PrimaryBtn onClick={() => onToast("スクリーンショット追加は準備中です")}>
-              + 追加
-            </PrimaryBtn>
+            {item.val}
           </div>
-          <div className="grid grid-cols-3 gap-2.5">
-            {detail.screenshots.map((src, i) => (
-                <div
-                  key={src}
-                  className="relative aspect-video cursor-pointer overflow-hidden rounded-xl border border-detail-border bg-[#f0f2fa] transition-transform duration-[180ms] hover:scale-[1.02]"
-                >
-                  <CoverImage
-                    src={src}
-                    alt={`screenshot-${i + 1}`}
-                    fill
-                    sizes="(max-width: 860px) 33vw, 330px"
-                    className="object-cover"
-                  />
-                </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => onToast("スクリーンショット追加は準備中です")}
-              className="flex aspect-video cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-detail-border bg-[#fafbff] font-display text-[22px] font-bold text-detail-dim"
-            >
-              +
-            </button>
-          </div>
+          <div className="mt-1 text-xs text-detail-muted">{item.label}</div>
+          <div className="mt-0.5 text-[11px] text-detail-dim">{item.sub}</div>
         </div>
-      ) : null}
+      ))}
     </div>
   );
 }

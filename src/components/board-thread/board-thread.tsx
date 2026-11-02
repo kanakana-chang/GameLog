@@ -7,12 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import type { Post } from "@/components/game-detail/data";
 import { UserAvatar } from "@/components/user-avatar";
-import {
-  CURRENT_USER,
-  THREAD_REPLIES,
-  THREAD_REPORT_REASONS,
-  type ThreadReply,
-} from "./data";
+import { THREAD_REPORT_REASONS, type ThreadReply } from "./data";
 
 type ReportTarget =
   | { type: "thread"; id: string | number; label: string }
@@ -158,13 +153,8 @@ function ReportModal({
 
   async function handleSubmit() {
     if (!selected || saving) return;
-    if (persist && !isLoggedIn) {
+    if (!isLoggedIn) {
       router.push("/login");
-      return;
-    }
-    if (!persist) {
-      setSubmitted(true);
-      window.setTimeout(() => onClose(), 1400);
       return;
     }
 
@@ -237,7 +227,7 @@ function ReportModal({
         ) : (
           <>
             <div className="space-y-2 px-5 py-4">
-              {persist && !isLoggedIn ? (
+              {!isLoggedIn ? (
                 <p className="mb-3 text-[12px] text-[#6b6b8a]">
                   通報にはログインが必要です。
                   <Link
@@ -408,36 +398,16 @@ export function BoardThread({
   gameId,
   gameTitle,
   post,
-  initialReplies,
-  persist = false,
+  initialReplies = [],
 }: {
   gameId: string | number;
   gameTitle: string;
   post: Post;
   initialReplies?: ThreadReply[];
-  persist?: boolean;
 }) {
   const router = useRouter();
   const { isLoggedIn, user } = useAuth();
-  const [replies, setReplies] = useState<ThreadReply[]>(() =>
-    persist
-      ? (initialReplies ?? [])
-      : [
-          {
-            id: 0,
-            userId: post.user,
-            userName: post.user,
-            avatar: post.av,
-            color: post.avC,
-            content: post.body,
-            isSpoiler: false,
-            likes: 12,
-            likedByMe: false,
-            timestamp: `${post.date} 12:00`,
-          },
-          ...THREAD_REPLIES,
-        ],
-  );
+  const [replies, setReplies] = useState<ThreadReply[]>(initialReplies);
   const [draft, setDraft] = useState("");
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
@@ -454,28 +424,12 @@ export function BoardThread({
         avatarSrc: user.avatarSrc,
         color: "#4F46E5",
       }
-    : persist
-      ? null
-      : CURRENT_USER;
+    : null;
 
   async function handleLike(id: string | number) {
     if (likingId != null) return;
-    if (persist && !isLoggedIn) {
+    if (!isLoggedIn) {
       router.push("/login");
-      return;
-    }
-    if (!persist) {
-      setReplies((prev) =>
-        prev.map((r) =>
-          r.id === id
-            ? {
-                ...r,
-                likedByMe: !r.likedByMe,
-                likes: r.likedByMe ? r.likes - 1 : r.likes + 1,
-              }
-            : r,
-        ),
-      );
       return;
     }
 
@@ -508,53 +462,8 @@ export function BoardThread({
   async function handlePost() {
     const text = draft.trim();
     if (!text || saving) return;
-    if (persist && !isLoggedIn) {
+    if (!isLoggedIn) {
       router.push("/login");
-      return;
-    }
-
-    if (!persist) {
-      let replyTitle = "";
-      if (isLoggedIn) {
-        const generated = await fetch("/api/titles", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            kind: "reply",
-            body: text,
-            gameTitle,
-          }),
-        });
-        const payload = (await generated.json().catch(() => null)) as {
-          title?: string;
-        } | null;
-        replyTitle = payload?.title?.trim() ?? "";
-      }
-      const now = new Date();
-      const ts = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-      setReplies((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          userId: user?.id ?? CURRENT_USER.id,
-          userName: user?.displayName ?? CURRENT_USER.name,
-          username: user?.username,
-          accountId: user?.id,
-          avatar: user?.displayName.slice(0, 1).toUpperCase() || CURRENT_USER.avatar,
-          avatarSrc: user?.avatarSrc,
-          color: CURRENT_USER.color,
-          title: replyTitle,
-          content: text,
-          isSpoiler,
-          likes: 0,
-          likedByMe: false,
-          timestamp: ts,
-          image: attachedImage ?? undefined,
-        },
-      ]);
-      setDraft("");
-      setIsSpoiler(false);
-      setAttachedImage(null);
       return;
     }
 
@@ -800,7 +709,7 @@ export function BoardThread({
       {reportTarget ? (
         <ReportModal
           target={reportTarget}
-          persist={persist}
+          persist
           onClose={() => setReportTarget(null)}
         />
       ) : null}

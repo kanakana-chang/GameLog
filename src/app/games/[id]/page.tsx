@@ -3,11 +3,8 @@ import { notFound } from "next/navigation";
 import { GameDetail } from "@/components/game-detail/game-detail";
 import {
   applyGeneratedDetails,
-  getGameDetail,
-  getGameDetailFromSearch,
-  getSearchGame,
+  toGameDetail,
 } from "@/components/game-detail/data";
-import { SEARCH_GAMES } from "@/components/game-search/data";
 import { ensureGameDetails } from "@/lib/game-details";
 import { getSearchGameById } from "@/lib/games";
 import { getSessionUser } from "@/lib/auth";
@@ -23,27 +20,24 @@ export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 export function generateStaticParams() {
-  return SEARCH_GAMES.map((game) => ({ id: String(game.id) }));
+  return [];
 }
 
 export async function generateMetadata({
   params,
 }: GameDetailPageProps): Promise<Metadata> {
   const { id } = await params;
-  const game = getSearchGame(id) ?? (await getSearchGameById(id));
+  const game = await getSearchGameById(id);
   return {
     title: game ? `${game.title} | GameLog` : "ゲーム詳細 | GameLog",
     description: game
-      ? `${game.title}の無課金の遊びやすさ・レビュー・プレイ記録`
+      ? `${game.title}のレビュー・プレイ記録`
       : "ゲームの詳細情報",
   };
 }
 
 export default async function GameDetailPage({ params }: GameDetailPageProps) {
   const { id } = await params;
-  const mockDetail = getGameDetail(id);
-  if (mockDetail) return <GameDetail detail={mockDetail} />;
-
   const game = await getSearchGameById(id);
   if (!game) notFound();
 
@@ -56,10 +50,7 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
   ]);
   const detail = attachGameTopics(
     attachGameReviews(
-      applyGeneratedDetails(
-        getGameDetailFromSearch(game, { syntheticSocial: false }),
-        assembled,
-      ),
+      applyGeneratedDetails(toGameDetail(game), assembled),
       reviews,
     ),
     topics,
@@ -73,9 +64,7 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
         ...detail,
         userStatus: userRecord?.status ?? null,
         myRecord: {
-          ...detail.myRecord,
           playTime,
-          sessions: playTime > 0 ? Math.max(1, Math.round(playTime / 4)) : 0,
         },
       }}
     />

@@ -255,21 +255,6 @@ function toDetailReview(
   };
 }
 
-function scoreDist(scores: number[]) {
-  const buckets = [
-    { label: "5", count: 0 },
-    { label: "4", count: 0 },
-    { label: "3", count: 0 },
-    { label: "2", count: 0 },
-    { label: "1", count: 0 },
-  ];
-  for (const score of scores) {
-    const star = Math.min(5, Math.max(1, Math.round(score)));
-    buckets[5 - star].count += 1;
-  }
-  return buckets;
-}
-
 export function attachGameReviews(
   detail: GameDetailData,
   reviews: Review[],
@@ -290,7 +275,6 @@ export function attachGameReviews(
     totalReviews: reviews.length,
     avgScore: Math.round(avg * 10) / 10,
     avgPlayTime,
-    scoreDist: scoreDist(scores),
   };
 }
 

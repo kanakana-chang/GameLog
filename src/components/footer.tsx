@@ -52,7 +52,6 @@ export function Footer() {
             <p className="max-w-xs text-sm leading-relaxed text-slate-400">
               無課金での遊びやすさ・プレイボリューム・実際の口コミで、あなたにぴったりのゲームが見つかる。
             </p>
-            <p className="text-xs text-slate-500">12,400以上のゲームを収録</p>
           </div>
 
           <div className="flex flex-col gap-3">

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getGameDetail, getSearchGame } from "@/components/game-detail/data";
 import { ReviewForm } from "@/components/review-form/review-form";
-import { SEARCH_GAMES } from "@/components/game-search/data";
 import { getSearchGameById } from "@/lib/games";
 
 type ReviewPageProps = {
@@ -13,14 +11,14 @@ export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 export function generateStaticParams() {
-  return SEARCH_GAMES.map((game) => ({ id: String(game.id) }));
+  return [];
 }
 
 export async function generateMetadata({
   params,
 }: ReviewPageProps): Promise<Metadata> {
   const { id } = await params;
-  const game = getSearchGame(id) ?? (await getSearchGameById(id));
+  const game = await getSearchGameById(id);
   return {
     title: game ? `レビューを書く | ${game.title}` : "レビューを書く | GameLog",
     description: game
@@ -31,21 +29,6 @@ export async function generateMetadata({
 
 export default async function ReviewPage({ params }: ReviewPageProps) {
   const { id } = await params;
-  const detail = getGameDetail(id);
-  if (detail) {
-    return (
-      <ReviewForm
-        game={{
-          id: detail.id,
-          title: detail.title,
-          jacket: detail.jacket,
-          platforms: detail.platforms,
-          genre: detail.genre,
-        }}
-      />
-    );
-  }
-
   const game = await getSearchGameById(id);
   if (!game) notFound();
 
