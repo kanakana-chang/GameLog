@@ -82,13 +82,14 @@ export async function generateGeminiText(
     const errorText = await response.text();
 
     console.error("Gemini request failed", {
+      model,
       status: response.status,
       attempt: attempt + 1,
       error: errorText,
     });
 
+    // 429 は日次枠の枯渇なので、すぐ再試行しても回復しない
     const retryable =
-      response.status === 429 ||
       response.status === 500 ||
       response.status === 502 ||
       response.status === 503 ||
