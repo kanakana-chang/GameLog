@@ -75,6 +75,7 @@ export const DEFAULT_FILTERS: SearchFilters = {
 
 export const HW_SEARCH_HREF: Record<string, string> = {
   switch: "/games?platform=Switch",
+  switch2: "/games?platform=Switch2",
   ios: "/games?platform=iOS",
   android: "/games?platform=Android",
   ps5: "/games?platform=PS5",

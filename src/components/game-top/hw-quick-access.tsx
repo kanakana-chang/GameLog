@@ -9,7 +9,7 @@ export function HwQuickAccess() {
         <p className="mb-3 text-xs font-bold tracking-widest text-[#7a7d8a] uppercase">
           ハードで絞り込む
         </p>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-7">
           {HW_QUICK.map((hardware) => (
             <Link
               key={hardware.id}

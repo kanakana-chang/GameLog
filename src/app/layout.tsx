@@ -3,7 +3,6 @@ import {
   Barlow_Condensed,
   Inter,
   JetBrains_Mono,
-  Noto_Sans_JP,
   Outfit,
   Rajdhani,
 } from "next/font/google";
@@ -19,12 +18,6 @@ const outfit = Outfit({
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const notoSansJp = Noto_Sans_JP({
-  variable: "--font-noto-sans-jp",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -56,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ja"
-      className={`${outfit.variable} ${inter.variable} ${notoSansJp.variable} ${jetbrainsMono.variable} ${rajdhani.variable} ${barlowCondensed.variable} h-full antialiased`}
+      className={`${outfit.variable} ${inter.variable} ${jetbrainsMono.variable} ${rajdhani.variable} ${barlowCondensed.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="h-full min-h-full bg-page font-mypage text-ink" suppressHydrationWarning>

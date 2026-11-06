@@ -1,5 +1,6 @@
 export const HW_QUICK = [
   { id: "switch", label: "Nintendo Switch", icon: "🎮", color: "#e53e3e", bg: "#fff5f5" },
+  { id: "switch2", label: "Nintendo Switch 2", icon: "🎮", color: "#c53030", bg: "#fff5f5" },
   { id: "ios", label: "iOS / iPhone", icon: "📱", color: "#3182ce", bg: "#ebf8ff" },
   { id: "android", label: "Android", icon: "🤖", color: "#38a169", bg: "#f0fff4" },
   { id: "ps5", label: "PlayStation 5", icon: "🕹️", color: "#2d3748", bg: "#f7fafc" },
