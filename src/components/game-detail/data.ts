@@ -86,6 +86,7 @@ export type GameDetailData = {
   posts: Post[];
   summary?: string;
   detailsGenerated?: boolean;
+  generatedBy?: GeneratedGameDetails["generatedBy"];
   sources?: { title: string; url: string }[];
   myRecord: {
     playTime: number;
@@ -125,6 +126,7 @@ export function applyGeneratedDetails(
     ...detail,
     summary: generated.summary,
     detailsGenerated: true,
+    generatedBy: generated.generatedBy,
     sources: generated.sources,
   };
 }

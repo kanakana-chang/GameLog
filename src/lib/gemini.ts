@@ -1,6 +1,18 @@
+export function hasGeminiKey() {
+  return Boolean(
+    process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+  );
+}
+
 export async function generateGeminiText(
   prompt: string,
-  options?: { temperature?: number },
+  options?: {
+    temperature?: number;
+    timeoutMs?: number;
+    maxOutputTokens?: number;
+    retries?: number;
+    model?: string;
+  },
 ) {
   const key =
     process.env.GEMINI_API_KEY ??
@@ -11,17 +23,23 @@ export async function generateGeminiText(
     return null;
   }
 
+  const model = options?.model ?? "gemini-3.8-flash";
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(key)}`;
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
 
   const requestBody = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: options?.temperature ?? 0.4,
+      ...(options?.maxOutputTokens
+        ? { maxOutputTokens: options.maxOutputTokens }
+        : {}),
     },
   };
 
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const attempts = Math.max(1, options?.retries ?? 2);
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
     let response: Response;
 
     try {
@@ -32,13 +50,15 @@ export async function generateGeminiText(
         },
         body: JSON.stringify(requestBody),
         cache: "no-store",
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(options?.timeoutMs ?? 8000),
       });
     } catch (error) {
       console.error("Gemini network error", error);
-      return null;
+      if (attempt >= attempts - 1) return null;
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+      continue;
     }
-    
+
     if (response.ok) {
       try {
         const data = (await response.json()) as {
@@ -46,7 +66,7 @@ export async function generateGeminiText(
             content?: { parts?: Array<{ text?: string }> };
           }>;
         };
-    
+
         return (
           data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
           null
@@ -56,31 +76,27 @@ export async function generateGeminiText(
         return null;
       }
     }
-    
+
     const errorText = await response.text();
-    
+
     console.error("Gemini request failed", {
       status: response.status,
       attempt: attempt + 1,
       error: errorText,
     });
-    
-    // 一時的な障害・レート制限のみ再試行
+
     const retryable =
       response.status === 429 ||
       response.status === 500 ||
       response.status === 502 ||
       response.status === 503 ||
       response.status === 504;
-    
-    // 再試行対象外、または最後の試行なら終了
-    if (!retryable || attempt === 1) {
+
+    if (!retryable || attempt >= attempts - 1) {
       return null;
     }
-    
-    // 再試行前に500ミリ秒待つ
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
+    await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
   }
 
   return null;

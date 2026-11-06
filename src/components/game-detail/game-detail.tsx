@@ -950,7 +950,9 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
               </div>
               {detail.detailsGenerated ? (
                 <span className="rounded-full bg-[#EEF2FF] px-2 py-0.5 text-[10px] font-semibold text-[#4F46E5]">
-                  公開情報から整理
+                  {detail.generatedBy === "gemini"
+                    ? "AIが公開情報から整理"
+                    : "公開情報から整理"}
                 </span>
               ) : null}
             </div>
