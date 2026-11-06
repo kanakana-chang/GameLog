@@ -1,3 +1,5 @@
+export const GEMINI_TEXT_MODEL = "gemini-3.5-flash-lite";
+
 export function hasGeminiKey() {
   return Boolean(
     process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY,
@@ -23,7 +25,7 @@ export async function generateGeminiText(
     return null;
   }
 
-  const model = options?.model ?? "gemini-3.8-flash";
+  const model = options?.model ?? GEMINI_TEXT_MODEL;
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
 

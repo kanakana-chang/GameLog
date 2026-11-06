@@ -1,4 +1,4 @@
-import { generateGeminiText } from "@/lib/gemini";
+import { GEMINI_TEXT_MODEL, generateGeminiText } from "@/lib/gemini";
 
 export type PostTitleKind = "review" | "topic" | "reply";
 
@@ -47,7 +47,13 @@ ${input.body.slice(0, 1200)}
 - 投稿の要点が分かる日本語
 - 鉤括弧・番号・「タイトル:」などの接頭辞は付けない
 - タイトル本文だけを返す`,
-      { temperature: 0.5 },
+      {
+        temperature: 0.5,
+        timeoutMs: 12000,
+        maxOutputTokens: 64,
+        retries: 2,
+        model: GEMINI_TEXT_MODEL,
+      },
     );
     const cleaned = generated ? cleanGeneratedTitle(generated) : "";
     return cleaned || fallback;
