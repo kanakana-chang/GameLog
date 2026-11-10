@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  GENRES,
-  PLATFORMS,
-  type SearchFilters,
-} from "./data";
+import { GENRES, PLATFORMS, type SearchFilters } from "./data";
 import { CheckIcon, RadioIcon } from "./ui";
 
 type SidebarProps = {
@@ -78,7 +74,13 @@ export function SearchSidebar({ filters, onChange, onClose }: SidebarProps) {
               className="p-0 text-search-dim"
               aria-label="フィルターを閉じる"
             >
-              <svg width={16} height={16} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <svg
+                width={16}
+                height={16}
+                viewBox="0 0 16 16"
+                fill="none"
+                aria-hidden="true"
+              >
                 <path
                   d="M4 4l8 8M12 4l-8 8"
                   stroke="currentColor"

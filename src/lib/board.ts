@@ -1,3 +1,4 @@
+// 掲示板トピックとレスの投稿。1件目の posts がトピック本文。
 import type { GameDetailData, Post } from "@/components/game-detail/data";
 import type { ThreadReply } from "@/components/board-thread/data";
 import { isUuid, requirePublishedGame } from "@/lib/games";
@@ -87,12 +88,14 @@ function publicAvatarSrc(url: string | null | undefined) {
   return "";
 }
 
-function authorFromProfile(profile?: {
-  id: string;
-  display_name: string;
-  username: string;
-  avatar_url: string | null;
-} | null) {
+function authorFromProfile(
+  profile?: {
+    id: string;
+    display_name: string;
+    username: string;
+    avatar_url: string | null;
+  } | null,
+) {
   const name = profile?.display_name || profile?.username || "ゲスト";
   return {
     accountId: profile?.id ?? "",
@@ -122,9 +125,11 @@ export function parseTopicInput(body: unknown): TopicInput {
         .slice(0, 3)
     : [];
 
-  if (title.length > 100) throw new Error("タイトルは100文字以内で入力してください");
+  if (title.length > 100)
+    throw new Error("タイトルは100文字以内で入力してください");
   if (!text) throw new Error("本文を入力してください");
-  if (text.length > 4000) throw new Error("本文は4000文字以内で入力してください");
+  if (text.length > 4000)
+    throw new Error("本文は4000文字以内で入力してください");
 
   return {
     title,
@@ -136,11 +141,14 @@ export function parseTopicInput(body: unknown): TopicInput {
 
 export function parseReplyInput(body: unknown): ReplyInput {
   const record = asRecord(body);
-  const content = typeof record.content === "string" ? record.content.trim() : "";
-  const imageUrl = typeof record.imageUrl === "string" ? record.imageUrl.trim() : "";
+  const content =
+    typeof record.content === "string" ? record.content.trim() : "";
+  const imageUrl =
+    typeof record.imageUrl === "string" ? record.imageUrl.trim() : "";
 
   if (!content) throw new Error("レスを入力してください");
-  if (content.length > 4000) throw new Error("レスは4000文字以内で入力してください");
+  if (content.length > 4000)
+    throw new Error("レスは4000文字以内で入力してください");
 
   return {
     content,
@@ -371,4 +379,154 @@ export async function createTopicReply(
   });
 
   return toThreadReply(created, topic._count.posts);
+}
+
+function assertPostOwner(userId: string, ownerId: string | null) {
+  if (!ownerId || ownerId !== userId) {
+    throw new Error("この投稿を操作する権限がありません");
+  }
+}
+
+export async function updateGameTopic(
+  gameId: string,
+  topicId: string,
+  input: TopicInput,
+  userId: string,
+): Promise<Post> {
+  if (!userId) throw new Error("ログインしてください");
+  if (!isUuid(gameId) || !isUuid(topicId)) {
+    throw new Error("スレッドが見つかりません");
+  }
+
+  const topic = await prisma.topics.findFirst({
+    where: { id: topicId, game_id: gameId },
+    include: {
+      posts: {
+        include: { profiles: true },
+        orderBy: { created_at: "asc" },
+      },
+    },
+  });
+  const first = topic?.posts[0];
+  if (!topic || !first) throw new Error("スレッドが見つかりません");
+  assertPostOwner(userId, first.user_id);
+
+  const category = (input.tags[0] ?? topic.category ?? FALLBACK_CATEGORY).slice(
+    0,
+    20,
+  );
+  const title = input.title || topic.title;
+  await prisma.topics.update({
+    where: { id: topicId },
+    data: { title, category },
+  });
+  await prisma.posts.update({
+    where: { id: first.id },
+    data: {
+      content: encodeFirstPost(input.body, input.tags),
+      is_spoiler: input.spoiler,
+    },
+  });
+
+  const updated = await prisma.topics.findFirstOrThrow({
+    where: { id: topicId },
+    include: {
+      posts: {
+        include: { profiles: true },
+        orderBy: { created_at: "asc" },
+      },
+    },
+  });
+  return toListPost(updated);
+}
+
+export async function deleteGameTopic(
+  gameId: string,
+  topicId: string,
+  userId: string,
+) {
+  if (!userId) throw new Error("ログインしてください");
+  if (!isUuid(gameId) || !isUuid(topicId)) {
+    throw new Error("スレッドが見つかりません");
+  }
+
+  const topic = await prisma.topics.findFirst({
+    where: { id: topicId, game_id: gameId },
+    include: {
+      posts: { orderBy: { created_at: "asc" }, take: 1 },
+    },
+  });
+  const first = topic?.posts[0];
+  if (!topic || !first) throw new Error("スレッドが見つかりません");
+  assertPostOwner(userId, first.user_id);
+  await prisma.topics.delete({ where: { id: topicId } });
+}
+
+export async function updateTopicReply(
+  postId: string,
+  input: ReplyInput,
+  userId: string,
+): Promise<ThreadReply> {
+  if (!userId) throw new Error("ログインしてください");
+  if (!isUuid(postId)) throw new Error("レスが見つかりません");
+
+  const post = await prisma.posts.findUnique({
+    where: { id: postId },
+    include: {
+      profiles: true,
+      topics: {
+        include: {
+          posts: { orderBy: { created_at: "asc" }, select: { id: true } },
+        },
+      },
+    },
+  });
+  if (!post) throw new Error("レスが見つかりません");
+  assertPostOwner(userId, post.user_id);
+
+  const previous = decodePostMeta(post.content);
+  const isFirst = post.topics.posts[0]?.id === post.id;
+  const updated = await prisma.posts.update({
+    where: { id: postId },
+    data: {
+      content: isFirst
+        ? encodeFirstPost(input.content, previous.tags)
+        : encodeReply(input.content, previous.title),
+      is_spoiler: input.spoiler,
+      image_url: input.imageUrl
+        ? imageUrlForStore(input.imageUrl)
+        : post.image_url,
+    },
+    include: { profiles: true },
+  });
+
+  const index = post.topics.posts.findIndex((item) => item.id === postId);
+  return toThreadReply(updated, Math.max(0, index));
+}
+
+export async function deleteTopicReply(postId: string, userId: string) {
+  if (!userId) throw new Error("ログインしてください");
+  if (!isUuid(postId)) throw new Error("レスが見つかりません");
+
+  const post = await prisma.posts.findUnique({
+    where: { id: postId },
+    include: {
+      topics: {
+        include: {
+          posts: { orderBy: { created_at: "asc" }, select: { id: true } },
+        },
+      },
+    },
+  });
+  if (!post) throw new Error("レスが見つかりません");
+  assertPostOwner(userId, post.user_id);
+
+  const isFirst = post.topics.posts[0]?.id === post.id;
+  if (isFirst) {
+    await prisma.topics.delete({ where: { id: post.topic_id } });
+    return { deletedTopicId: post.topic_id };
+  }
+
+  await prisma.posts.delete({ where: { id: postId } });
+  return { deletedTopicId: null };
 }

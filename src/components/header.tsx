@@ -87,7 +87,11 @@ function AccountMenu() {
           aria-label="アカウントメニュー"
           aria-expanded={open}
         >
-          <UserAvatar src={avatarSrc} name={user?.displayName ?? ""} size={32} />
+          <UserAvatar
+            src={avatarSrc}
+            name={user?.displayName ?? ""}
+            size={32}
+          />
         </button>
         {open ? (
           <div className="absolute top-10 right-0 z-40 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
@@ -159,7 +163,10 @@ export function Header() {
           </span>
         </Link>
 
-        <form action="/games" className="relative hidden min-w-0 max-w-sm flex-1 sm:block">
+        <form
+          action="/games"
+          className="relative hidden min-w-0 max-w-sm flex-1 sm:block"
+        >
           <SearchIcon />
           <input
             type="search"

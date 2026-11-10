@@ -1,3 +1,4 @@
+// Prisma クライアントは1プロセス1本。接続数を増やさないよう Pool を使い回す。
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { PrismaClient } from "@/generated/prisma/client";

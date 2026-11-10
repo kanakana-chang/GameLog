@@ -273,9 +273,16 @@ function Section({
   );
 }
 
-export function ReviewForm({ game }: { game: ReviewGameInfo }) {
+export function ReviewForm({
+  game,
+  editReviewId,
+}: {
+  game: ReviewGameInfo;
+  editReviewId?: string;
+}) {
   const router = useRouter();
   const { isLoggedIn, user, ready } = useAuth();
+  const isEdit = Boolean(editReviewId);
   const [mode, setMode] = useState<ReviewMode>("quick");
   const [status, setStatus] = useState<Status | null>(null);
   const [rating, setRating] = useState(0);
@@ -295,6 +302,7 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
   }, [ready, isLoggedIn, router]);
 
   useEffect(() => {
+    if (isEdit) return;
     try {
       const raw = localStorage.getItem(draftKey(game.id));
       if (!raw) return;
@@ -319,7 +327,45 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
     } catch {
       /* ignore invalid draft */
     }
-  }, [game.id]);
+  }, [game.id, isEdit]);
+
+  useEffect(() => {
+    if (!editReviewId) return;
+    let cancelled = false;
+    void (async () => {
+      const response = await fetch(`/api/reviews/${editReviewId}`);
+      const payload = (await response.json().catch(() => null)) as {
+        rating?: number;
+        status?: Status;
+        comment?: string;
+        spoiler?: boolean;
+        playtimeHours?: number;
+        params?: Record<string, number>;
+        error?: string;
+      } | null;
+      if (cancelled) return;
+      if (!response.ok || !payload || payload.error) {
+        setError(payload?.error ?? "レビューの読み込みに失敗しました");
+        return;
+      }
+      setMode("detailed");
+      if (payload.status) setStatus(payload.status);
+      if (typeof payload.rating === "number") setRating(payload.rating);
+      if (
+        typeof payload.playtimeHours === "number" &&
+        payload.playtimeHours > 0
+      ) {
+        setPlaytime(String(payload.playtimeHours));
+        setPlaytimeUnit("h");
+      }
+      if (typeof payload.comment === "string") setReview(payload.comment);
+      if (typeof payload.spoiler === "boolean") setSpoiler(payload.spoiler);
+      if (payload.params) setParams({ ...DEFAULT_PARAMS, ...payload.params });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editReviewId]);
 
   const addImage = useCallback((url: string) => {
     setImages((prev) => (prev.length < 10 ? [...prev, url] : prev));
@@ -378,25 +424,35 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
 
     try {
       if (UUID_RE.test(String(game.id))) {
-        const response = await fetch(`/api/games/${game.id}/reviews`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            rating,
-            status,
-            comment: review,
-            spoiler,
-            playtimeHours,
-            platform: game.platforms[0] ?? "",
-            params,
-            imageUrl,
-          }),
-        });
+        const response = await fetch(
+          isEdit
+            ? `/api/reviews/${editReviewId}`
+            : `/api/games/${game.id}/reviews`,
+          {
+            method: isEdit ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              rating,
+              status,
+              comment: review,
+              spoiler,
+              playtimeHours,
+              platform: game.platforms[0] ?? "",
+              params,
+              imageUrl,
+            }),
+          },
+        );
         const payload = (await response.json().catch(() => null)) as {
           error?: string;
         } | null;
         if (!response.ok) {
-          throw new Error(payload?.error ?? "レビューの投稿に失敗しました");
+          throw new Error(
+            payload?.error ??
+              (isEdit
+                ? "レビューの更新に失敗しました"
+                : "レビューの投稿に失敗しました"),
+          );
         }
       }
 
@@ -407,7 +463,9 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
         router.push(`/games/${game.id}`);
       }, 800);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "レビューの投稿に失敗しました");
+      setError(
+        err instanceof Error ? err.message : "レビューの投稿に失敗しました",
+      );
     } finally {
       setSaving(false);
     }
@@ -434,7 +492,7 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
             </Link>
             <span className="text-xl">🎮</span>
             <span className="text-sm font-bold text-slate-800">
-              レビューを投稿
+              {isEdit ? "レビューを編集" : "レビューを投稿"}
             </span>
           </div>
           <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1">
@@ -637,7 +695,9 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition outline-none focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
             />
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">{review.length} 文字</span>
+              <span className="text-xs text-slate-400">
+                {review.length} 文字
+              </span>
               {mode === "quick" ? (
                 <button
                   type="button"
@@ -749,10 +809,16 @@ export function ReviewForm({ game }: { game: ReviewGameInfo }) {
             }`}
           >
             {submitted
-              ? "✅ 投稿しました！"
+              ? isEdit
+                ? "✅ 更新しました！"
+                : "✅ 投稿しました！"
               : saving
-                ? "投稿中..."
-                : "レビューを投稿する"}
+                ? isEdit
+                  ? "更新中..."
+                  : "投稿中..."
+                : isEdit
+                  ? "レビューを更新する"
+                  : "レビューを投稿する"}
           </button>
         </div>
         {error ? (

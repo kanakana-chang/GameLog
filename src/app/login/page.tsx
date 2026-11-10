@@ -15,9 +15,7 @@ export default async function LoginPage({
   return (
     <LoginForm
       initialView={reset === "1" ? "reset" : "login"}
-      initialNotice={
-        deleted === "1" ? "アカウントを削除しました。" : ""
-      }
+      initialNotice={deleted === "1" ? "アカウントを削除しました。" : ""}
       initialError={
         error === "oauth"
           ? "ソーシャルログインに失敗しました。時間をおいて再度お試しください。"

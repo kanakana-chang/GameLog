@@ -36,7 +36,9 @@ export function GameCard({ game }: { game: Game }) {
             {Array.from({ length: 5 }).map((_, index) => (
               <span
                 key={index}
-                className={index < game.rating! ? "text-amber-400" : "text-white/30"}
+                className={
+                  index < game.rating! ? "text-amber-400" : "text-white/30"
+                }
               >
                 <IconStar size={8} filled={index < game.rating!} />
               </span>

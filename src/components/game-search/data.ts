@@ -97,7 +97,12 @@ export const PLATFORM_BADGE: Record<
   Platform,
   { color: string; bg: string; border: string; label: string }
 > = {
-  Switch: { color: "#DC2626", bg: "#FEF2F2", border: "#FECACA", label: "Switch" },
+  Switch: {
+    color: "#DC2626",
+    bg: "#FEF2F2",
+    border: "#FECACA",
+    label: "Switch",
+  },
   Switch2: {
     color: "#B91C1C",
     bg: "#FFF1F1",
@@ -105,7 +110,12 @@ export const PLATFORM_BADGE: Record<
     label: "Switch 2",
   },
   iOS: { color: "#374151", bg: "#F3F4F6", border: "#D1D5DB", label: "iOS" },
-  Android: { color: "#15803D", bg: "#F0FDF4", border: "#BBF7D0", label: "Android" },
+  Android: {
+    color: "#15803D",
+    bg: "#F0FDF4",
+    border: "#BBF7D0",
+    label: "Android",
+  },
   Steam: { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", label: "Steam" },
   PS5: { color: "#1D4ED8", bg: "#EFF6FF", border: "#BFDBFE", label: "PS5" },
   Xbox: { color: "#047857", bg: "#ECFDF5", border: "#A7F3D0", label: "Xbox" },

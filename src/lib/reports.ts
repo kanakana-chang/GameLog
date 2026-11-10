@@ -1,4 +1,9 @@
-import type { AdminReport, ReportReason, ReportStatus } from "@/components/admin-dashboard/data";
+// 通報の作成と管理画面の非表示 / 却下。却下すると投稿を再表示する。
+import type {
+  AdminReport,
+  ReportReason,
+  ReportStatus,
+} from "@/components/admin-dashboard/data";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { isUuid } from "@/lib/games";
 import { prisma } from "@/lib/prisma";
@@ -6,7 +11,12 @@ import { prisma } from "@/lib/prisma";
 const REPORTS_CACHE_TAG = "reports";
 
 export const REPORT_TARGET_TYPES = ["review", "topic", "post"] as const;
-export const REPORT_REASONS = ["harassment", "spoiler", "spam", "other"] as const;
+export const REPORT_REASONS = [
+  "harassment",
+  "spoiler",
+  "spam",
+  "other",
+] as const;
 export const REPORT_STATUSES = ["open", "hidden", "dismissed"] as const;
 
 export type ReportTargetType = (typeof REPORT_TARGET_TYPES)[number];
@@ -70,10 +80,13 @@ function toReportStatus(value: string): ReportStatus {
 
 export function parseReportInput(body: unknown): ReportInput {
   const record = asRecord(body);
-  const targetType = typeof record.targetType === "string" ? record.targetType.trim() : "";
-  const targetId = typeof record.targetId === "string" ? record.targetId.trim() : "";
+  const targetType =
+    typeof record.targetType === "string" ? record.targetType.trim() : "";
+  const targetId =
+    typeof record.targetId === "string" ? record.targetId.trim() : "";
   const reason = typeof record.reason === "string" ? record.reason.trim() : "";
-  const comment = typeof record.comment === "string" ? record.comment.trim() : "";
+  const comment =
+    typeof record.comment === "string" ? record.comment.trim() : "";
 
   if (!isTargetType(targetType)) {
     throw new Error("通報対象が正しくありません");
@@ -212,7 +225,9 @@ export async function createReport(input: ReportInput, reporterId: string) {
   });
 }
 
-async function resolveTargets(rows: { target_type: string; target_id: string }[]) {
+async function resolveTargets(
+  rows: { target_type: string; target_id: string }[],
+) {
   const reviewIds = rows
     .filter((row) => row.target_type === "review")
     .map((row) => row.target_id);

@@ -1,3 +1,4 @@
+// レビュー・トピック・レスの見出しを Gemini で20字以内に生成する。
 import { GEMINI_TEXT_MODEL, generateGeminiText } from "@/lib/gemini";
 
 export type PostTitleKind = "review" | "topic" | "reply";

@@ -102,10 +102,7 @@ function GameForm({
   const [error, setError] = useState<string | null>(null);
   const isEdit = Boolean(game?.id);
 
-  const genreOptions = uniqueOptions([
-    ...ADMIN_GENRES,
-    form.genre ?? "",
-  ]);
+  const genreOptions = uniqueOptions([...ADMIN_GENRES, form.genre ?? ""]);
   const platformOptions = uniqueOptions([
     ...ADMIN_PLATFORMS,
     ...(form.platform ?? []),
@@ -166,7 +163,13 @@ function GameForm({
             aria-label="閉じる"
             className="text-slate-400 transition-colors hover:text-slate-600"
           >
-            <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              width={20}
+              height={20}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -266,9 +269,11 @@ function GameForm({
               <input
                 type="number"
                 min={0}
+                max={10000}
+                step={0.5}
                 value={form.avgPlaytime ?? 0}
                 onChange={(e) =>
-                  setForm({ ...form, avgPlaytime: +e.target.value })
+                  setForm({ ...form, avgPlaytime: Number(e.target.value) })
                 }
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 transition focus:border-transparent focus:ring-2 focus:ring-violet-500 focus:outline-none"
               />
@@ -363,9 +368,9 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
   const [games, setGames] = useState<AdminGame[]>(initialGames);
   const [search, setSearch] = useState("");
   const [filterPlatform, setFilterPlatform] = useState<Platform | "all">("all");
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "archived">(
-    "all",
-  );
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "active" | "archived"
+  >("all");
   const [editing, setEditing] = useState<Partial<AdminGame> | null | undefined>(
     undefined,
   );
@@ -396,6 +401,7 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
       platform: g.platform,
       freeToPlay: g.freeToPlay,
       hasCurrency: g.hasCurrency,
+      avgPlaytime: g.avgPlaytime,
       coverUrl: g.coverUrl,
       status: g.status,
     };
@@ -408,9 +414,7 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
       },
     );
     const payload = (await response.json().catch(() => null)) as
-      | AdminGame
-      | { error?: string }
-      | null;
+      AdminGame | { error?: string } | null;
     if (!response.ok || !payload || !("id" in payload)) {
       throw new Error(
         payload && "error" in payload && payload.error
@@ -570,7 +574,11 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
       ) : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="総タイトル数" value={games.length} sub="DBに登録済み" />
+        <StatCard
+          label="総タイトル数"
+          value={games.length}
+          sub="DBに登録済み"
+        />
         <StatCard
           label="公開中"
           value={games.filter((g) => g.status === "active").length}
@@ -798,7 +806,9 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
                           );
                         }}
                         disabled={visibilityBusy}
-                        title={g.status === "archived" ? "公開する" : "非公開にする"}
+                        title={
+                          g.status === "archived" ? "公開する" : "非公開にする"
+                        }
                         aria-label={
                           g.status === "archived"
                             ? `${g.title}を公開する`
@@ -972,7 +982,11 @@ function ReportsPanel({
           value={counts.hidden}
           color="text-slate-500"
         />
-        <StatCard label="却下" value={counts.dismissed} color="text-slate-400" />
+        <StatCard
+          label="却下"
+          value={counts.dismissed}
+          color="text-slate-400"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4">
@@ -1167,7 +1181,13 @@ const NAV_ITEMS: {
     label: "ゲームDB",
     desc: "ゲームタイトルの追加・編集・管理",
     icon: (
-      <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg
+        width={20}
+        height={20}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -1182,7 +1202,13 @@ const NAV_ITEMS: {
     label: "通報・モデレーション",
     desc: "ユーザー投稿の通報を確認して処理",
     icon: (
-      <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg
+        width={20}
+        height={20}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -1220,9 +1246,7 @@ export function AdminDashboard({
       try {
         const response = await fetch("/api/admin/reports");
         const payload = (await response.json().catch(() => null)) as
-          | AdminReport[]
-          | { error?: string }
-          | null;
+          AdminReport[] | { error?: string } | null;
         if (!response.ok || !Array.isArray(payload)) {
           throw new Error(
             payload && !Array.isArray(payload) && payload.error
@@ -1303,7 +1327,9 @@ export function AdminDashboard({
                 >
                   {item.icon}
                 </span>
-                <span className="flex-1 text-left whitespace-nowrap">{item.label}</span>
+                <span className="flex-1 text-left whitespace-nowrap">
+                  {item.label}
+                </span>
                 {badge > 0 ? (
                   <span
                     className={`rounded-full px-1.5 py-0.5 font-mono text-xs font-bold ${active ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}
@@ -1327,7 +1353,9 @@ export function AdminDashboard({
               <div className="truncate text-xs font-medium text-slate-700">
                 {user.displayName}
               </div>
-              <div className="truncate text-xs text-slate-400">{user.email}</div>
+              <div className="truncate text-xs text-slate-400">
+                {user.email}
+              </div>
             </div>
           </div>
         </div>
@@ -1375,7 +1403,7 @@ export function AdminDashboard({
           </div>
           <div className="ml-auto flex items-center gap-2">
             <span className="hidden font-mono text-xs text-slate-400 sm:block">
-              2024-06-12
+              稼働中
             </span>
             <div
               className="h-2 w-2 rounded-full bg-emerald-400"
@@ -1386,9 +1414,7 @@ export function AdminDashboard({
 
         <main
           className={
-            nav === "games"
-              ? "flex flex-1 flex-col p-5"
-              : "flex-1 p-5"
+            nav === "games" ? "flex flex-1 flex-col p-5" : "flex-1 p-5"
           }
         >
           {nav === "games" ? <GamesPanel initialGames={initialGames} /> : null}
@@ -1403,9 +1429,7 @@ export function AdminDashboard({
                   body: JSON.stringify({ status }),
                 });
                 const payload = (await response.json().catch(() => null)) as
-                  | AdminReport
-                  | { error?: string }
-                  | null;
+                  AdminReport | { error?: string } | null;
                 if (!response.ok || !payload || !("id" in payload)) {
                   const message =
                     payload && "error" in payload && payload.error

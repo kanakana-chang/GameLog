@@ -1,0 +1,10 @@
+.next
+out
+build
+node_modules
+src/generated
+package-lock.json
+prisma/schema.prisma
+.env
+.env.local
+.env.example

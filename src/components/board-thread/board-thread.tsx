@@ -28,9 +28,7 @@ function AvatarBadge({
 }) {
   const px = size === "sm" ? 28 : 36;
   if (src || name) {
-    return (
-      <UserAvatar src={src || null} name={name || initials} size={px} />
-    );
+    return <UserAvatar src={src || null} name={name || initials} size={px} />;
   }
   return (
     <div
@@ -93,14 +91,23 @@ function SpoilerBlock({
   );
 }
 
-function MenuButton({ onReport }: { onReport: () => void }) {
+function MenuButton({
+  onReport,
+  onEdit,
+  onDelete,
+}: {
+  onReport: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -118,6 +125,32 @@ function MenuButton({ onReport }: { onReport: () => void }) {
       </button>
       {open ? (
         <div className="absolute top-8 right-0 z-50 w-44 rounded-xl border border-[#e2e2ee] bg-white py-1 shadow-lg">
+          {onEdit ? (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onEdit();
+              }}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-[13px] text-[#1a1a2e] transition-colors hover:bg-[#f5f5fb]"
+            >
+              <span>✏️</span>
+              <span>編集する</span>
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onDelete();
+              }}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-[13px] text-[#e53e3e] transition-colors hover:bg-[#fff5f5]"
+            >
+              <span>🗑</span>
+              <span>削除する</span>
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => {
@@ -137,11 +170,10 @@ function MenuButton({ onReport }: { onReport: () => void }) {
 
 function ReportModal({
   target,
-  persist,
   onClose,
 }: {
   target: ReportTarget;
-  persist: boolean;
+  persist?: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -257,7 +289,9 @@ function ReportModal({
                     {reason.label}
                   </span>
                   {selected === reason.id ? (
-                    <span className="ml-auto text-[16px] text-[#5b4cf5]">●</span>
+                    <span className="ml-auto text-[16px] text-[#5b4cf5]">
+                      ●
+                    </span>
                   ) : null}
                 </button>
               ))}
@@ -297,12 +331,16 @@ function ReplyCard({
   liking,
   onLike,
   onReport,
+  onEdit,
+  onDelete,
 }: {
   reply: ThreadReply;
   isMine: boolean;
   liking?: boolean;
   onLike: (id: string | number) => void;
   onReport: (target: ReportTarget) => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   return (
     <div className="rounded-xl border border-[#e2e2ee] bg-white p-4 transition-colors hover:border-[#c8c5f5]">
@@ -343,6 +381,8 @@ function ReplyCard({
                   label: `${reply.userName} のレス`,
                 })
               }
+              onEdit={isMine ? onEdit : undefined}
+              onDelete={isMine ? onDelete : undefined}
             />
           </div>
 
@@ -415,6 +455,9 @@ export function BoardThread({
   const [saving, setSaving] = useState(false);
   const [likingId, setLikingId] = useState<string | number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editingReplyId, setEditingReplyId] = useState<string | number | null>(
+    null,
+  );
   const fileRef = useRef<HTMLInputElement>(null);
   const composer = user
     ? {
@@ -439,9 +482,11 @@ export function BoardThread({
       const response = await fetch(`/api/posts/${id}/likes`, {
         method: "POST",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | { liked?: boolean; count?: number; error?: string }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        liked?: boolean;
+        count?: number;
+        error?: string;
+      } | null;
       if (!response.ok || !payload || typeof payload.liked !== "boolean") {
         throw new Error(payload?.error ?? "いいねに失敗しました");
       }
@@ -459,6 +504,35 @@ export function BoardThread({
     }
   }
 
+  async function handleDeleteReply(reply: ThreadReply, isFirst: boolean) {
+    if (
+      !window.confirm(
+        isFirst ? "スレッドを削除しますか？" : "このレスを削除しますか？",
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    const response = await fetch(`/api/posts/${reply.id}`, {
+      method: "DELETE",
+    });
+    const payload = (await response.json().catch(() => null)) as {
+      deletedTopicId?: string | null;
+      error?: string;
+    } | null;
+    if (!response.ok) {
+      setError(payload?.error ?? "削除に失敗しました");
+      return;
+    }
+    if (isFirst || payload?.deletedTopicId) {
+      router.push(`/games/${gameId}`);
+      router.refresh();
+      return;
+    }
+    setReplies((prev) => prev.filter((item) => item.id !== reply.id));
+    router.refresh();
+  }
+
   async function handlePost() {
     const text = draft.trim();
     if (!text || saving) return;
@@ -470,24 +544,26 @@ export function BoardThread({
     setSaving(true);
     setError(null);
     try {
+      const editing = editingReplyId != null;
       const response = await fetch(
-        `/api/games/${gameId}/topics/${post.id}/posts`,
+        editing
+          ? `/api/posts/${editingReplyId}`
+          : `/api/games/${gameId}/topics/${post.id}/posts`,
         {
-          method: "POST",
+          method: editing ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             content: text,
             spoiler: isSpoiler,
-            imageUrl: attachedImage && /^https?:\/\//.test(attachedImage)
-              ? attachedImage
-              : "",
+            imageUrl:
+              attachedImage && /^https?:\/\//.test(attachedImage)
+                ? attachedImage
+                : "",
           }),
         },
       );
       const payload = (await response.json().catch(() => null)) as
-        | ThreadReply
-        | { error?: string }
-        | null;
+        ThreadReply | { error?: string } | null;
       if (!response.ok || !payload || !("id" in payload)) {
         throw new Error(
           payload && "error" in payload && payload.error
@@ -495,10 +571,15 @@ export function BoardThread({
             : "レスの投稿に失敗しました",
         );
       }
-      setReplies((prev) => [...prev, payload]);
+      setReplies((prev) =>
+        editing
+          ? prev.map((item) => (item.id === payload.id ? payload : item))
+          : [...prev, payload],
+      );
       setDraft("");
       setIsSpoiler(false);
       setAttachedImage(null);
+      setEditingReplyId(null);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "レスの投稿に失敗しました");
@@ -545,6 +626,28 @@ export function BoardThread({
                       : post.title,
                 })
               }
+              onEdit={
+                user &&
+                (post.accountId === user.id ||
+                  post.username === user.username) &&
+                replies[0]
+                  ? () => {
+                      setEditingReplyId(replies[0].id);
+                      setDraft(replies[0].content);
+                      setIsSpoiler(replies[0].isSpoiler);
+                    }
+                  : undefined
+              }
+              onDelete={
+                user &&
+                (post.accountId === user.id ||
+                  post.username === user.username) &&
+                replies[0]
+                  ? () => {
+                      void handleDeleteReply(replies[0], true);
+                    }
+                  : undefined
+              }
             />
           </div>
           <div className="mt-2 flex items-center gap-3">
@@ -574,14 +677,21 @@ export function BoardThread({
             reply={reply}
             isMine={Boolean(
               user &&
-                (reply.accountId === user.id ||
-                  reply.username === user.username),
+              (reply.accountId === user.id || reply.username === user.username),
             )}
             liking={likingId === reply.id}
             onLike={(replyId) => {
               void handleLike(replyId);
             }}
             onReport={setReportTarget}
+            onEdit={() => {
+              setEditingReplyId(reply.id);
+              setDraft(reply.content);
+              setIsSpoiler(reply.isSpoiler);
+            }}
+            onDelete={() => {
+              void handleDeleteReply(reply, replies[0]?.id === reply.id);
+            }}
           />
         ))}
       </div>
@@ -589,118 +699,128 @@ export function BoardThread({
       <div className="fixed right-0 bottom-0 left-0 z-30 border-t border-[#e2e2ee] bg-white px-4 pt-3 pb-4">
         <div className="mx-auto max-w-2xl">
           {composer ? (
-          <div className="mb-2 flex items-center gap-2">
-            <AvatarBadge
-              initials={composer.avatar}
-              color={composer.color}
-              src={"avatarSrc" in composer ? composer.avatarSrc : undefined}
-              name={composer.name}
-              size="sm"
-            />
-            <span className="text-[12px] font-semibold text-[#1a1a2e]">
-              {composer.name}
-            </span>
-            <span className="font-mono text-[11px] text-[#6b6b8a]">
-              {composer.id}
-            </span>
-            <span className="ml-auto text-[11px] font-medium text-[#5b4cf5]">
-              アカウント連携済み
-            </span>
-          </div>
+            <div className="mb-2 flex items-center gap-2">
+              <AvatarBadge
+                initials={composer.avatar}
+                color={composer.color}
+                src={"avatarSrc" in composer ? composer.avatarSrc : undefined}
+                name={composer.name}
+                size="sm"
+              />
+              <span className="text-[12px] font-semibold text-[#1a1a2e]">
+                {composer.name}
+              </span>
+              <span className="font-mono text-[11px] text-[#6b6b8a]">
+                {composer.id}
+              </span>
+              <span className="ml-auto text-[11px] font-medium text-[#5b4cf5]">
+                アカウント連携済み
+              </span>
+            </div>
           ) : (
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <p className="text-[12px] text-[#6b6b8a]">
-              投稿にはログインが必要です
-            </p>
-            <Link
-              href="/login"
-              className="rounded-full bg-[#5b4cf5] px-4 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#4a3de0]"
-            >
-              ログイン
-            </Link>
-          </div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-[12px] text-[#6b6b8a]">
+                投稿にはログインが必要です
+              </p>
+              <Link
+                href="/login"
+                className="rounded-full bg-[#5b4cf5] px-4 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#4a3de0]"
+              >
+                ログイン
+              </Link>
+            </div>
           )}
 
           {composer ? (
             <>
-          {attachedImage ? (
-            <div className="relative mb-2 inline-block">
-              {/* data URL preview */}
-              <img
-                src={attachedImage}
-                alt="添付プレビュー"
-                className="h-20 rounded-lg border border-[#e2e2ee] object-cover"
+              {attachedImage ? (
+                <div className="relative mb-2 inline-block">
+                  {/* data URL preview */}
+                  <img
+                    src={attachedImage}
+                    alt="添付プレビュー"
+                    className="h-20 rounded-lg border border-[#e2e2ee] object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAttachedImage(null)}
+                    aria-label="添付を削除"
+                    className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#ff6b6b] text-[10px] font-bold text-white transition-colors hover:bg-[#e55]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : null}
+
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder={
+                  editingReplyId
+                    ? "レスを編集…"
+                    : "レスを入力… (匿名投稿は不可、アカウント紐づけ必須)"
+                }
+                rows={3}
+                className="w-full resize-none rounded-xl border border-[#e2e2ee] bg-[#f5f5f7] px-3 py-2.5 text-sm text-[#1a1a2e] placeholder-[#aaaacc] transition outline-none focus:border-[#5b4cf5] focus:ring-2 focus:ring-[#5b4cf5]/20"
               />
-              <button
-                type="button"
-                onClick={() => setAttachedImage(null)}
-                aria-label="添付を削除"
-                className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#ff6b6b] text-[10px] font-bold text-white transition-colors hover:bg-[#e55]"
-              >
-                ✕
-              </button>
-            </div>
-          ) : null}
 
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="レスを入力… (匿名投稿は不可、アカウント紐づけ必須)"
-            rows={3}
-            className="w-full resize-none rounded-xl border border-[#e2e2ee] bg-[#f5f5f7] px-3 py-2.5 text-sm text-[#1a1a2e] placeholder-[#aaaacc] transition outline-none focus:border-[#5b4cf5] focus:ring-2 focus:ring-[#5b4cf5]/20"
-          />
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSpoiler((v) => !v)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-all ${
+                    isSpoiler
+                      ? "border-[#c8c5f5] bg-[#f0efff] text-[#5b4cf5]"
+                      : "border-[#e2e2ee] bg-[#f5f5f7] text-[#6b6b8a] hover:border-[#c8c5f5]"
+                  }`}
+                >
+                  🔒 ネタバレ{isSpoiler ? "あり" : ""}
+                </button>
 
-          <div className="mt-2 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsSpoiler((v) => !v)}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-all ${
-                isSpoiler
-                  ? "border-[#c8c5f5] bg-[#f0efff] text-[#5b4cf5]"
-                  : "border-[#e2e2ee] bg-[#f5f5f7] text-[#6b6b8a] hover:border-[#c8c5f5]"
-              }`}
-            >
-              🔒 ネタバレ{isSpoiler ? "あり" : ""}
-            </button>
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={Boolean(attachedImage)}
+                  className="flex items-center gap-1.5 rounded-full border border-[#e2e2ee] bg-[#f5f5f7] px-3 py-1.5 text-[12px] font-medium text-[#6b6b8a] transition-all hover:border-[#c8c5f5] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  📷 スクショ添付
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) =>
+                      setAttachedImage(ev.target?.result as string);
+                    reader.readAsDataURL(file);
+                    e.target.value = "";
+                  }}
+                />
 
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={Boolean(attachedImage)}
-              className="flex items-center gap-1.5 rounded-full border border-[#e2e2ee] bg-[#f5f5f7] px-3 py-1.5 text-[12px] font-medium text-[#6b6b8a] transition-all hover:border-[#c8c5f5] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              📷 スクショ添付
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) =>
-                  setAttachedImage(ev.target?.result as string);
-                reader.readAsDataURL(file);
-                e.target.value = "";
-              }}
-            />
-
-            <button
-              type="button"
-              onClick={() => {
-                void handlePost();
-              }}
-              disabled={!draft.trim() || saving}
-              className="ml-auto rounded-full bg-[#5b4cf5] px-5 py-1.5 text-[13px] font-semibold text-white transition-all hover:bg-[#4a3de0] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {saving ? "投稿中..." : "投稿"}
-            </button>
-          </div>
-          {error ? (
-            <p className="mt-2 text-[12px] text-[#e53e3e]">{error}</p>
-          ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handlePost();
+                  }}
+                  disabled={!draft.trim() || saving}
+                  className="ml-auto rounded-full bg-[#5b4cf5] px-5 py-1.5 text-[13px] font-semibold text-white transition-all hover:bg-[#4a3de0] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {saving
+                    ? editingReplyId
+                      ? "更新中..."
+                      : "投稿中..."
+                    : editingReplyId
+                      ? "更新"
+                      : "投稿"}
+                </button>
+              </div>
+              {error ? (
+                <p className="mt-2 text-[12px] text-[#e53e3e]">{error}</p>
+              ) : null}
             </>
           ) : null}
         </div>

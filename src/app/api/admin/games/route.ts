@@ -13,7 +13,9 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     await requireAdminUser();
-    const game = await createAdminGame(parseAdminGameInput(await request.json()));
+    const game = await createAdminGame(
+      parseAdminGameInput(await request.json()),
+    );
     return NextResponse.json(game, { status: 201 });
   } catch (error) {
     console.error("Failed to create admin game", error);

@@ -19,7 +19,10 @@ export function PasswordField({
 }: PasswordFieldProps) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-label">
+      <label
+        htmlFor={id}
+        className="mb-1.5 block text-xs font-medium text-label"
+      >
         {label}
       </label>
       <div className="relative">

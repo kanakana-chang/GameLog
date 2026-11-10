@@ -15,18 +15,18 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   let games: AdminGame[] = [];
   let reports: AdminReport[] = [];
-  try {
-    games = await getAdminGamesFromDb();
-  } catch (error) {
-    console.error("Failed to load admin games from database", error);
-  }
-  try {
-    const user = await getSessionUser();
-    if (user?.isAdmin) {
-      reports = await listAdminReports();
+  const user = await getSessionUser();
+  if (user?.isAdmin) {
+    try {
+      games = await getAdminGamesFromDb();
+    } catch (error) {
+      console.error("Failed to load admin games from database", error);
     }
-  } catch (error) {
-    console.error("Failed to load admin reports from database", error);
+    try {
+      reports = await listAdminReports();
+    } catch (error) {
+      console.error("Failed to load admin reports from database", error);
+    }
   }
 
   return <AdminDashboard initialGames={games} initialReports={reports} />;

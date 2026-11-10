@@ -1,3 +1,4 @@
+// profiles.role を admin / user に切り替える。
 import { prisma } from "@/lib/prisma";
 
 export async function grantAdminRole(userId: string) {

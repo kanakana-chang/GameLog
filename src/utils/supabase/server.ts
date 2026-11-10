@@ -5,24 +5,20 @@ import { getSupabaseAnonKey, getSupabaseUrl } from "@/utils/supabase/env";
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(
-    getSupabaseUrl(),
-    getSupabaseAnonKey(),
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // Server Component から呼ばれた場合は無視
-          }
-        },
+  return createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options),
+          );
+        } catch {
+          // Server Component から呼ばれた場合は無視
+        }
       },
     },
-  );
+  });
 }

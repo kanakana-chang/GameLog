@@ -1,3 +1,4 @@
+// マイページのゲーム棚と自分のレビューを profiles に紐づけて返す。
 import type { Game, Review } from "@/components/my-page/data";
 import { gameCoverUrl } from "@/lib/games";
 import { shelfLabel, storedStatusFromReview } from "@/lib/game-status";
@@ -22,15 +23,22 @@ function platformName(
   if (stored) return stored;
   const first = platforms[0]?.platforms;
   if (!first) return "—";
-  if (first.slug.toLowerCase().includes("switch") || first.name.includes("Switch")) {
-    return first.name.includes("2") || first.slug.toLowerCase().includes("switch2")
+  if (
+    first.slug.toLowerCase().includes("switch") ||
+    first.name.includes("Switch")
+  ) {
+    return first.name.includes("2") ||
+      first.slug.toLowerCase().includes("switch2")
       ? "Switch2"
       : "Switch";
   }
   if (first.slug.toLowerCase().includes("ios") || first.name.includes("iOS")) {
     return "iOS";
   }
-  if (first.slug.toLowerCase().includes("android") || first.name.includes("Android")) {
+  if (
+    first.slug.toLowerCase().includes("android") ||
+    first.name.includes("Android")
+  ) {
     return "Android";
   }
   return first.name;

@@ -51,7 +51,11 @@ export function UserAvatar({
   return (
     <span
       className={`inline-flex items-center justify-center bg-gradient-to-br from-[#6C5CE7] to-[#a78bfa] font-bold text-white ${shared}`}
-      style={{ width: size, height: size, fontSize: Math.max(12, Math.round(size * 0.38)) }}
+      style={{
+        width: size,
+        height: size,
+        fontSize: Math.max(12, Math.round(size * 0.38)),
+      }}
       aria-hidden="true"
     >
       {initial}

@@ -4,7 +4,13 @@ import { CoverImage } from "@/components/cover-image";
 import Link from "next/link";
 import { useState } from "react";
 import type { SearchGame } from "./data";
-import { ClockIcon, F2PBadge, PlatformBadge, ScoreDots, StarRating } from "./ui";
+import {
+  ClockIcon,
+  F2PBadge,
+  PlatformBadge,
+  ScoreDots,
+  StarRating,
+} from "./ui";
 
 export function GameCardGrid({ game }: { game: SearchGame }) {
   const [hovered, setHovered] = useState(false);
@@ -89,7 +95,10 @@ export function GameCardGrid({ game }: { game: SearchGame }) {
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-1.5 border-t border-[#F0F0F8] pt-2.5">
-          <F2PBadge score={game.f2pScore} />
+          <F2PBadge
+            score={game.f2pScore}
+            buyOnce={!game.isFree && !game.hasGacha}
+          />
           <div className="flex items-center gap-1">
             <ClockIcon size={11} />
             <span className="text-[11px] text-search-dim">
@@ -189,7 +198,10 @@ export function GameCardList({ game }: { game: SearchGame }) {
           <span className="text-[10px] text-search-dim">
             ({game.ratingCount.toLocaleString()}件)
           </span>
-          <F2PBadge score={game.f2pScore} />
+          <F2PBadge
+            score={game.f2pScore}
+            buyOnce={!game.isFree && !game.hasGacha}
+          />
           <div className="mt-1 flex items-center gap-1">
             <ClockIcon size={12} />
             <span className="text-[11px] text-search-muted">

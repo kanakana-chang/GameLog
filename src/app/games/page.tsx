@@ -9,7 +9,8 @@ import { getSearchGamesFromDb } from "@/lib/games";
 
 export const metadata: Metadata = {
   title: "ゲームを探す | GameLog",
-  description: "ハード・ジャンル・無課金の遊びやすさから、ぴったりのゲームを探せます",
+  description:
+    "ハード・ジャンル・無課金の遊びやすさから、ぴったりのゲームを探せます",
 };
 
 export const revalidate = 60;

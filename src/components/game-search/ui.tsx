@@ -89,7 +89,13 @@ export function CheckIcon({ checked }: { checked: boolean }) {
       }`}
     >
       {checked ? (
-        <svg width={10} height={10} viewBox="0 0 10 10" fill="none" aria-hidden="true">
+        <svg
+          width={10}
+          height={10}
+          viewBox="0 0 10 10"
+          fill="none"
+          aria-hidden="true"
+        >
           <path
             d="M2 5l2.5 2.5L8 3"
             stroke="#fff"
@@ -112,22 +118,32 @@ export function RadioIcon({ checked }: { checked: boolean }) {
           : "border-[#C8CADB] bg-white"
       }`}
     >
-      {checked ? <span className="block h-1.5 w-1.5 rounded-full bg-white" /> : null}
+      {checked ? (
+        <span className="block h-1.5 w-1.5 rounded-full bg-white" />
+      ) : null}
     </span>
   );
 }
 
-export function F2PBadge({ score }: { score: number }) {
-  const label =
-    score >= 5
+export function F2PBadge({
+  score,
+  buyOnce = false,
+}: {
+  score: number;
+  buyOnce?: boolean;
+}) {
+  const label = buyOnce
+    ? "買い切り"
+    : score >= 5
       ? "完全無課金OK"
       : score >= 4
         ? "無課金寄り"
         : score >= 3
           ? "課金有利"
           : "課金推奨";
-  const styles =
-    score >= 5
+  const styles = buyOnce
+    ? { bg: "#EEF2FF", color: "#4338CA", border: "#C7D2FE" }
+    : score >= 5
       ? { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" }
       : score >= 4
         ? { bg: "#F0FDF4", color: "#16A34A", border: "#BBF7D0" }
@@ -190,27 +206,93 @@ export function CloseIcon({ size = 8 }: { size?: number }) {
 
 export function GridIcon() {
   return (
-    <svg width={14} height={14} viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect
+        x="1"
+        y="1"
+        width="5"
+        height="5"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <rect
+        x="8"
+        y="1"
+        width="5"
+        height="5"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <rect
+        x="1"
+        y="8"
+        width="5"
+        height="5"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <rect
+        x="8"
+        y="8"
+        width="5"
+        height="5"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
     </svg>
   );
 }
 
 export function ListIcon() {
   return (
-    <svg width={14} height={14} viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="1" y="2" width="12" height="3" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="1" y="7.5" width="12" height="3" rx="1" stroke="currentColor" strokeWidth="1.3" />
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect
+        x="1"
+        y="2"
+        width="12"
+        height="3"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <rect
+        x="1"
+        y="7.5"
+        width="12"
+        height="3"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
     </svg>
   );
 }
 
 export function FilterIcon() {
   return (
-    <svg width={13} height={13} viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <svg
+      width={13}
+      height={13}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M2 4h10M4 7h6M6 10h2"
         stroke="currentColor"

@@ -1,3 +1,4 @@
+// Gemini REST。レビュー/掲示板タイトルとゲーム概要の生成に使う。
 export const GEMINI_TEXT_MODEL = "gemini-3.5-flash-lite";
 
 export function hasGeminiKey() {
@@ -17,8 +18,7 @@ export async function generateGeminiText(
   },
 ) {
   const key =
-    process.env.GEMINI_API_KEY ??
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
   if (!key) {
     console.error("Gemini API key is not configured");
@@ -26,8 +26,7 @@ export async function generateGeminiText(
   }
 
   const model = options?.model ?? GEMINI_TEXT_MODEL;
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
   const requestBody = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -49,6 +48,7 @@ export async function generateGeminiText(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-goog-api-key": key,
         },
         body: JSON.stringify(requestBody),
         cache: "no-store",
@@ -69,10 +69,7 @@ export async function generateGeminiText(
           }>;
         };
 
-        return (
-          data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
-          null
-        );
+        return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
       } catch (error) {
         console.error("Gemini response parsing failed", error);
         return null;

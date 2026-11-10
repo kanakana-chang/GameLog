@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ReviewForm } from "@/components/review-form/review-form";
-import { getSearchGameById } from "@/lib/games";
+import { getSearchGameById, UUID_RE } from "@/lib/games";
 
 type ReviewPageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ edit?: string }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -27,8 +28,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function ReviewPage({ params }: ReviewPageProps) {
+export default async function ReviewPage({
+  params,
+  searchParams,
+}: ReviewPageProps) {
   const { id } = await params;
+  const { edit } = await searchParams;
   const game = await getSearchGameById(id);
   if (!game) notFound();
 
@@ -41,6 +46,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
         platforms: game.platforms,
         genre: [game.genre],
       }}
+      editReviewId={edit && UUID_RE.test(edit) ? edit : undefined}
     />
   );
 }

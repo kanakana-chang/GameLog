@@ -1,3 +1,4 @@
+// 管理画面のゲーム API が返すエラー応答を共通化する。
 import { NextResponse } from "next/server";
 
 export function adminGameErrorResponse(error: unknown, fallback: string) {

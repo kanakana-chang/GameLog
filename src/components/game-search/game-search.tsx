@@ -27,7 +27,6 @@ export function GameSearch({
   const [sort, setSort] = useState<SortKey>("popular");
   const [view, setView] = useState<ViewMode>("grid");
   const [query, setQuery] = useState(initialQuery);
-  const [showModal, setShowModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const filtered = useMemo(() => {
@@ -148,7 +147,9 @@ export function GameSearch({
                   }
                   className="flex items-center gap-1 rounded-full border border-[#FDE68A] bg-[#FFFBEB] px-2.5 py-0.5 text-[11px] font-medium text-[#D97706]"
                 >
-                  {filters.hasGachaFilter === "gacha" ? "ガチャあり" : "ガチャなし"}
+                  {filters.hasGachaFilter === "gacha"
+                    ? "ガチャあり"
+                    : "ガチャなし"}
                   <CloseIcon />
                 </button>
               ) : null}
@@ -242,6 +243,6 @@ export function GameSearch({
           )}
         </main>
       </div>
-   </div>
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+// Wikipedia の公開情報を集め、Gemini でゲーム概要を書いて game_details に保存する。
 import type { SearchGame } from "@/components/game-search/data";
 import { after } from "next/server";
 import { cache } from "react";
@@ -10,7 +11,9 @@ import { prisma } from "@/lib/prisma";
 import {
   cleanWikiExtract,
   fetchPublicGameInfo,
+  getWikiHint,
   takeSentences,
+  wikiHintSourceUrl,
   type PublicGameInfo,
   type PublicSource,
 } from "@/lib/public-game-info";
@@ -46,7 +49,10 @@ function asSources(value: unknown): PublicSource[] {
   });
 }
 
-function summaryFromPublic(game: SearchGame, publicInfo: PublicGameInfo | null) {
+function summaryFromPublic(
+  game: SearchGame,
+  publicInfo: PublicGameInfo | null,
+) {
   if (publicInfo) {
     const cleaned = takeSentences(cleanWikiExtract(publicInfo.extract), 5);
     if (cleaned.length >= 40) return cleaned;
@@ -57,7 +63,7 @@ function summaryFromPublic(game: SearchGame, publicInfo: PublicGameInfo | null) 
 
 function cleanGeneratedSummary(raw: string | null) {
   if (!raw) return null;
-  let text = raw
+  const text = raw
     .replace(/^```(?:markdown|text)?\s*/i, "")
     .replace(/\s*```$/, "")
     .replace(/^(ゲーム概要|概要)[:：]\s*/, "")
@@ -68,16 +74,38 @@ function cleanGeneratedSummary(raw: string | null) {
   return text.slice(0, 800).trim();
 }
 
+function hasHintedSource(game: SearchGame, details: GeneratedGameDetails) {
+  const hint = getWikiHint(game);
+  if (!hint) return true;
+  const expected = wikiHintSourceUrl(hint);
+  return details.sources.some((source) => {
+    try {
+      const actual = new URL(source.url);
+      const wanted = new URL(expected);
+      return (
+        decodeURIComponent(actual.pathname) ===
+          decodeURIComponent(wanted.pathname) &&
+        decodeURIComponent(actual.hash) === decodeURIComponent(wanted.hash)
+      );
+    } catch {
+      return source.url === expected;
+    }
+  });
+}
+
 async function generateSummaryWithGemini(
   game: SearchGame,
   publicInfo: PublicGameInfo | null,
 ) {
   const sourceText = publicInfo
-    ? publicInfo.extract.slice(0, 900)
+    ? publicInfo.extract.slice(0, 2200)
     : "公開百科の本文は取得できませんでした。登録データのみを使い、不明な事実は書かないでください。";
+  const focus = publicInfo?.sources[0]?.title
+    ? `公開情報は ${publicInfo.sources[0].title} です。シリーズの別作品や原作そのものの解説に寄せず、この対象作品の事実だけを書いてください。`
+    : "公開情報に無い事実は作らないでください。";
 
   const generated = await generateGeminiText(
-    `あなたは日本語のゲーム事典編集者です。次の公開情報と登録データだけを根拠に、ゲーム概要を書いてください。公開情報に無い事実は作らず、架空のレビューやスコアは書かないでください。
+    `あなたは日本語のゲーム事典編集者です。次の公開情報と登録データだけを根拠に、ゲーム概要を書いてください。公開情報に無い事実は作らず、架空のレビューやスコアは書かないでください。${focus}
 
 公開情報:
 ${sourceText}
@@ -97,7 +125,7 @@ ${sourceText}
     {
       temperature: 0.2,
       timeoutMs: 15000,
-      maxOutputTokens: 400,
+      maxOutputTokens: 2048,
       retries: 2,
       model: GEMINI_TEXT_MODEL,
     },
@@ -117,9 +145,7 @@ function assembleFromPublic(
     sources: publicInfo?.sources ?? [],
     assembledFromPublic: true,
     assemblyVersion: SUMMARY_ASSEMBLY_VERSION,
-    generatedBy:
-      generatedBy ??
-      (publicInfo ? "wikipedia" : "registered"),
+    generatedBy: generatedBy ?? (publicInfo ? "wikipedia" : "registered"),
   };
 }
 
@@ -211,14 +237,42 @@ async function saveDetails(
   });
 }
 
+export async function refreshGameDetails(
+  game: SearchGame,
+): Promise<GeneratedGameDetails> {
+  const id = String(game.id);
+  const publicInfo = await fetchPublicGameInfo(game);
+  const geminiSummary = await generateSummaryWithGemini(game, publicInfo);
+  const details = assembleFromPublic(
+    game,
+    publicInfo,
+    geminiSummary,
+    geminiSummary ? "gemini" : publicInfo ? "wikipedia" : "registered",
+  );
+  if (UUID_RE.test(id)) {
+    await saveDetails(
+      id,
+      details,
+      geminiSummary
+        ? GEMINI_TEXT_MODEL
+        : publicInfo
+          ? "wikipedia-public-sources"
+          : "registered-public-facts",
+    );
+  }
+  return details;
+}
+
 export async function ensureGameDetails(
   game: SearchGame,
 ): Promise<GeneratedGameDetails> {
   const id = String(game.id);
   const stored = await getStoredGameDetails(id);
-  if (stored?.generatedBy === "gemini") return stored;
+  if (stored?.generatedBy === "gemini" && hasHintedSource(game, stored)) {
+    return stored;
+  }
 
-  if (stored) {
+  if (stored && hasHintedSource(game, stored)) {
     scheduleGeminiSummary(id, game);
     return stored;
   }

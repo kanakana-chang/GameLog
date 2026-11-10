@@ -97,7 +97,9 @@ export function RegisterForm({
       setResent(true);
       setCooldown(60);
     } catch {
-      setResendError("確認メールの再送信に失敗しました。時間をおいて再度お試しください。");
+      setResendError(
+        "確認メールの再送信に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setResending(false);
     }
@@ -162,11 +164,11 @@ export function RegisterForm({
         return;
       }
       setStep("verify");
-      router.replace(
-        `/register?verify=1&email=${encodeURIComponent(email)}`,
-      );
+      router.replace(`/register?verify=1&email=${encodeURIComponent(email)}`);
     } catch {
-      setFormError("アカウントの作成に失敗しました。時間をおいて再度お試しください。");
+      setFormError(
+        "アカウントの作成に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -187,7 +189,9 @@ export function RegisterForm({
               確認メールを送信しました
             </h2>
             <p className="mb-1 text-sm text-register-muted">
-              <span className="font-semibold text-register-primary">{email}</span>{" "}
+              <span className="font-semibold text-register-primary">
+                {email}
+              </span>{" "}
               に確認メールをお送りしました。
             </p>
             <p className="mb-8 text-sm text-register-muted">
@@ -202,7 +206,9 @@ export function RegisterForm({
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-register-primary text-[10px] font-bold text-white">
                     {index + 1}
                   </span>
-                  <span className="text-sm text-register-secondary">{text}</span>
+                  <span className="text-sm text-register-secondary">
+                    {text}
+                  </span>
                 </div>
               ))}
             </div>
@@ -267,16 +273,18 @@ export function RegisterForm({
             {BENEFITS.map(({ icon, text }) => (
               <div key={text} className="flex items-center gap-3 py-2.5">
                 <span className="text-xl">{icon}</span>
-                <span className="text-sm font-medium text-white/90">{text}</span>
+                <span className="text-sm font-medium text-white/90">
+                  {text}
+                </span>
               </div>
             ))}
           </div>
           <div className="rounded-xl border border-white/[0.12] bg-white/[0.08] p-4">
-            <p className="mb-1 text-xs text-white/60">現在のユーザー数</p>
+            <p className="mb-1 text-xs text-white/60">プレイ記録</p>
             <p className="font-display text-3xl font-bold text-white">
-              128,400<span className="text-lg opacity-70">+</span>
+              ゲーム棚
             </p>
-            <p className="mt-1 text-xs text-white/50">ゲーマーが記録中</p>
+            <p className="mt-1 text-xs text-white/50">遊んだ記録を残して共有</p>
           </div>
         </div>
       </aside>
@@ -332,7 +340,10 @@ export function RegisterForm({
               value={displayName}
               onChange={(value) => {
                 setDisplayName(value);
-                setErrors((current) => ({ ...current, displayName: undefined }));
+                setErrors((current) => ({
+                  ...current,
+                  displayName: undefined,
+                }));
               }}
               error={errors.displayName}
               icon={<UserIcon />}
@@ -370,7 +381,10 @@ export function RegisterForm({
                   value={password}
                   onChange={(event) => {
                     setPassword(event.target.value);
-                    setErrors((current) => ({ ...current, password: undefined }));
+                    setErrors((current) => ({
+                      ...current,
+                      password: undefined,
+                    }));
                   }}
                   className={`w-full rounded-xl border-[1.5px] bg-register-card py-3 pr-11 pl-10 font-body text-sm text-register-fg outline-none transition-all placeholder:text-register-muted/70 focus:border-register-primary ${
                     errors.password
@@ -382,7 +396,9 @@ export function RegisterForm({
                   type="button"
                   onClick={() => setShowPass((current) => !current)}
                   className="absolute top-1/2 right-3.5 -translate-y-1/2 text-register-muted transition-opacity hover:opacity-60"
-                  aria-label={showPass ? "パスワードを隠す" : "パスワードを表示"}
+                  aria-label={
+                    showPass ? "パスワードを隠す" : "パスワードを表示"
+                  }
                 >
                   {showPass ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
@@ -423,7 +439,10 @@ export function RegisterForm({
                     checked={agreed}
                     onChange={(event) => {
                       setAgreed(event.target.checked);
-                      setErrors((current) => ({ ...current, agreed: undefined }));
+                      setErrors((current) => ({
+                        ...current,
+                        agreed: undefined,
+                      }));
                     }}
                     className="absolute inset-0 z-10 h-5 w-5 cursor-pointer opacity-0"
                   />
@@ -628,7 +647,13 @@ function MailIcon() {
 
 function GoogleIcon() {
   return (
-    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg
+      width={18}
+      height={18}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
         fill="#4285F4"

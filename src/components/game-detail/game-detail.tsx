@@ -1,5 +1,7 @@
 "use client";
 
+// ゲーム詳細。レビュー・掲示板・プレイ記録を同一画面のタブで切り替える。
+
 import { CoverImage } from "@/components/cover-image";
 import { useAuth } from "@/components/auth-provider";
 import { UserAvatar } from "@/components/user-avatar";
@@ -18,7 +20,11 @@ import {
 
 type TabKey = "reviews" | "board" | "mylog";
 type SortKey = "helpful" | "new" | "score";
-type ReportTarget = { type: "review" | "post"; id: string | number; title: string };
+type ReportTarget = {
+  type: "review" | "post";
+  id: string | number;
+  title: string;
+};
 
 function Tag({ label }: { label: string }) {
   return (
@@ -127,13 +133,22 @@ function CloseBtn({ onClick }: { onClick: () => void }) {
   );
 }
 
-function DotMenu({ onReport }: { onReport: () => void }) {
+function DotMenu({
+  onReport,
+  onEdit,
+  onDelete,
+}: {
+  onReport: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handle(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
     if (open) document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
@@ -151,6 +166,30 @@ function DotMenu({ onReport }: { onReport: () => void }) {
       </button>
       {open ? (
         <div className="absolute top-8 right-0 z-[100] min-w-[140px] overflow-hidden rounded-[10px] border border-detail-border bg-white shadow-[0_8px_24px_rgba(20,24,50,0.12)]">
+          {onEdit ? (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onEdit();
+              }}
+              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[13px] font-semibold text-detail-text hover:bg-[#f5f6fa]"
+            >
+              ✏️ 編集する
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onDelete();
+              }}
+              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[13px] font-semibold text-detail-red hover:bg-detail-red-bg"
+            >
+              🗑 削除する
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => {
@@ -173,12 +212,16 @@ function ReviewCard({
   liking,
   onReport,
   onLike,
+  onEdit,
+  onDelete,
 }: {
   r: Review;
   isMine: boolean;
   liking?: boolean;
   onReport: () => void;
   onLike: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const [exp, setExp] = useState(false);
   const [spoiler, setSpoiler] = useState(false);
@@ -225,7 +268,9 @@ function ReviewCard({
             <span className="rounded px-[7px] py-px font-mono text-[10px] text-detail-muted bg-[#f0f2fa]">
               {r.platform}
             </span>
-            <span className="font-mono text-[10px] text-detail-dim">{r.date}</span>
+            <span className="font-mono text-[10px] text-detail-dim">
+              {r.date}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <StarRow score={r.score} />
@@ -249,7 +294,11 @@ function ReviewCard({
             </div>
             <div className="font-mono text-[9px] text-detail-dim">/5</div>
           </div>
-          <DotMenu onReport={onReport} />
+          <DotMenu
+            onReport={onReport}
+            onEdit={isMine ? onEdit : undefined}
+            onDelete={isMine ? onDelete : undefined}
+          />
         </div>
       </div>
 
@@ -322,11 +371,17 @@ function ReviewCard({
 function PostCard({
   p,
   gameId,
+  isMine,
   onReport,
+  onEdit,
+  onDelete,
 }: {
   p: Post;
   gameId: string | number;
+  isMine?: boolean;
   onReport: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   return (
     <article className="relative overflow-hidden rounded-[14px] border border-detail-border bg-white shadow-[0_1px_4px_rgba(30,40,100,0.04)] transition-all duration-[180ms] hover:border-detail-accent hover:shadow-[0_4px_16px_rgba(255,107,53,0.09)]">
@@ -373,7 +428,11 @@ function PostCard({
         </div>
       </Link>
       <div className="absolute top-3.5 right-[18px]">
-        <DotMenu onReport={onReport} />
+        <DotMenu
+          onReport={onReport}
+          onEdit={isMine ? onEdit : undefined}
+          onDelete={isMine ? onDelete : undefined}
+        />
       </div>
     </article>
   );
@@ -510,7 +569,9 @@ function ReportModal({
                   </div>
                   <span
                     className={`text-[13px] ${
-                      on ? "font-semibold text-detail-accent" : "text-detail-text"
+                      on
+                        ? "font-semibold text-detail-accent"
+                        : "text-detail-text"
                     }`}
                   >
                     {r.label}
@@ -520,7 +581,9 @@ function ReportModal({
             })}
 
             <div className="mt-1">
-              <div className="mb-1.5 text-xs text-detail-muted">補足（任意）</div>
+              <div className="mb-1.5 text-xs text-detail-muted">
+                補足（任意）
+              </div>
               <textarea
                 value={detail}
                 onChange={(e) => setDetail(e.target.value)}
@@ -548,7 +611,9 @@ function ReportModal({
                   void handleSubmit();
                 }}
                 className={`rounded-[10px] px-5 py-[9px] font-display text-[13px] font-bold text-white ${
-                  selected && !saving ? "bg-detail-red" : "cursor-default bg-[#dde0f0]"
+                  selected && !saving
+                    ? "bg-detail-red"
+                    : "cursor-default bg-[#dde0f0]"
                 }`}
               >
                 {saving ? "送信中..." : "通報する"}
@@ -565,6 +630,7 @@ function NewPostModal({
   onClose,
   onSubmit,
   author,
+  initial,
 }: {
   onClose: () => void;
   onSubmit: (input: {
@@ -573,10 +639,11 @@ function NewPostModal({
     tags: string[];
   }) => Promise<void> | void;
   author: { displayName: string; username: string; avatarSrc: string };
+  initial?: { title: string; body: string; tags: string[] };
 }) {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [selTags, setSelTags] = useState<string[]>([]);
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [body, setBody] = useState(initial?.body ?? "");
+  const [selTags, setSelTags] = useState<string[]>(initial?.tags ?? []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const valid = body.trim().length > 0;
@@ -603,7 +670,9 @@ function NewPostModal({
       });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "トピックの投稿に失敗しました");
+      setError(
+        err instanceof Error ? err.message : "トピックの投稿に失敗しました",
+      );
     } finally {
       setSaving(false);
     }
@@ -613,7 +682,7 @@ function NewPostModal({
     <Overlay onClose={onClose}>
       <div className="flex items-center justify-between px-[22px] pt-5">
         <div className="font-display text-lg font-extrabold text-detail-text">
-          ✏️ 新規トピック投稿
+          {initial ? "✏️ トピックを編集" : "✏️ 新規トピック投稿"}
         </div>
         <CloseBtn onClick={onClose} />
       </div>
@@ -671,7 +740,9 @@ function NewPostModal({
         </div>
 
         <div>
-          <label className="mb-2 block text-xs text-detail-muted">タグ（最大3つ）</label>
+          <label className="mb-2 block text-xs text-detail-muted">
+            タグ（最大3つ）
+          </label>
           <div className="flex flex-wrap gap-1.5">
             {POST_TAGS.map((t) => {
               const on = selTags.includes(t);
@@ -720,7 +791,7 @@ function NewPostModal({
                 : "cursor-default bg-[#dde0f0]"
             }`}
           >
-            {saving ? "投稿中..." : "投稿する"}
+            {saving ? "保存中..." : initial ? "保存する" : "投稿する"}
           </button>
         </div>
       </div>
@@ -744,7 +815,9 @@ function Toast({ msg, onEnd }: { msg: string; onEnd: () => void }) {
 export function GameDetail({ detail }: { detail: GameDetailData }) {
   const router = useRouter();
   const { isLoggedIn, user } = useAuth();
-  const [status, setStatus] = useState<string | null>(detail.userStatus ?? null);
+  const [status, setStatus] = useState<string | null>(
+    detail.userStatus ?? null,
+  );
   const [statusBusy, setStatusBusy] = useState(false);
   const [tab, setTab] = useState<TabKey>("reviews");
   const [sort, setSort] = useState<SortKey>("helpful");
@@ -755,11 +828,16 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
   const [likingId, setLikingId] = useState<string | number | null>(null);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   const [showNewPost, setShowNewPost] = useState(false);
+  const [editingTopic, setEditingTopic] = useState<Post | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     setReviews(detail.reviews);
   }, [detail.reviews]);
+
+  useEffect(() => {
+    setPosts(detail.posts);
+  }, [detail.posts]);
 
   useEffect(() => {
     setStatus(detail.userStatus ?? null);
@@ -781,16 +859,19 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: next }),
       });
-      const payload = (await response.json().catch(() => null)) as
-        | { status?: string | null; error?: string }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        status?: string | null;
+        error?: string;
+      } | null;
       if (!response.ok) {
         throw new Error(payload?.error ?? "ステータスの更新に失敗しました");
       }
     } catch (error) {
       setStatus(previous);
       setToast(
-        error instanceof Error ? error.message : "ステータスの更新に失敗しました",
+        error instanceof Error
+          ? error.message
+          : "ステータスの更新に失敗しました",
       );
     } finally {
       setStatusBusy(false);
@@ -809,9 +890,11 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
       const response = await fetch(`/api/reviews/${review.id}/likes`, {
         method: "POST",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | { liked?: boolean; count?: number; error?: string }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        liked?: boolean;
+        count?: number;
+        error?: string;
+      } | null;
       if (!response.ok || !payload || typeof payload.liked !== "boolean") {
         throw new Error(payload?.error ?? "いいねに失敗しました");
       }
@@ -857,7 +940,8 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
         <div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(180deg, transparent 10%, #f5f6fa 100%)",
+            background:
+              "linear-gradient(180deg, transparent 10%, #f5f6fa 100%)",
           }}
         />
         <Link
@@ -893,12 +977,16 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
             <h1 className="mb-0.5 font-display text-[30px] leading-tight font-black tracking-[-0.3px] text-detail-text">
               {detail.title}
             </h1>
-            <div className="mb-3 text-xs text-detail-muted">{detail.developer}</div>
+            <div className="mb-3 text-xs text-detail-muted">
+              {detail.developer}
+            </div>
             <div className="mb-4 grid grid-cols-[repeat(auto-fill,minmax(118px,1fr))] gap-[7px]">
               {[
                 {
                   l: "対応OS",
-                  v: detail.platforms.length ? detail.platforms.join(" / ") : "—",
+                  v: detail.platforms.length
+                    ? detail.platforms.join(" / ")
+                    : "—",
                 },
                 { l: "発売日", v: detail.releaseDate },
               ].map(({ l, v }) => (
@@ -909,7 +997,9 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                   <div className="mb-0.5 font-mono text-[9px] tracking-[0.06em] text-detail-dim uppercase">
                     {l}
                   </div>
-                  <div className="text-[11px] font-semibold text-detail-text">{v}</div>
+                  <div className="text-[11px] font-semibold text-detail-text">
+                    {v}
+                  </div>
                 </div>
               ))}
             </div>
@@ -986,7 +1076,10 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
         <div className="mt-7 flex border-b-2 border-detail-border">
           {(
             [
-              { key: "reviews", label: `レビュー (${detail.totalReviews.toLocaleString()})` },
+              {
+                key: "reviews",
+                label: `レビュー (${detail.totalReviews.toLocaleString()})`,
+              },
               { key: "board", label: `掲示板 (${posts.length})` },
               { key: "mylog", label: "📂 マイ記録" },
             ] as const
@@ -1021,7 +1114,11 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                         : "border-detail-border bg-white text-detail-muted"
                     }`}
                   >
-                    {s === "helpful" ? "参考順" : s === "new" ? "新着" : "スコア順"}
+                    {s === "helpful"
+                      ? "参考順"
+                      : s === "new"
+                        ? "新着"
+                        : "スコア順"}
                   </button>
                 ))}
                 {platforms.map((p) => (
@@ -1065,14 +1162,44 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                     r={r}
                     isMine={Boolean(
                       user &&
-                        (r.accountId === user.id || r.username === user.username),
+                      (r.accountId === user.id || r.username === user.username),
                     )}
                     liking={likingId === r.id}
                     onReport={() =>
-                      setReportTarget({ type: "review", id: r.id, title: r.title })
+                      setReportTarget({
+                        type: "review",
+                        id: r.id,
+                        title: r.title,
+                      })
                     }
                     onLike={() => {
                       void handleReviewLike(r);
+                    }}
+                    onEdit={() => {
+                      router.push(`/games/${detail.id}/review?edit=${r.id}`);
+                    }}
+                    onDelete={() => {
+                      void (async () => {
+                        if (!window.confirm("このレビューを削除しますか？"))
+                          return;
+                        const response = await fetch(`/api/reviews/${r.id}`, {
+                          method: "DELETE",
+                        });
+                        if (!response.ok) {
+                          const payload = (await response
+                            .json()
+                            .catch(() => null)) as {
+                            error?: string;
+                          } | null;
+                          setToast(payload?.error ?? "削除に失敗しました");
+                          return;
+                        }
+                        setReviews((prev) =>
+                          prev.filter((item) => item.id !== r.id),
+                        );
+                        setToast("レビューを削除しました");
+                        router.refresh();
+                      })();
                     }}
                   />
                 ))
@@ -1107,9 +1234,42 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
                     key={p.id}
                     p={p}
                     gameId={detail.id}
+                    isMine={Boolean(
+                      user &&
+                      (p.accountId === user.id || p.username === user.username),
+                    )}
                     onReport={() =>
-                      setReportTarget({ type: "post", id: p.id, title: p.title })
+                      setReportTarget({
+                        type: "post",
+                        id: p.id,
+                        title: p.title,
+                      })
                     }
+                    onEdit={() => setEditingTopic(p)}
+                    onDelete={() => {
+                      void (async () => {
+                        if (!window.confirm("このトピックを削除しますか？"))
+                          return;
+                        const response = await fetch(
+                          `/api/games/${detail.id}/topics/${p.id}`,
+                          { method: "DELETE" },
+                        );
+                        if (!response.ok) {
+                          const payload = (await response
+                            .json()
+                            .catch(() => null)) as {
+                            error?: string;
+                          } | null;
+                          setToast(payload?.error ?? "削除に失敗しました");
+                          return;
+                        }
+                        setPosts((prev) =>
+                          prev.filter((item) => item.id !== p.id),
+                        );
+                        setToast("トピックを削除しました");
+                        router.refresh();
+                      })();
+                    }}
                   />
                 ))
               ) : (
@@ -1131,6 +1291,46 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
           onClose={() => setReportTarget(null)}
         />
       ) : null}
+      {editingTopic && user ? (
+        <NewPostModal
+          onClose={() => setEditingTopic(null)}
+          initial={{
+            title: editingTopic.title,
+            body: editingTopic.body,
+            tags: editingTopic.tags,
+          }}
+          author={{
+            displayName: user.displayName,
+            username: user.username,
+            avatarSrc: user.avatarSrc,
+          }}
+          onSubmit={async (input) => {
+            const response = await fetch(
+              `/api/games/${detail.id}/topics/${editingTopic.id}`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(input),
+              },
+            );
+            const payload = (await response.json().catch(() => null)) as
+              Post | { error?: string } | null;
+            if (!response.ok || !payload || !("id" in payload)) {
+              throw new Error(
+                payload && "error" in payload && payload.error
+                  ? payload.error
+                  : "トピックの更新に失敗しました",
+              );
+            }
+            setPosts((prev) =>
+              prev.map((item) => (item.id === payload.id ? payload : item)),
+            );
+            setEditingTopic(null);
+            setToast("トピックを更新しました");
+            router.refresh();
+          }}
+        />
+      ) : null}
       {showNewPost && user ? (
         <NewPostModal
           onClose={() => setShowNewPost(false)}
@@ -1150,9 +1350,7 @@ export function GameDetail({ detail }: { detail: GameDetailData }) {
               body: JSON.stringify(input),
             });
             const payload = (await response.json().catch(() => null)) as
-              | Post
-              | { error?: string }
-              | null;
+              Post | { error?: string } | null;
             if (!response.ok || !payload || !("id" in payload)) {
               throw new Error(
                 payload && "error" in payload && payload.error
@@ -1220,9 +1418,7 @@ function MyLog({ detail }: { detail: GameDetailData }) {
           icon: "⏱",
           label: "総プレイ時間",
           val:
-            detail.myRecord.playTime > 0
-              ? `${detail.myRecord.playTime}h`
-              : "—",
+            detail.myRecord.playTime > 0 ? `${detail.myRecord.playTime}h` : "—",
           sub: "あなたの累計",
           color: "#ff6b35",
         },

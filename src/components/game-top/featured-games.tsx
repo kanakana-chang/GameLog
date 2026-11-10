@@ -11,7 +11,9 @@ function F2PBar({ score }: { score: number }) {
 
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-[10px] whitespace-nowrap text-[#7a7d8a]">無課金</span>
+      <span className="text-[10px] whitespace-nowrap text-[#7a7d8a]">
+        無課金
+      </span>
       <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#e3e4ea]">
         <div
           className="h-full rounded-full transition-all"

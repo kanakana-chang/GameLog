@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api-error";
 import { requireSessionUser } from "@/lib/auth";
-import {
-  generatePostTitle,
-  type PostTitleKind,
-} from "@/lib/post-title";
+import { generatePostTitle, type PostTitleKind } from "@/lib/post-title";
 
 export const dynamic = "force-dynamic";
 

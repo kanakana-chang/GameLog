@@ -1,3 +1,4 @@
+// Supabase Auth と profiles を結び、セッション・登録・OAuth・管理者判定を扱う。
 import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { cache } from "react";
@@ -254,9 +255,7 @@ export function parseProfileForm(form: FormData): ProfileUpdateInput {
 
   if (!username) throw new Error("ユーザー名を入力してください");
   if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-    throw new Error(
-      "ユーザー名は3〜30文字の半角英数字と_で入力してください",
-    );
+    throw new Error("ユーザー名は3〜30文字の半角英数字と_で入力してください");
   }
   if (!displayName) throw new Error("表示名を入力してください");
   if (displayName.length > 50) {
@@ -465,7 +464,10 @@ function mapAuthError(message: string, fallback: string) {
   if (isAlreadyRegistered(message)) {
     throw new Error("このメールアドレスは既に登録されています");
   }
-  if (lower.includes("email not confirmed") || lower.includes("not confirmed")) {
+  if (
+    lower.includes("email not confirmed") ||
+    lower.includes("not confirmed")
+  ) {
     throw new Error("メールアドレスの確認が完了していません");
   }
   if (
@@ -571,10 +573,12 @@ async function storeAvatar(userId: string, file: File): Promise<string> {
   const ext = type === "image/jpeg" ? "jpg" : type.split("/")[1];
   const path = `${userId}/avatar.${ext}`;
   const supabase = await createClient();
-  const { error } = await supabase.storage.from("avatars").upload(path, buffer, {
-    contentType: type,
-    upsert: true,
-  });
+  const { error } = await supabase.storage
+    .from("avatars")
+    .upload(path, buffer, {
+      contentType: type,
+      upsert: true,
+    });
   if (!error) {
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
     return `${data.publicUrl}?t=${Date.now()}`;
@@ -677,7 +681,8 @@ export async function loginUser(input: LoginInput): Promise<AuthUser> {
 
 export function parseAccountDeleteInput(body: unknown) {
   const record = asRecord(body);
-  const confirm = typeof record.confirm === "string" ? record.confirm.trim() : "";
+  const confirm =
+    typeof record.confirm === "string" ? record.confirm.trim() : "";
   if (confirm !== "退会する") {
     throw new Error("確認のため「退会する」と入力してください");
   }
@@ -779,13 +784,15 @@ export async function deleteAccount() {
 
   try {
     const supabase = await createClient();
-    await supabase.storage.from("avatars").remove([
-      `${user.id}/avatar.jpg`,
-      `${user.id}/avatar.jpeg`,
-      `${user.id}/avatar.png`,
-      `${user.id}/avatar.gif`,
-      `${user.id}/avatar.webp`,
-    ]);
+    await supabase.storage
+      .from("avatars")
+      .remove([
+        `${user.id}/avatar.jpg`,
+        `${user.id}/avatar.jpeg`,
+        `${user.id}/avatar.png`,
+        `${user.id}/avatar.gif`,
+        `${user.id}/avatar.webp`,
+      ]);
   } catch (error) {
     console.error("Failed to remove avatar", error);
   }

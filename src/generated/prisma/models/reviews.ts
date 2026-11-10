@@ -665,14 +665,6 @@ export type reviewsUncheckedUpdateManyWithoutProfilesNestedInput = {
   deleteMany?: Prisma.reviewsScalarWhereInput | Prisma.reviewsScalarWhereInput[]
 }
 
-export type DecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
-}
-
 export type reviewsCreateNestedOneWithoutReview_likesInput = {
   create?: Prisma.XOR<Prisma.reviewsCreateWithoutReview_likesInput, Prisma.reviewsUncheckedCreateWithoutReview_likesInput>
   connectOrCreate?: Prisma.reviewsCreateOrConnectWithoutReview_likesInput

@@ -42,7 +42,8 @@ const barlowCondensed = Barlow_Condensed({
 
 export const metadata: Metadata = {
   title: "GameLog",
-  description: "無課金での遊びやすさ・プレイボリューム・実際の口コミで、あなたにぴったりのゲームが見つかる",
+  description:
+    "無課金での遊びやすさ・プレイボリューム・実際の口コミで、あなたにぴったりのゲームが見つかる",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -52,7 +53,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${outfit.variable} ${inter.variable} ${jetbrainsMono.variable} ${rajdhani.variable} ${barlowCondensed.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="h-full min-h-full bg-page font-mypage text-ink" suppressHydrationWarning>
+      <body
+        className="h-full min-h-full bg-page font-mypage text-ink"
+        suppressHydrationWarning
+      >
         <AuthProvider>
           <AppShell>{children}</AppShell>
         </AuthProvider>

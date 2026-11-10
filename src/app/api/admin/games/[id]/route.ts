@@ -16,7 +16,10 @@ export async function PUT(
   try {
     await requireAdminUser();
     const { id } = await params;
-    const game = await updateAdminGame(id, parseAdminGameInput(await request.json()));
+    const game = await updateAdminGame(
+      id,
+      parseAdminGameInput(await request.json()),
+    );
     return NextResponse.json(game);
   } catch (error) {
     console.error("Failed to update admin game", error);

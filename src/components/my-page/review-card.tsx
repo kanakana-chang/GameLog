@@ -26,7 +26,9 @@ export function ReviewCard({ review }: { review: Review }) {
               {Array.from({ length: 5 }).map((_, index) => (
                 <span
                   key={index}
-                  className={index < review.rating ? "text-amber-400" : "text-line"}
+                  className={
+                    index < review.rating ? "text-amber-400" : "text-line"
+                  }
                 >
                   <IconStar size={11} filled={index < review.rating} />
                 </span>

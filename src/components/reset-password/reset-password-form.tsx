@@ -51,7 +51,9 @@ export function ResetPasswordForm({ expired = false }: { expired?: boolean }) {
         router.refresh();
       }, 1200);
     } catch {
-      setError("パスワードの変更に失敗しました。時間をおいて再度お試しください。");
+      setError(
+        "パスワードの変更に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setLoading(false);
     }

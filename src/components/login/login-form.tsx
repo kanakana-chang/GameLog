@@ -65,7 +65,9 @@ export function LoginForm({
       setResent(true);
       setCooldown(60);
     } catch {
-      setResendError("確認メールの再送信に失敗しました。時間をおいて再度お試しください。");
+      setResendError(
+        "確認メールの再送信に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setResending(false);
     }
@@ -117,7 +119,9 @@ export function LoginForm({
       }
       setResetSent(true);
     } catch {
-      setError("リセットメールの送信に失敗しました。時間をおいて再度お試しください。");
+      setError(
+        "リセットメールの送信に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setLoading(false);
     }
@@ -131,7 +135,10 @@ export function LoginForm({
           "linear-gradient(135deg, #f8f9ff 0%, #eef0ff 40%, #f3f0ff 100%)",
       }}
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+        aria-hidden="true"
+      >
         <div
           className="absolute top-[-10%] right-[-5%] h-[480px] w-[480px] rounded-full"
           style={{
@@ -284,7 +291,9 @@ export function LoginForm({
                 {needsConfirmation ? (
                   <div className="flex flex-col gap-2">
                     {resendError ? (
-                      <p className="font-body text-xs text-[#b91c1c]">{resendError}</p>
+                      <p className="font-body text-xs text-[#b91c1c]">
+                        {resendError}
+                      </p>
                     ) : null}
                     {resent ? (
                       <p className="font-body text-xs text-login-violet">
@@ -443,7 +452,13 @@ function ControllerIcon() {
 
 function GoogleIcon() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
         fill="#4285F4"

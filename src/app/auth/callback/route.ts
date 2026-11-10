@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getSessionUser,
-  markPasswordRecovery,
-  safeAppPath,
-} from "@/lib/auth";
+import { getSessionUser, markPasswordRecovery, safeAppPath } from "@/lib/auth";
 import { createClient } from "@/utils/supabase/server";
 
 export const dynamic = "force-dynamic";

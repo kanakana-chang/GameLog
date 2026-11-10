@@ -1,8 +1,16 @@
-import type { GameDetailData, Kink, Review } from "@/components/game-detail/data";
+// レビューの投稿・集計。param_1〜5 は設計どおり ストーリー/グラフィック/ゲームプレイ/サウンド/無課金度。
+import type {
+  GameDetailData,
+  Kink,
+  Review,
+} from "@/components/game-detail/data";
 import { isUuid, refreshGamesCache, requirePublishedGame } from "@/lib/games";
 import { toFivePointScore } from "@/lib/score";
 import { getLikedReviewIds } from "@/lib/likes";
-import { upsertUserGameStatus, storedStatusFromReview } from "@/lib/game-status";
+import {
+  upsertUserGameStatus,
+  storedStatusFromReview,
+} from "@/lib/game-status";
 import { generatePostTitle } from "@/lib/post-title";
 import { prisma } from "@/lib/prisma";
 import { getHiddenTargetSets } from "@/lib/reports";
@@ -51,7 +59,11 @@ function asRecord(body: unknown): Record<string, unknown> {
   return body as Record<string, unknown>;
 }
 
-function paramValue(record: Record<string, unknown>, key: string, fallback: number) {
+function paramValue(
+  record: Record<string, unknown>,
+  key: string,
+  fallback: number,
+) {
   const raw = record[key];
   const value = typeof raw === "number" ? raw : Number(raw);
   return clampInt(Number.isFinite(value) ? value : fallback, 1, 10);
@@ -65,10 +77,13 @@ export function parseReviewInput(body: unknown): ReviewInput {
       : {};
   const rating = clampInt(Number(record.rating), 0, 5);
   const status = typeof record.status === "string" ? record.status.trim() : "";
-  const comment = typeof record.comment === "string" ? record.comment.trim() : "";
+  const comment =
+    typeof record.comment === "string" ? record.comment.trim() : "";
   const playtimeHours = Number(record.playtimeHours);
-  const platform = typeof record.platform === "string" ? record.platform.trim() : "";
-  const imageUrl = typeof record.imageUrl === "string" ? record.imageUrl.trim() : "";
+  const platform =
+    typeof record.platform === "string" ? record.platform.trim() : "";
+  const imageUrl =
+    typeof record.imageUrl === "string" ? record.imageUrl.trim() : "";
   const fallbackParam = rating > 0 ? clampInt(rating * 2, 1, 10) : 5;
 
   if (!STATUS_TAGS[status]) {
@@ -150,6 +165,7 @@ function encodeMeta(input: ReviewInput, title?: string) {
     s: input.status,
     p: input.platform,
     f: input.params.f2p,
+    v: input.params.value,
     ...(title ? { t: title } : {}),
   });
 }
@@ -160,6 +176,7 @@ export function decodeMeta(comment: string | null): {
   status: string;
   platform: string;
   f2p: number | null;
+  value: number | null;
   title: string;
 } {
   if (!comment) {
@@ -169,6 +186,7 @@ export function decodeMeta(comment: string | null): {
       status: "",
       platform: "",
       f2p: null,
+      value: null,
       title: "",
     };
   }
@@ -180,6 +198,7 @@ export function decodeMeta(comment: string | null): {
       status: "",
       platform: "",
       f2p: null,
+      value: null,
       title: "",
     };
   }
@@ -189,6 +208,7 @@ export function decodeMeta(comment: string | null): {
       s?: string;
       p?: string;
       f?: number;
+      v?: number;
       t?: string;
     };
     return {
@@ -197,6 +217,7 @@ export function decodeMeta(comment: string | null): {
       status: typeof meta.s === "string" ? meta.s : "",
       platform: typeof meta.p === "string" ? meta.p : "",
       f2p: typeof meta.f === "number" ? meta.f : null,
+      value: typeof meta.v === "number" ? meta.v : null,
       title: typeof meta.t === "string" ? meta.t.trim() : "",
     };
   } catch {
@@ -206,14 +227,40 @@ export function decodeMeta(comment: string | null): {
       status: "",
       platform: "",
       f2p: null,
+      value: null,
       title: "",
     };
   }
 }
 
-type ReviewRow = Awaited<ReturnType<typeof prisma.reviews.findMany<{
-  include: { profiles: true; _count: { select: { review_likes: true } } };
-}>>>[number];
+function assertReviewOwner(userId: string, ownerId: string | null) {
+  if (!ownerId || ownerId !== userId) {
+    throw new Error("このレビューを操作する権限がありません");
+  }
+}
+
+function reviewColumnData(input: ReviewInput, title?: string) {
+  return {
+    rating_overall: scoreFromStars(input.rating),
+    // 設計: param_1 ストーリー / param_2 グラフィック / param_3 ゲームプレイ / param_4 サウンド / param_5 無課金度
+    param_1: input.params.story,
+    param_2: input.params.graphics,
+    param_3: input.params.gameplay,
+    param_4: input.params.music,
+    param_5: input.params.f2p,
+    comment: `<!--gl:${encodeMeta(input, title)}-->\n${input.comment}`,
+    image_url: imageUrlForStore(input.imageUrl),
+    is_spoiler: input.spoiler,
+  };
+}
+
+type ReviewRow = Awaited<
+  ReturnType<
+    typeof prisma.reviews.findMany<{
+      include: { profiles: true; _count: { select: { review_likes: true } } };
+    }>
+  >
+>[number];
 
 function toDetailReview(
   row: ReviewRow,
@@ -266,15 +313,17 @@ export function attachGameReviews(
     .map((item) => item.playTime)
     .filter((value) => Number.isFinite(value) && value > 0);
   const avgPlayTime = hours.length
-    ? Math.round((hours.reduce((sum, value) => sum + value, 0) / hours.length) * 10) /
-      10
+    ? Math.round(
+        (hours.reduce((sum, value) => sum + value, 0) / hours.length) * 10,
+      ) / 10
     : 0;
   return {
     ...detail,
     reviews,
     totalReviews: reviews.length,
     avgScore: Math.round(avg * 10) / 10,
-    avgPlayTime,
+    // 平均プレイ時間は games.ts 側（ユーザー単位）の値を使い、一覧と詳細で揃える
+    avgPlayTime: detail.avgPlayTime > 0 ? detail.avgPlayTime : avgPlayTime,
   };
 }
 
@@ -335,15 +384,7 @@ export async function createGameReview(
     data: {
       game_id: gameId,
       user_id: userId,
-      rating_overall: scoreFromStars(input.rating),
-      param_1: input.params.graphics,
-      param_2: input.params.story,
-      param_3: input.params.gameplay,
-      param_4: input.params.music,
-      param_5: input.params.value,
-      comment: `<!--gl:${encodeMeta(input, title)}-->\n${input.comment}`,
-      image_url: imageUrlForStore(input.imageUrl),
-      is_spoiler: input.spoiler,
+      ...reviewColumnData(input, title),
     },
     include: {
       profiles: true,
@@ -360,4 +401,89 @@ export async function createGameReview(
   refreshGamesCache();
 
   return toDetailReview(created, input.platform, false);
+}
+
+export type ReviewEditorPayload = ReviewInput & {
+  id: string;
+  gameId: string;
+};
+
+export async function getReviewForEdit(
+  reviewId: string,
+  userId: string,
+): Promise<ReviewEditorPayload> {
+  if (!isUuid(reviewId)) throw new Error("レビューが見つかりません");
+  const row = await prisma.reviews.findUnique({ where: { id: reviewId } });
+  if (!row) throw new Error("レビューが見つかりません");
+  assertReviewOwner(userId, row.user_id);
+
+  const meta = decodeMeta(row.comment);
+  const rating = Math.max(
+    1,
+    Math.min(5, Math.round(toFivePointScore(Number(row.rating_overall)))),
+  );
+  return {
+    id: row.id,
+    gameId: row.game_id,
+    rating,
+    status: STATUS_TAGS[meta.status] ? meta.status : "playing",
+    comment: meta.text,
+    spoiler: row.is_spoiler,
+    playtimeHours: meta.playtimeHours,
+    platform: meta.platform,
+    params: {
+      story: row.param_1,
+      graphics: row.param_2,
+      gameplay: row.param_3,
+      music: row.param_4,
+      f2p: meta.f2p ?? row.param_5,
+      value: meta.value ?? 5,
+    },
+    imageUrl: row.image_url ?? "",
+  };
+}
+
+export async function updateGameReview(
+  reviewId: string,
+  input: ReviewInput,
+  userId: string,
+): Promise<Review> {
+  if (!userId) throw new Error("ログインしてください");
+  if (!isUuid(reviewId)) throw new Error("レビューが見つかりません");
+
+  const existing = await prisma.reviews.findUnique({ where: { id: reviewId } });
+  if (!existing) throw new Error("レビューが見つかりません");
+  assertReviewOwner(userId, existing.user_id);
+
+  const previous = decodeMeta(existing.comment);
+  const updated = await prisma.reviews.update({
+    where: { id: reviewId },
+    data: reviewColumnData(input, previous.title),
+    include: {
+      profiles: true,
+      _count: { select: { review_likes: true } },
+    },
+  });
+
+  await upsertUserGameStatus({
+    userId,
+    gameId: existing.game_id,
+    status: storedStatusFromReview(input.status),
+    playTimeHours: input.playtimeHours,
+  });
+  refreshGamesCache();
+
+  return toDetailReview(updated, input.platform, false);
+}
+
+export async function deleteGameReview(reviewId: string, userId: string) {
+  if (!userId) throw new Error("ログインしてください");
+  if (!isUuid(reviewId)) throw new Error("レビューが見つかりません");
+
+  const existing = await prisma.reviews.findUnique({ where: { id: reviewId } });
+  if (!existing) throw new Error("レビューが見つかりません");
+  assertReviewOwner(userId, existing.user_id);
+
+  await prisma.reviews.delete({ where: { id: reviewId } });
+  refreshGamesCache();
 }

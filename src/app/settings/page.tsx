@@ -10,10 +10,11 @@ type SettingsPageProps = {
   searchParams: Promise<{ tab?: string }>;
 };
 
-export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+export default async function SettingsPage({
+  searchParams,
+}: SettingsPageProps) {
   const { tab } = await searchParams;
-  const initialTab =
-    tab === "password" || tab === "danger" ? tab : "profile";
+  const initialTab = tab === "password" || tab === "danger" ? tab : "profile";
 
   return <AccountSettings initialTab={initialTab} />;
 }

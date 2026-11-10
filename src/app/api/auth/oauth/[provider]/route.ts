@@ -18,7 +18,10 @@ export async function GET(
     const { provider } = await params;
     const next = safeAppPath(url.searchParams.get("next"), "/");
     const redirectTo = `${url.origin}/auth/callback?next=${encodeURIComponent(next)}&return=${encodeURIComponent(returnTo)}`;
-    const oauthUrl = await startOAuthLogin(parseOAuthProvider(provider), redirectTo);
+    const oauthUrl = await startOAuthLogin(
+      parseOAuthProvider(provider),
+      redirectTo,
+    );
     return NextResponse.redirect(oauthUrl);
   } catch (error) {
     console.error("Failed to start OAuth", error);

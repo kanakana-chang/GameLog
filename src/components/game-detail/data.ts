@@ -2,10 +2,34 @@ import type { SearchGame } from "@/components/game-search/data";
 import type { GeneratedGameDetails } from "@/lib/game-details";
 
 export const STATUSES = [
-  { key: "playing", label: "プレイ中", icon: "▶", color: "#10b981", bg: "#d1fae5" },
-  { key: "completed", label: "クリア済み", icon: "✓", color: "#ff6b35", bg: "#fff3ee" },
-  { key: "want", label: "気になる", icon: "★", color: "#f59e0b", bg: "#fef3c7" },
-  { key: "dropped", label: "やめた", icon: "✕", color: "#ef4444", bg: "#fee2e2" },
+  {
+    key: "playing",
+    label: "プレイ中",
+    icon: "▶",
+    color: "#10b981",
+    bg: "#d1fae5",
+  },
+  {
+    key: "completed",
+    label: "クリア済み",
+    icon: "✓",
+    color: "#ff6b35",
+    bg: "#fff3ee",
+  },
+  {
+    key: "want",
+    label: "気になる",
+    icon: "★",
+    color: "#f59e0b",
+    bg: "#fef3c7",
+  },
+  {
+    key: "dropped",
+    label: "やめた",
+    icon: "✕",
+    color: "#ef4444",
+    bg: "#fee2e2",
+  },
 ] as const;
 
 export const REPORT_REASONS = [

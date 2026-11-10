@@ -5,7 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import { QUICK_TAGS, SEARCH_SUGGESTIONS } from "./data";
 import { SearchIcon } from "./icons";
 
-export function HeroSection({ onSearch }: { onSearch: (query: string) => void }) {
+export function HeroSection({
+  onSearch,
+}: {
+  onSearch: (query: string) => void;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -58,7 +62,7 @@ export function HeroSection({ onSearch }: { onSearch: (query: string) => void })
       <div className="relative mx-auto max-w-5xl px-4 py-16 text-center sm:py-20">
         <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff4d84]" />
-          12,400以上のゲームを収録
+          運営が厳選したタイトルを収録
         </div>
 
         <h1 className="mb-3 text-3xl leading-tight font-extrabold tracking-tight sm:text-5xl">

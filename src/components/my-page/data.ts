@@ -1,4 +1,5 @@
-export type GameStatus = "全て" | "プレイ中" | "クリア済み" | "積みゲー" | "やめた";
+export type GameStatus =
+  "全て" | "プレイ中" | "クリア済み" | "積みゲー" | "やめた";
 
 export const TABS: GameStatus[] = [
   "全て",

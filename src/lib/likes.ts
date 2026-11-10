@@ -1,3 +1,4 @@
+// レビューと掲示板レスのいいね。
 import { isUuid } from "@/lib/games";
 import { prisma } from "@/lib/prisma";
 

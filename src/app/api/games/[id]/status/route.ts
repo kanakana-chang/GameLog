@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api-error";
 import { requireSessionUser } from "@/lib/auth";
 import { requirePublishedGame } from "@/lib/games";
-import {
-  parseGameStatusInput,
-  upsertUserGameStatus,
-} from "@/lib/game-status";
+import { parseGameStatusInput, upsertUserGameStatus } from "@/lib/game-status";
 
 export const dynamic = "force-dynamic";
 

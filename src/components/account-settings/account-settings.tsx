@@ -356,7 +356,9 @@ export function AccountSettings({
                     id="email"
                     type="email"
                     value={profile.email}
-                    onChange={(value) => setProfile({ ...profile, email: value })}
+                    onChange={(value) =>
+                      setProfile({ ...profile, email: value })
+                    }
                     placeholder="example@email.com"
                   />
                   <FormField
@@ -388,7 +390,9 @@ export function AccountSettings({
                   </div>
 
                   {profileError ? (
-                    <p className="text-xs font-medium text-danger">{profileError}</p>
+                    <p className="text-xs font-medium text-danger">
+                      {profileError}
+                    </p>
                   ) : null}
 
                   <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -464,7 +468,9 @@ export function AccountSettings({
                   ) : null}
 
                   {passwordError ? (
-                    <p className="text-xs font-medium text-danger">{passwordError}</p>
+                    <p className="text-xs font-medium text-danger">
+                      {passwordError}
+                    </p>
                   ) : null}
 
                   <Link

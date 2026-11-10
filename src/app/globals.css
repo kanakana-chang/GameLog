@@ -2,13 +2,16 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-display: var(--font-outfit), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+  --font-display:
+    var(--font-outfit), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
     "Noto Sans JP", sans-serif;
-  --font-body: var(--font-inter), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+  --font-body:
+    var(--font-inter), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
     "Noto Sans JP", sans-serif;
   --font-noto-sans-jp: "Noto Sans JP";
-  --font-mypage: var(--font-noto-sans-jp), "Hiragino Sans",
-    "Hiragino Kaku Gothic ProN", sans-serif;
+  --font-mypage:
+    var(--font-noto-sans-jp), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --color-bg: #f5f6fa;
   --color-surface: #ffffff;
@@ -56,7 +59,8 @@
   --color-register-panel: #1a0d4a;
   --shadow-register-card: 0 8px 40px rgba(91, 62, 245, 0.08);
   --shadow-register-btn: 0 4px 16px rgba(91, 62, 245, 0.35);
-  --font-login: var(--font-rajdhani), var(--font-outfit), "Hiragino Sans",
+  --font-login:
+    var(--font-rajdhani), var(--font-outfit), "Hiragino Sans",
     "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
   --color-login-heading: #1a1340;
   --color-login-violet: #7c3aed;
@@ -68,14 +72,15 @@
   --color-login-faint: #9ca3af;
   --color-login-field: #fafafa;
   --color-login-disabled: #c4b5fd;
-  --shadow-login-card: 0 4px 40px rgba(124, 58, 237, 0.1),
-    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  --shadow-login-card:
+    0 4px 40px rgba(124, 58, 237, 0.1), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   --shadow-login-logo: 0 4px 14px rgba(124, 58, 237, 0.35);
   --shadow-login-btn: 0 4px 16px rgba(124, 58, 237, 0.35);
   --shadow-login-focus: 0 0 0 3px rgba(124, 58, 237, 0.12);
   --color-logout-primary: #6c5ce7;
   --color-logout-overlay: rgba(10, 5, 30, 0.65);
-  --font-search: var(--font-barlow-condensed), var(--font-outfit), "Hiragino Sans",
+  --font-search:
+    var(--font-barlow-condensed), var(--font-outfit), "Hiragino Sans",
     "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
   --color-search-bg: #f4f5f7;
   --color-search-text: #1a1a2e;

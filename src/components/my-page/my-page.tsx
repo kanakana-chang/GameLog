@@ -40,8 +40,12 @@ export function MyPage({
   }, [ready, isLoggedIn, router]);
 
   const totalHours = games.reduce((sum, game) => sum + game.hours, 0);
-  const clearedCount = games.filter((game) => game.status === "クリア済み").length;
-  const playingCount = games.filter((game) => game.status === "プレイ中").length;
+  const clearedCount = games.filter(
+    (game) => game.status === "クリア済み",
+  ).length;
+  const playingCount = games.filter(
+    (game) => game.status === "プレイ中",
+  ).length;
   const filteredGames =
     activeTab === "全て"
       ? games

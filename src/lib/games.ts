@@ -1,3 +1,4 @@
+// 公開ゲーム一覧と管理画面の登録。平均点・プレイ時間・無課金度はレビューから集計する。
 import type { AdminGame } from "@/components/admin-dashboard/data";
 import {
   GENRES,
@@ -6,7 +7,7 @@ import {
   type Platform,
   type SearchGame,
 } from "@/components/game-search/data";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { toFivePointScore } from "@/lib/score";
 
@@ -14,7 +15,10 @@ const GAMES_CACHE_TAG = "games";
 const GAMES_CACHE_SECONDS = 60;
 
 export function refreshGamesCache() {
+  // 管理画面の保存後、一覧とトップのキャッシュをすぐ捨てる
   revalidateTag(GAMES_CACHE_TAG, "max");
+  revalidatePath("/");
+  revalidatePath("/games");
 }
 
 export const UUID_RE =
@@ -49,7 +53,9 @@ const gameWithPlatforms = {
 } as const;
 
 type GameWithPlatforms = Awaited<
-  ReturnType<typeof prisma.games.findMany<{ include: typeof gameWithPlatforms }>>
+  ReturnType<
+    typeof prisma.games.findMany<{ include: typeof gameWithPlatforms }>
+  >
 >[number];
 
 function mapGenre(value: string): Genre {
@@ -65,11 +71,7 @@ function mapPlatform(name: string, slug: string): Platform | string {
   const key = `${slug} ${name}`.toLowerCase();
   if (key.includes("switch2")) return "Switch2";
   if (key.includes("switch")) return "Switch";
-  if (
-    key.includes("steam") ||
-    slug.toLowerCase() === "pc" ||
-    name === "PC"
-  ) {
+  if (key.includes("steam") || slug.toLowerCase() === "pc" || name === "PC") {
     return "Steam";
   }
   if (key.includes("xbox")) return "Xbox";
@@ -120,13 +122,13 @@ function toSearchGame(game: GameWithPlatforms): SearchGame {
     platforms,
     rating: 0,
     ratingCount: 0,
-    avgPlaytime: 0,
+    avgPlaytime: roundPlayHours(Number(game.avg_play_hours)),
     releaseYear: Number(game.release_year),
     price: 0,
     isFree,
     hasGacha,
-    f2pScore: isFree ? 4 : 3,
-    volumeScore: 3,
+    f2pScore: 0,
+    volumeScore: 0,
     img: coverImage(game.cover_image_url),
     tags: [genre, game.game_type].filter(Boolean),
     popular: false,
@@ -191,14 +193,53 @@ function playHoursFromComment(comment: string | null) {
   }
 }
 
+function f2pFromReview(comment: string | null, param5: number) {
+  const match = comment?.match(/^<!--gl:(.*?)-->/);
+  if (match) {
+    try {
+      const meta = JSON.parse(match[1]) as { f?: unknown };
+      const value = Number(meta.f);
+      if (Number.isFinite(value) && value > 0) return value;
+    } catch {
+      /* 列の無課金度を使う */
+    }
+  }
+  return Number.isFinite(param5) && param5 > 0 ? param5 : 0;
+}
+
 function roundPlayHours(value: number) {
   if (!Number.isFinite(value) || value <= 0) return 0;
   return Math.round(value * 10) / 10;
 }
 
+function f2pDotsFromTen(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.min(5, Math.max(1, Math.round(value / 2)));
+}
+
+function volumeFromHours(hours: number) {
+  if (hours <= 0) return 0;
+  if (hours < 8) return 1;
+  if (hours < 20) return 2;
+  if (hours < 40) return 3;
+  if (hours < 80) return 4;
+  return 5;
+}
+
 async function userPlaytimesByGameIds(ids: string[]) {
   const gameIds = ids.filter((id) => UUID_RE.test(id));
-  if (!gameIds.length) return new Map<string, number>();
+  if (!gameIds.length) {
+    return {
+      playtimes: new Map<string, number>(),
+      f2pScores: new Map<string, number>(),
+    };
+  }
+
+  const hidden = await prisma.reports.findMany({
+    where: { status: "hidden", target_type: "review" },
+    select: { target_id: true },
+  });
+  const hiddenIds = hidden.map((row) => row.target_id);
 
   const [statusRows, reviewRows] = await Promise.all([
     prisma.user_game_statuses.findMany({
@@ -206,8 +247,11 @@ async function userPlaytimesByGameIds(ids: string[]) {
       select: { game_id: true, user_id: true, play_time_hours: true },
     }),
     prisma.reviews.findMany({
-      where: { game_id: { in: gameIds } },
-      select: { game_id: true, user_id: true, comment: true },
+      where: {
+        game_id: { in: gameIds },
+        ...(hiddenIds.length ? { id: { notIn: hiddenIds } } : {}),
+      },
+      select: { game_id: true, user_id: true, comment: true, param_5: true },
     }),
   ]);
 
@@ -227,28 +271,49 @@ async function userPlaytimesByGameIds(ids: string[]) {
     setHours(row.game_id, row.user_id, playHoursFromComment(row.comment));
   }
 
-  return new Map(
+  const f2pByGame = new Map<string, number[]>();
+  for (const row of reviewRows) {
+    const score = f2pFromReview(row.comment, row.param_5);
+    if (score <= 0) continue;
+    const list = f2pByGame.get(row.game_id) ?? [];
+    list.push(score);
+    f2pByGame.set(row.game_id, list);
+  }
+
+  const playtimes = new Map(
     [...hoursByGameUser.entries()].map(([gameId, users]) => {
       const hours = [...users.values()];
       const avg = hours.reduce((sum, value) => sum + value, 0) / hours.length;
       return [gameId, roundPlayHours(avg)] as const;
     }),
   );
+  const f2pScores = new Map(
+    [...f2pByGame.entries()].map(([gameId, values]) => {
+      const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+      return [gameId, f2pDotsFromTen(avg)] as const;
+    }),
+  );
+  return { playtimes, f2pScores };
 }
 
 async function withReviewRatings(games: SearchGame[]): Promise<SearchGame[]> {
   const ids = games.map((game) => String(game.id));
-  const [stats, playtimes] = await Promise.all([
+  const [stats, extras] = await Promise.all([
     reviewRatingsByGameIds(ids),
     userPlaytimesByGameIds(ids),
   ]);
   return games.map((game) => {
     const row = stats.get(String(game.id));
+    const avgPlaytime =
+      extras.playtimes.get(String(game.id)) || game.avgPlaytime;
+    const reviewedF2p = extras.f2pScores.get(String(game.id));
     return {
       ...game,
       rating: row?.rating ?? 0,
       ratingCount: row?.count ?? 0,
-      avgPlaytime: playtimes.get(String(game.id)) ?? 0,
+      avgPlaytime,
+      f2pScore: reviewedF2p ?? (game.isFree ? 4 : game.hasGacha ? 3 : 0),
+      volumeScore: volumeFromHours(avgPlaytime),
     };
   });
 }
@@ -299,11 +364,10 @@ async function loadSearchGameById(id: string): Promise<SearchGame | undefined> {
 
 export function getSearchGameById(id: string): Promise<SearchGame | undefined> {
   if (!UUID_RE.test(id)) return Promise.resolve(undefined);
-  return unstable_cache(
-    () => loadSearchGameById(id),
-    ["search-game-v7", id],
-    { revalidate: GAMES_CACHE_SECONDS, tags: [GAMES_CACHE_TAG] },
-  )();
+  return unstable_cache(() => loadSearchGameById(id), ["search-game-v7", id], {
+    revalidate: GAMES_CACHE_SECONDS,
+    tags: [GAMES_CACHE_TAG],
+  })();
 }
 
 export type AdminGameStatus = AdminGame["status"];
@@ -316,6 +380,7 @@ export type AdminGameInput = {
   platform: string[];
   freeToPlay: boolean;
   hasCurrency: boolean;
+  avgPlaytime: number;
   coverUrl: string;
   status: AdminGameStatus;
 };
@@ -335,10 +400,13 @@ export function parseAdminGameInput(body: unknown): AdminGameInput {
     genre: typeof record.genre === "string" ? record.genre : "",
     releaseYear: Number(record.releaseYear),
     platform: Array.isArray(record.platform)
-      ? record.platform.filter((item): item is string => typeof item === "string")
+      ? record.platform.filter(
+          (item): item is string => typeof item === "string",
+        )
       : [],
     freeToPlay: record.freeToPlay === true,
     hasCurrency: record.hasCurrency === true,
+    avgPlaytime: Number(record.avgPlaytime),
     coverUrl: typeof record.coverUrl === "string" ? record.coverUrl : "",
     status: parseGameStatus(record.status),
   };
@@ -354,7 +422,8 @@ export function parseAdminGamesStatusInput(body: unknown): {
   const record = body as Record<string, unknown>;
   const ids = Array.isArray(record.ids)
     ? record.ids.filter(
-        (item): item is string => typeof item === "string" && UUID_RE.test(item),
+        (item): item is string =>
+          typeof item === "string" && UUID_RE.test(item),
       )
     : [];
   if (ids.length === 0) {
@@ -385,6 +454,7 @@ type NormalizedAdminGame = {
   platforms: string[];
   releaseYear: number;
   coverUrl: string;
+  avgPlayHours: number;
 };
 
 function normalizeAdminGameInput(input: AdminGameInput): NormalizedAdminGame {
@@ -408,6 +478,13 @@ function normalizeAdminGameInput(input: AdminGameInput): NormalizedAdminGame {
   if (platforms.length === 0) {
     throw new Error("対応プラットフォームを1つ以上選んでください");
   }
+  if (
+    !Number.isFinite(input.avgPlaytime) ||
+    input.avgPlaytime < 0 ||
+    input.avgPlaytime > 10000
+  ) {
+    throw new Error("平均プレイ時間が正しくありません");
+  }
 
   return {
     title,
@@ -416,6 +493,7 @@ function normalizeAdminGameInput(input: AdminGameInput): NormalizedAdminGame {
     platforms,
     releaseYear: input.releaseYear,
     coverUrl: input.coverUrl.trim() || "/games/gaming-alt.jpg",
+    avgPlayHours: roundPlayHours(input.avgPlaytime),
   };
 }
 
@@ -442,8 +520,7 @@ function toAdminGame(game: GameWithPlatforms): AdminGame {
     game.game_type === "free" ||
     game.game_type === "gacha" ||
     game.game_type === "mobile";
-  const hasGacha =
-    game.game_type === "gacha" || game.genre.includes("ガチャ");
+  const hasGacha = game.game_type === "gacha" || game.genre.includes("ガチャ");
 
   return {
     id: game.id,
@@ -454,7 +531,7 @@ function toAdminGame(game: GameWithPlatforms): AdminGame {
     developer: game.publisher,
     freeToPlay: isFree,
     hasCurrency: hasGacha || isFree,
-    avgPlaytime: 0,
+    avgPlaytime: roundPlayHours(Number(game.avg_play_hours)),
     coverUrl: coverImage(game.cover_image_url),
     status: game.is_published ? "active" : "archived",
     addedAt: game.created_at.toISOString().slice(0, 10),
@@ -527,11 +604,14 @@ function gameWriteData(input: AdminGameInput, normalized: NormalizedAdminGame) {
     genre: normalized.genre,
     cover_image_url: normalized.coverUrl,
     game_type: gameTypeFromInput({ ...input, platform: normalized.platforms }),
+    avg_play_hours: normalized.avgPlayHours,
     is_published: input.status !== "archived",
   };
 }
 
-export async function createAdminGame(input: AdminGameInput): Promise<AdminGame> {
+export async function createAdminGame(
+  input: AdminGameInput,
+): Promise<AdminGame> {
   const normalized = normalizeAdminGameInput(input);
   const platformIds = await resolvePlatformIds(normalized.platforms);
   const created = await prisma.games.create({

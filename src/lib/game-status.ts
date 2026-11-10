@@ -1,7 +1,13 @@
+// ゲーム棚のステータスと個人プレイ時間の保存。
 import { isUuid } from "@/lib/games";
 import { prisma } from "@/lib/prisma";
 
-export const DETAIL_STATUS_KEYS = ["playing", "completed", "want", "dropped"] as const;
+export const DETAIL_STATUS_KEYS = [
+  "playing",
+  "completed",
+  "want",
+  "dropped",
+] as const;
 export type DetailStatusKey = (typeof DETAIL_STATUS_KEYS)[number];
 
 export function isDetailStatusKey(value: string): value is DetailStatusKey {
@@ -26,7 +32,8 @@ export function toDetailStatusKey(stored: string): DetailStatusKey | null {
 
 export function shelfLabel(stored: string) {
   if (stored === "playing") return "プレイ中" as const;
-  if (stored === "cleared" || stored === "completed") return "クリア済み" as const;
+  if (stored === "cleared" || stored === "completed")
+    return "クリア済み" as const;
   if (stored === "dropped" || stored === "quit") return "やめた" as const;
   return "積みゲー" as const;
 }

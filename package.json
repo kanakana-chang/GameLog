@@ -7,14 +7,15 @@
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "prettier --write .",
     "postinstall": "prisma generate && (prisma skills sync || exit 0)"
   },
   "dependencies": {
-    "@google/genai": "^2.31.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
+    "dotenv": "^17.4.2",
     "next": "16.3.5",
     "pg": "^8.23.0",
     "prisma": "^7.10.0",
@@ -28,6 +29,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.10",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
