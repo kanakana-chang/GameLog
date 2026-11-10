@@ -39,6 +39,7 @@ export type AdminGame = {
   freeToPlay: boolean;
   hasCurrency: boolean;
   avgPlaytime: number;
+  storedAvgPlaytime: number;
   coverUrl: string;
   status: "active" | "archived";
   addedAt: string;

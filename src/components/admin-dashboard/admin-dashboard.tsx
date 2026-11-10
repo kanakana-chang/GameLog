@@ -91,6 +91,7 @@ function GameForm({
     freeToPlay: false,
     hasCurrency: false,
     avgPlaytime: 0,
+    storedAvgPlaytime: 0,
     coverUrl: "",
     status: "active",
   };
@@ -135,7 +136,8 @@ function GameForm({
         developer: form.developer!,
         freeToPlay: form.freeToPlay!,
         hasCurrency: form.hasCurrency!,
-        avgPlaytime: form.avgPlaytime!,
+        avgPlaytime: form.storedAvgPlaytime ?? form.avgPlaytime ?? 0,
+        storedAvgPlaytime: form.storedAvgPlaytime ?? form.avgPlaytime ?? 0,
         coverUrl: form.coverUrl ?? "",
         status: form.status!,
         addedAt: form.addedAt ?? now,
@@ -264,19 +266,25 @@ function GameForm({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">
-                平均プレイ時間 (h)
+                目安プレイ時間 (h)
               </label>
               <input
                 type="number"
                 min={0}
                 max={10000}
                 step={0.5}
-                value={form.avgPlaytime ?? 0}
+                value={form.storedAvgPlaytime ?? 0}
                 onChange={(e) =>
-                  setForm({ ...form, avgPlaytime: Number(e.target.value) })
+                  setForm({
+                    ...form,
+                    storedAvgPlaytime: Number(e.target.value),
+                  })
                 }
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 transition focus:border-transparent focus:ring-2 focus:ring-violet-500 focus:outline-none"
               />
+              <p className="mt-1 text-[11px] leading-snug text-slate-400">
+                一覧・詳細と同じく、ユーザー記録があればその平均を表示します
+              </p>
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">
@@ -401,7 +409,7 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
       platform: g.platform,
       freeToPlay: g.freeToPlay,
       hasCurrency: g.hasCurrency,
-      avgPlaytime: g.avgPlaytime,
+      avgPlaytime: g.storedAvgPlaytime ?? g.avgPlaytime,
       coverUrl: g.coverUrl,
       status: g.status,
     };
@@ -776,7 +784,7 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
                   </td>
                   <td className="px-4 py-3 text-slate-600">{g.genre}</td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                    {g.avgPlaytime}h
+                    {g.avgPlaytime > 0 ? `${g.avgPlaytime}h` : "—"}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">

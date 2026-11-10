@@ -512,6 +512,7 @@ const PLATFORM_DEFS: Record<
 };
 
 function toAdminGame(game: GameWithPlatforms): AdminGame {
+  const stored = roundPlayHours(Number(game.avg_play_hours));
   const platforms = game.game_platform.map((row) =>
     mapPlatform(row.platforms.name, row.platforms.slug),
   );
@@ -531,7 +532,8 @@ function toAdminGame(game: GameWithPlatforms): AdminGame {
     developer: game.publisher,
     freeToPlay: isFree,
     hasCurrency: hasGacha || isFree,
-    avgPlaytime: roundPlayHours(Number(game.avg_play_hours)),
+    avgPlaytime: stored,
+    storedAvgPlaytime: stored,
     coverUrl: coverImage(game.cover_image_url),
     status: game.is_published ? "active" : "archived",
     addedAt: game.created_at.toISOString().slice(0, 10),
@@ -587,13 +589,27 @@ async function resolvePlatformIds(labels: string[]) {
   return [...new Set(ids)];
 }
 
+async function withPublicPlaytimes(games: AdminGame[]): Promise<AdminGame[]> {
+  if (!games.length) return games;
+  const extras = await userPlaytimesByGameIds(games.map((game) => game.id));
+  return games.map((game) => ({
+    ...game,
+    avgPlaytime: extras.playtimes.get(game.id) || game.storedAvgPlaytime,
+  }));
+}
+
+async function toAdminGameWithPlaytime(game: GameWithPlatforms) {
+  const [withTimes] = await withPublicPlaytimes([toAdminGame(game)]);
+  return withTimes;
+}
+
 export async function getAdminGamesFromDb(): Promise<AdminGame[]> {
   const games = await prisma.games.findMany({
     include: gameWithPlatforms,
     orderBy: { created_at: "desc" },
   });
 
-  return games.map(toAdminGame);
+  return withPublicPlaytimes(games.map(toAdminGame));
 }
 
 function gameWriteData(input: AdminGameInput, normalized: NormalizedAdminGame) {
@@ -624,7 +640,7 @@ export async function createAdminGame(
     include: gameWithPlatforms,
   });
   refreshGamesCache();
-  return toAdminGame(created);
+  return toAdminGameWithPlaytime(created);
 }
 
 export async function updateAdminGame(
@@ -649,7 +665,7 @@ export async function updateAdminGame(
     include: gameWithPlatforms,
   });
   refreshGamesCache();
-  return toAdminGame(updated);
+  return toAdminGameWithPlaytime(updated);
 }
 
 export async function updateAdminGamesStatus(
