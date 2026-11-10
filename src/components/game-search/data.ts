@@ -3,8 +3,9 @@ export const PLATFORMS = [
   "Switch2",
   "iOS",
   "Android",
-  "PC",
+  "Steam",
   "PS5",
+  "Xbox",
 ] as const;
 
 export type Platform = (typeof PLATFORMS)[number];
@@ -78,8 +79,9 @@ export const HW_SEARCH_HREF: Record<string, string> = {
   switch2: "/games?platform=Switch2",
   ios: "/games?platform=iOS",
   android: "/games?platform=Android",
+  steam: "/games?platform=Steam",
   ps5: "/games?platform=PS5",
-  pc: "/games?platform=PC",
+  xbox: "/games?platform=Xbox",
   gacha: "/games?gacha=gacha",
 };
 
@@ -104,15 +106,16 @@ export const PLATFORM_BADGE: Record<
   },
   iOS: { color: "#374151", bg: "#F3F4F6", border: "#D1D5DB", label: "iOS" },
   Android: { color: "#15803D", bg: "#F0FDF4", border: "#BBF7D0", label: "Android" },
-  PC: { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", label: "PC" },
+  Steam: { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", label: "Steam" },
   PS5: { color: "#1D4ED8", bg: "#EFF6FF", border: "#BFDBFE", label: "PS5" },
+  Xbox: { color: "#047857", bg: "#ECFDF5", border: "#A7F3D0", label: "Xbox" },
 };
 
 export function parsePlatforms(value?: string): Platform[] {
   if (!value) return [];
   return value
     .split(",")
-    .map((item) => item.trim())
+    .map((item) => (item.trim() === "PC" ? "Steam" : item.trim()))
     .filter((item): item is Platform =>
       (PLATFORMS as readonly string[]).includes(item),
     );

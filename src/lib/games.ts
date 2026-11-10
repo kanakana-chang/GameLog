@@ -62,12 +62,20 @@ function mapGenre(value: string): Genre {
 function mapPlatform(name: string, slug: string): Platform | string {
   if ((PLATFORMS as readonly string[]).includes(slug)) return slug as Platform;
   if ((PLATFORMS as readonly string[]).includes(name)) return name as Platform;
-  if (slug.toLowerCase().includes("switch2") || name.includes("Switch2")) {
-    return "Switch2";
+  const key = `${slug} ${name}`.toLowerCase();
+  if (key.includes("switch2")) return "Switch2";
+  if (key.includes("switch")) return "Switch";
+  if (
+    key.includes("steam") ||
+    slug.toLowerCase() === "pc" ||
+    name === "PC"
+  ) {
+    return "Steam";
   }
-  if (slug.toLowerCase().includes("switch") || name.includes("Switch")) {
-    return "Switch";
-  }
+  if (key.includes("xbox")) return "Xbox";
+  if (key.includes("ps5") || key.includes("playstation")) return "PS5";
+  if (key.includes("ios") || key.includes("iphone")) return "iOS";
+  if (key.includes("android")) return "Android";
   return name;
 }
 
