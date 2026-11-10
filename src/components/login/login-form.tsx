@@ -205,11 +205,6 @@ export function LoginForm({
                   icon={<GoogleIcon />}
                   label="Googleでログイン"
                 />
-                <SnsButton
-                  href="/api/auth/oauth/twitter?return=/login"
-                  icon={<XIcon />}
-                  label="X（Twitter）でログイン"
-                />
               </div>
 
               <div className="mb-6 flex items-center gap-3">
@@ -465,20 +460,6 @@ function GoogleIcon() {
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
         fill="#EA4335"
       />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg
-      width={18}
-      height={18}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
     </svg>
   );
 }

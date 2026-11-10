@@ -34,7 +34,7 @@ export type ProfileUpdateInput = {
   favoriteGenre: string;
 };
 
-export const OAUTH_PROVIDERS = ["google", "twitter"] as const;
+export const OAUTH_PROVIDERS = ["google"] as const;
 export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number];
 
 export const OAUTH_ERROR_MESSAGE =
@@ -279,7 +279,9 @@ export function parseProfileForm(form: FormData): ProfileUpdateInput {
 }
 
 export function parseOAuthProvider(value: string): OAuthProvider {
-  if (value === "google" || value === "twitter") return value;
+  if ((OAUTH_PROVIDERS as readonly string[]).includes(value)) {
+    return value as OAuthProvider;
+  }
   throw new Error("未対応のログイン方法です");
 }
 
