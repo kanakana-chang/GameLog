@@ -1,5 +1,5 @@
 // レビュー・トピック・レスの見出しを Gemini で20字以内に生成する。
-import { GEMINI_TEXT_MODEL, generateGeminiText } from "@/lib/gemini";
+import { generateGeminiText } from "@/lib/gemini";
 
 export type PostTitleKind = "review" | "topic" | "reply";
 
@@ -53,7 +53,6 @@ ${input.body.slice(0, 1200)}
         timeoutMs: 12000,
         maxOutputTokens: 64,
         retries: 2,
-        model: GEMINI_TEXT_MODEL,
       },
     );
     const cleaned = generated ? cleanGeneratedTitle(generated) : "";

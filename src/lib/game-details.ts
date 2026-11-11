@@ -3,8 +3,8 @@ import type { SearchGame } from "@/components/game-search/data";
 import { after } from "next/server";
 import { cache } from "react";
 import {
-  GEMINI_TEXT_MODEL,
   generateGeminiText,
+  getGeminiTextModel,
   hasGeminiKey,
 } from "@/lib/gemini";
 import { prisma } from "@/lib/prisma";
@@ -127,7 +127,6 @@ ${sourceText}
       timeoutMs: 15000,
       maxOutputTokens: 2048,
       retries: 2,
-      model: GEMINI_TEXT_MODEL,
     },
   );
 
@@ -178,7 +177,7 @@ function scheduleGeminiSummary(
         await saveDetails(
           gameId,
           assembleFromPublic(game, info, geminiSummary, "gemini"),
-          GEMINI_TEXT_MODEL,
+          getGeminiTextModel(),
         );
       } catch (error) {
         console.error("Gemini game summary generation failed", error);
@@ -254,7 +253,7 @@ export async function refreshGameDetails(
       id,
       details,
       geminiSummary
-        ? GEMINI_TEXT_MODEL
+        ? getGeminiTextModel()
         : publicInfo
           ? "wikipedia-public-sources"
           : "registered-public-facts",

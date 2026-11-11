@@ -145,4 +145,5 @@ GameLogは、ゲームに関する活動を記録できるゲームレビュー�
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase プロジェクト URL                |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名キー                        |
 | `GEMINI_API_KEY`                | Gemini テキスト生成                      |
+| `GEMINI_TEXT_MODEL`             | Gemini モデル名（省略時は `gemini-3.5-flash-lite`） |
 | `ADMIN_EMAILS`                  | 管理者にするメール（任意・カンマ区切り） |

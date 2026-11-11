@@ -1,5 +1,9 @@
 // Gemini REST。レビュー/掲示板タイトルとゲーム概要の生成に使う。
-export const GEMINI_TEXT_MODEL = "gemini-3.5-flash-lite";
+const DEFAULT_GEMINI_TEXT_MODEL = "gemini-3.5-flash-lite";
+
+export function getGeminiTextModel() {
+  return process.env.GEMINI_TEXT_MODEL?.trim() || DEFAULT_GEMINI_TEXT_MODEL;
+}
 
 export function hasGeminiKey() {
   return Boolean(
@@ -25,7 +29,7 @@ export async function generateGeminiText(
     return null;
   }
 
-  const model = options?.model ?? GEMINI_TEXT_MODEL;
+  const model = options?.model?.trim() || getGeminiTextModel();
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
   const requestBody = {
