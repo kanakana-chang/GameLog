@@ -6,7 +6,7 @@ Prisma の `prisma/schema.prisma` に合わせた公開スキーマです。Auth
 
 | テーブル             | 役割                                                                                                                       |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `games`              | ゲームマスタ。`release_year` は年のみ（BigInt）。`avg_play_hours` は管理画面の目安時間。`is_published` が false なら非公開 |
+| `games`              | ゲームマスタ。`release_year` は年のみ（BigInt）。`avg_play_hours` は管理画面の目安時間。`f2p_score` はカタログの無課金度（1-5、0は自動）。`is_published` が false なら非公開 |
 | `platforms`          | 対応ハード                                                                                                                 |
 | `game_platform`      | ゲームとハードの中間テーブル（設計書の `game_platforms` に相当）                                                           |
 | `game_details`       | Wikipedia / Gemini で組み立てた概要 JSON                                                                                   |

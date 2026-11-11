@@ -133,7 +133,9 @@ export function F2PBadge({
   buyOnce?: boolean;
 }) {
   const label = buyOnce
-    ? "買い切り"
+    ? score >= 5
+      ? "完全無課金"
+      : "買い切り"
     : score >= 5
       ? "完全無課金OK"
       : score >= 4
@@ -142,7 +144,9 @@ export function F2PBadge({
           ? "課金有利"
           : "課金推奨";
   const styles = buyOnce
-    ? { bg: "#EEF2FF", color: "#4338CA", border: "#C7D2FE" }
+    ? score >= 5
+      ? { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" }
+      : { bg: "#EEF2FF", color: "#4338CA", border: "#C7D2FE" }
     : score >= 5
       ? { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" }
       : score >= 4

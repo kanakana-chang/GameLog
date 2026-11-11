@@ -125,6 +125,7 @@ export const GamesScalarFieldEnum = {
   cover_image_url: 'cover_image_url',
   game_type: 'game_type',
   avg_play_hours: 'avg_play_hours',
+  f2p_score: 'f2p_score',
   is_published: 'is_published',
   created_at: 'created_at'
 } as const

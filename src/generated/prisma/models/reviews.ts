@@ -1149,10 +1149,25 @@ export type $reviewsPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     user_id: string | null
     game_id: string
     rating_overall: runtime.Decimal
+    /**
+     * ストーリー (1-10)
+     */
     param_1: number
+    /**
+     * グラフィック (1-10)
+     */
     param_2: number
+    /**
+     * ゲームプレイ (1-10)
+     */
     param_3: number
+    /**
+     * サウンド (1-10)
+     */
     param_4: number
+    /**
+     * 無課金度 (1-10)
+     */
     param_5: number
     comment: string | null
     image_url: string | null

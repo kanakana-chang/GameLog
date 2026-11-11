@@ -40,6 +40,7 @@ export type AdminGame = {
   hasCurrency: boolean;
   avgPlaytime: number;
   storedAvgPlaytime: number;
+  f2pScore: number;
   coverUrl: string;
   status: "active" | "archived";
   addedAt: string;

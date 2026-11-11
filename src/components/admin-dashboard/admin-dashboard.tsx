@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { CoverImage } from "@/components/cover-image";
 import { UserAvatar } from "@/components/user-avatar";
+import { F2P_LEVELS } from "@/lib/f2p";
 import {
   ADMIN_GENRES,
   ADMIN_PLATFORMS,
@@ -92,6 +93,7 @@ function GameForm({
     hasCurrency: false,
     avgPlaytime: 0,
     storedAvgPlaytime: 0,
+    f2pScore: 0,
     coverUrl: "",
     status: "active",
   };
@@ -138,6 +140,7 @@ function GameForm({
         hasCurrency: form.hasCurrency!,
         avgPlaytime: form.storedAvgPlaytime ?? form.avgPlaytime ?? 0,
         storedAvgPlaytime: form.storedAvgPlaytime ?? form.avgPlaytime ?? 0,
+        f2pScore: form.f2pScore ?? 0,
         coverUrl: form.coverUrl ?? "",
         status: form.status!,
         addedAt: form.addedAt ?? now,
@@ -333,6 +336,28 @@ function GameForm({
 
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">
+              無課金度
+            </label>
+            <select
+              value={form.f2pScore ?? 0}
+              onChange={(e) =>
+                setForm({ ...form, f2pScore: Number(e.target.value) })
+              }
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-transparent focus:ring-2 focus:ring-violet-500 focus:outline-none"
+            >
+              {F2P_LEVELS.map((level) => (
+                <option key={level.value} value={level.value}>
+                  {level.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px] leading-snug text-slate-400">
+              買い切りで追加コンテンツがなければ完全無課金。追加やガチャの重さで下げます
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
               カバー画像 URL
             </label>
             <input
@@ -410,6 +435,7 @@ function GamesPanel({ initialGames }: { initialGames: AdminGame[] }) {
       freeToPlay: g.freeToPlay,
       hasCurrency: g.hasCurrency,
       avgPlaytime: g.storedAvgPlaytime ?? g.avgPlaytime,
+      f2pScore: g.f2pScore ?? 0,
       coverUrl: g.coverUrl,
       status: g.status,
     };

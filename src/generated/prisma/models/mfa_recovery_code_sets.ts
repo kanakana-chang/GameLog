@@ -446,14 +446,6 @@ export type mfa_recovery_code_setsUncheckedUpdateOneWithoutMfa_factorsNestedInpu
   update?: Prisma.XOR<Prisma.XOR<Prisma.mfa_recovery_code_setsUpdateToOneWithWhereWithoutMfa_factorsInput, Prisma.mfa_recovery_code_setsUpdateWithoutMfa_factorsInput>, Prisma.mfa_recovery_code_setsUncheckedUpdateWithoutMfa_factorsInput>
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type mfa_recovery_code_setsCreateNestedOneWithoutMfa_recovery_codesInput = {
   create?: Prisma.XOR<Prisma.mfa_recovery_code_setsCreateWithoutMfa_recovery_codesInput, Prisma.mfa_recovery_code_setsUncheckedCreateWithoutMfa_recovery_codesInput>
   connectOrCreate?: Prisma.mfa_recovery_code_setsCreateOrConnectWithoutMfa_recovery_codesInput

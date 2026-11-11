@@ -3397,6 +3397,7 @@ export const GamesScalarFieldEnum = {
   cover_image_url: 'cover_image_url',
   game_type: 'game_type',
   avg_play_hours: 'avg_play_hours',
+  f2p_score: 'f2p_score',
   is_published: 'is_published',
   created_at: 'created_at'
 } as const
@@ -4055,6 +4056,20 @@ export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -4128,20 +4143,6 @@ export type Enumfactor_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'factor_status[]'
  */
 export type ListEnumfactor_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'factor_status[]'>
-    
-
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 

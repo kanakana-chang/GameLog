@@ -29,11 +29,13 @@ export type AggregateGames = {
 export type GamesAvgAggregateOutputType = {
   release_year: number | null
   avg_play_hours: runtime.Decimal | null
+  f2p_score: number | null
 }
 
 export type GamesSumAggregateOutputType = {
   release_year: bigint | null
   avg_play_hours: runtime.Decimal | null
+  f2p_score: number | null
 }
 
 export type GamesMinAggregateOutputType = {
@@ -45,6 +47,7 @@ export type GamesMinAggregateOutputType = {
   cover_image_url: string | null
   game_type: string | null
   avg_play_hours: runtime.Decimal | null
+  f2p_score: number | null
   is_published: boolean | null
   created_at: Date | null
 }
@@ -58,6 +61,7 @@ export type GamesMaxAggregateOutputType = {
   cover_image_url: string | null
   game_type: string | null
   avg_play_hours: runtime.Decimal | null
+  f2p_score: number | null
   is_published: boolean | null
   created_at: Date | null
 }
@@ -71,6 +75,7 @@ export type GamesCountAggregateOutputType = {
   cover_image_url: number
   game_type: number
   avg_play_hours: number
+  f2p_score: number
   is_published: number
   created_at: number
   _all: number
@@ -80,11 +85,13 @@ export type GamesCountAggregateOutputType = {
 export type GamesAvgAggregateInputType = {
   release_year?: true
   avg_play_hours?: true
+  f2p_score?: true
 }
 
 export type GamesSumAggregateInputType = {
   release_year?: true
   avg_play_hours?: true
+  f2p_score?: true
 }
 
 export type GamesMinAggregateInputType = {
@@ -96,6 +103,7 @@ export type GamesMinAggregateInputType = {
   cover_image_url?: true
   game_type?: true
   avg_play_hours?: true
+  f2p_score?: true
   is_published?: true
   created_at?: true
 }
@@ -109,6 +117,7 @@ export type GamesMaxAggregateInputType = {
   cover_image_url?: true
   game_type?: true
   avg_play_hours?: true
+  f2p_score?: true
   is_published?: true
   created_at?: true
 }
@@ -122,6 +131,7 @@ export type GamesCountAggregateInputType = {
   cover_image_url?: true
   game_type?: true
   avg_play_hours?: true
+  f2p_score?: true
   is_published?: true
   created_at?: true
   _all?: true
@@ -222,6 +232,7 @@ export type GamesGroupByOutputType = {
   cover_image_url: string
   game_type: string
   avg_play_hours: runtime.Decimal
+  f2p_score: number
   is_published: boolean
   created_at: Date
   _count: GamesCountAggregateOutputType | null
@@ -258,6 +269,7 @@ export type gamesWhereInput = {
   cover_image_url?: Prisma.StringFilter<"games"> | string
   game_type?: Prisma.StringFilter<"games"> | string
   avg_play_hours?: Prisma.DecimalFilter<"games"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFilter<"games"> | number
   is_published?: Prisma.BoolFilter<"games"> | boolean
   created_at?: Prisma.DateTimeFilter<"games"> | Date | string
   game_details?: Prisma.XOR<Prisma.Game_detailsNullableScalarRelationFilter, Prisma.game_detailsWhereInput> | null
@@ -276,6 +288,7 @@ export type gamesOrderByWithRelationInput = {
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
   avg_play_hours?: Prisma.SortOrder
+  f2p_score?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   game_details?: Prisma.game_detailsOrderByWithRelationInput
@@ -297,6 +310,7 @@ export type gamesWhereUniqueInput = Prisma.AtLeast<{
   cover_image_url?: Prisma.StringFilter<"games"> | string
   game_type?: Prisma.StringFilter<"games"> | string
   avg_play_hours?: Prisma.DecimalFilter<"games"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFilter<"games"> | number
   is_published?: Prisma.BoolFilter<"games"> | boolean
   created_at?: Prisma.DateTimeFilter<"games"> | Date | string
   game_details?: Prisma.XOR<Prisma.Game_detailsNullableScalarRelationFilter, Prisma.game_detailsWhereInput> | null
@@ -315,6 +329,7 @@ export type gamesOrderByWithAggregationInput = {
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
   avg_play_hours?: Prisma.SortOrder
+  f2p_score?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   _count?: Prisma.gamesCountOrderByAggregateInput
@@ -336,6 +351,7 @@ export type gamesScalarWhereWithAggregatesInput = {
   cover_image_url?: Prisma.StringWithAggregatesFilter<"games"> | string
   game_type?: Prisma.StringWithAggregatesFilter<"games"> | string
   avg_play_hours?: Prisma.DecimalWithAggregatesFilter<"games"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntWithAggregatesFilter<"games"> | number
   is_published?: Prisma.BoolWithAggregatesFilter<"games"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"games"> | Date | string
 }
@@ -349,6 +365,7 @@ export type gamesCreateInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
@@ -367,6 +384,7 @@ export type gamesUncheckedCreateInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
@@ -385,6 +403,7 @@ export type gamesUpdateInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
@@ -403,6 +422,7 @@ export type gamesUncheckedUpdateInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
@@ -421,6 +441,7 @@ export type gamesCreateManyInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
 }
@@ -434,6 +455,7 @@ export type gamesUpdateManyMutationInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -447,6 +469,7 @@ export type gamesUncheckedUpdateManyInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -465,6 +488,7 @@ export type gamesCountOrderByAggregateInput = {
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
   avg_play_hours?: Prisma.SortOrder
+  f2p_score?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
@@ -472,6 +496,7 @@ export type gamesCountOrderByAggregateInput = {
 export type gamesAvgOrderByAggregateInput = {
   release_year?: Prisma.SortOrder
   avg_play_hours?: Prisma.SortOrder
+  f2p_score?: Prisma.SortOrder
 }
 
 export type gamesMaxOrderByAggregateInput = {
@@ -483,6 +508,7 @@ export type gamesMaxOrderByAggregateInput = {
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
   avg_play_hours?: Prisma.SortOrder
+  f2p_score?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
@@ -496,6 +522,7 @@ export type gamesMinOrderByAggregateInput = {
   cover_image_url?: Prisma.SortOrder
   game_type?: Prisma.SortOrder
   avg_play_hours?: Prisma.SortOrder
+  f2p_score?: Prisma.SortOrder
   is_published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
@@ -503,6 +530,7 @@ export type gamesMinOrderByAggregateInput = {
 export type gamesSumOrderByAggregateInput = {
   release_year?: Prisma.SortOrder
   avg_play_hours?: Prisma.SortOrder
+  f2p_score?: Prisma.SortOrder
 }
 
 export type gamesCreateNestedOneWithoutGame_platformInput = {
@@ -533,6 +561,14 @@ export type DecimalFieldUpdateOperationsInput = {
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type BoolFieldUpdateOperationsInput = {
@@ -608,6 +644,7 @@ export type gamesCreateWithoutGame_platformInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
@@ -625,6 +662,7 @@ export type gamesUncheckedCreateWithoutGame_platformInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
@@ -658,6 +696,7 @@ export type gamesUpdateWithoutGame_platformInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
@@ -675,6 +714,7 @@ export type gamesUncheckedUpdateWithoutGame_platformInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
@@ -692,6 +732,7 @@ export type gamesCreateWithoutGame_detailsInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_platform?: Prisma.game_platformCreateNestedManyWithoutGamesInput
@@ -709,6 +750,7 @@ export type gamesUncheckedCreateWithoutGame_detailsInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_platform?: Prisma.game_platformUncheckedCreateNestedManyWithoutGamesInput
@@ -742,6 +784,7 @@ export type gamesUpdateWithoutGame_detailsInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_platform?: Prisma.game_platformUpdateManyWithoutGamesNestedInput
@@ -759,6 +802,7 @@ export type gamesUncheckedUpdateWithoutGame_detailsInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_platform?: Prisma.game_platformUncheckedUpdateManyWithoutGamesNestedInput
@@ -776,6 +820,7 @@ export type gamesCreateWithoutReviewsInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
@@ -793,6 +838,7 @@ export type gamesUncheckedCreateWithoutReviewsInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
@@ -826,6 +872,7 @@ export type gamesUpdateWithoutReviewsInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
@@ -843,6 +890,7 @@ export type gamesUncheckedUpdateWithoutReviewsInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
@@ -860,6 +908,7 @@ export type gamesCreateWithoutTopicsInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
@@ -877,6 +926,7 @@ export type gamesUncheckedCreateWithoutTopicsInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
@@ -910,6 +960,7 @@ export type gamesUpdateWithoutTopicsInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
@@ -927,6 +978,7 @@ export type gamesUncheckedUpdateWithoutTopicsInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
@@ -944,6 +996,7 @@ export type gamesCreateWithoutUser_game_statusesInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsCreateNestedOneWithoutGamesInput
@@ -961,6 +1014,7 @@ export type gamesUncheckedCreateWithoutUser_game_statusesInput = {
   cover_image_url: string
   game_type: string
   avg_play_hours?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: number
   is_published?: boolean
   created_at?: Date | string
   game_details?: Prisma.game_detailsUncheckedCreateNestedOneWithoutGamesInput
@@ -994,6 +1048,7 @@ export type gamesUpdateWithoutUser_game_statusesInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUpdateOneWithoutGamesNestedInput
@@ -1011,6 +1066,7 @@ export type gamesUncheckedUpdateWithoutUser_game_statusesInput = {
   cover_image_url?: Prisma.StringFieldUpdateOperationsInput | string
   game_type?: Prisma.StringFieldUpdateOperationsInput | string
   avg_play_hours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  f2p_score?: Prisma.IntFieldUpdateOperationsInput | number
   is_published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   game_details?: Prisma.game_detailsUncheckedUpdateOneWithoutGamesNestedInput
@@ -1086,6 +1142,7 @@ export type gamesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   cover_image_url?: boolean
   game_type?: boolean
   avg_play_hours?: boolean
+  f2p_score?: boolean
   is_published?: boolean
   created_at?: boolean
   game_details?: boolean | Prisma.games$game_detailsArgs<ExtArgs>
@@ -1105,6 +1162,7 @@ export type gamesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   cover_image_url?: boolean
   game_type?: boolean
   avg_play_hours?: boolean
+  f2p_score?: boolean
   is_published?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["games"]>
@@ -1118,6 +1176,7 @@ export type gamesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   cover_image_url?: boolean
   game_type?: boolean
   avg_play_hours?: boolean
+  f2p_score?: boolean
   is_published?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["games"]>
@@ -1131,11 +1190,12 @@ export type gamesSelectScalar = {
   cover_image_url?: boolean
   game_type?: boolean
   avg_play_hours?: boolean
+  f2p_score?: boolean
   is_published?: boolean
   created_at?: boolean
 }
 
-export type gamesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "publisher" | "release_year" | "genre" | "cover_image_url" | "game_type" | "avg_play_hours" | "is_published" | "created_at", ExtArgs["result"]["games"]>
+export type gamesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "publisher" | "release_year" | "genre" | "cover_image_url" | "game_type" | "avg_play_hours" | "f2p_score" | "is_published" | "created_at", ExtArgs["result"]["games"]>
 export type gamesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   game_details?: boolean | Prisma.games$game_detailsArgs<ExtArgs>
   game_platform?: boolean | Prisma.games$game_platformArgs<ExtArgs>
@@ -1165,6 +1225,10 @@ export type $gamesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     cover_image_url: string
     game_type: string
     avg_play_hours: runtime.Decimal
+    /**
+     * カタログの無課金度 1-5。0 はタイトルと課金形態から自動判定
+     */
+    f2p_score: number
     is_published: boolean
     created_at: Date
   }, ExtArgs["result"]["games"]>
@@ -1603,6 +1667,7 @@ export interface gamesFieldRefs {
   readonly cover_image_url: Prisma.FieldRef<"games", 'String'>
   readonly game_type: Prisma.FieldRef<"games", 'String'>
   readonly avg_play_hours: Prisma.FieldRef<"games", 'Decimal'>
+  readonly f2p_score: Prisma.FieldRef<"games", 'Int'>
   readonly is_published: Prisma.FieldRef<"games", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"games", 'DateTime'>
 }

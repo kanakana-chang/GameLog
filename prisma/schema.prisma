@@ -28,6 +28,8 @@ model games {
   cover_image_url    String
   game_type          String               @db.VarChar
   avg_play_hours     Decimal              @default(0) @db.Decimal(6, 1)
+  /// カタログの無課金度 1-5。0 はタイトルと課金形態から自動判定
+  f2p_score          Int                  @default(0) @db.SmallInt
   is_published       Boolean              @default(true)
   created_at         DateTime             @default(now()) @db.Timestamptz(6)
   game_details       game_details?

@@ -86,7 +86,7 @@ export function FeaturedGames({ games }: { games: SearchGame[] }) {
                   </span>
                 </div>
 
-                {game.isFree ? <F2PBar score={game.f2pScore} /> : null}
+                <F2PBar score={game.f2pScore} />
 
                 <div className="mt-1.5 flex min-w-0 items-center justify-between gap-1 sm:mt-2">
                   <span className="truncate text-[10px] text-[#7a7d8a] sm:text-[11px]">
